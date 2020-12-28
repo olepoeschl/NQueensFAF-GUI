@@ -1,3 +1,4 @@
+package calc;
 
 public class BoardProperties {
 	
