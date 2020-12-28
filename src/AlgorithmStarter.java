@@ -1,4 +1,4 @@
-package mainpackage;
+
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -7,36 +7,28 @@ import java.util.Iterator;
 
 public class AlgorithmStarter {
 
-	private int N;												//Brettgröße
+	private int N, mask;												//Brettgröße
 	private int cpu;											//Anzahl der gewünschten Threads (Anzahl der Kerne)
 	private int symmetry = 8;
+	private boolean[] rowNotFree, colNotFree, diaLeftNotFree, diaRightNotFree;
+	private ArrayDeque<BoardProperties> boardPropertiesList;
 
-	ArrayDeque<BoardProperties> boardPropertiesList;
 	ArrayDeque<int[]> startConstellations;
-	
-	private ArrayList<Integer> liste, freeRows;
-	private boolean[] rowNotFree, colNotFree;
-	private boolean[] diaRightNotFree;					// diadonalen nach rechts unten, 2N - 1 stück
-	// zeichnen sich dadurch aus, dass innerhalb einer diagonale gilt: zeile - spalte = konst.
-	private boolean[] diaLeftNotFree;					// diagonalen nach links unten, 2N - 1 stück
-	// zeichnen sich dadurch aus, dass innerhalb einer diagonale gilt: zeile + spalte = konst.
 
 
 	public AlgorithmStarter(int N, int cpu, boolean pausable) {
 		this.N = N;
 		this.cpu = cpu;
+		mask = (int) (Math.pow(2, N) - 1);
 
-		boardPropertiesList = new ArrayDeque<BoardProperties>();				//Reihenfolge der Indize: oben, unten, links, rechts
 		startConstellations = new ArrayDeque<int[]>();
+	
+		boardPropertiesList = new ArrayDeque<BoardProperties>();
 		
-		liste = new ArrayList<Integer>();
-		for(int i = 1; i < N-1; i++) {
-			liste.add(i);
-		}
-		rowNotFree = new boolean[N];
 		colNotFree = new boolean[N];
-		diaRightNotFree = new boolean[2*N - 1];
-		diaLeftNotFree = new boolean[2*N - 1];
+		rowNotFree = new boolean[N];
+		diaLeftNotFree = new boolean[2*N-1];
+		diaRightNotFree = new boolean[2*N-1];
 	}
 
 	public void startAlgorithm() {
@@ -77,11 +69,27 @@ public class AlgorithmStarter {
 							else
 								symmetry = 8;
 							
-							freeRows = (ArrayList<Integer>) liste.clone();
-							freeRows.remove((Object) k);
-							freeRows.remove((Object) l);
+							colNotFree[0] = true;
+							colNotFree[N-1] = true;
 							
-							boardPropertiesList.add( new BoardProperties(freeRows, colNotFree, diaRightNotFree, diaLeftNotFree, symmetry) );
+							int[] temp = new int[N];					// 1, wenn belegt, 0 sonst
+							for(int m = 0; m < N; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
+								for(int n = 0; n < N; n++) {			// schon belegt sind
+									if(!SquareIsSafe(m, n)) 
+										temp[m] += 1 << (N-1-n);
+								}
+							}
+							
+							colNotFree[0] = false;
+							colNotFree[N-1] = false;
+							
+							temp[k] = mask >> 1;
+							temp[l] = (mask >> 1) << 1;
+							temp[0] = mask - (1<<(N-1-i));
+							temp[N-1] = mask - (1<<(N-1-j));
+							
+							boardPropertiesList.add(new BoardProperties(temp, symmetry));				// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
+							
 							startConstellations.add(new int[]{i, j, k, l} );
 							rowNotFree[l] = false;
 							diaRightNotFree[l] = false;
@@ -119,11 +127,26 @@ public class AlgorithmStarter {
 					rowNotFree[l] = true;
 					diaRightNotFree[l] = true;
 					diaLeftNotFree[l + N-1] = true;
-
-					freeRows = (ArrayList<Integer>) liste.clone();
-					freeRows.remove((Object) l);
 					
-					boardPropertiesList.add( new BoardProperties(freeRows, colNotFree, diaRightNotFree, diaLeftNotFree, 8));
+					colNotFree[0] = true;
+					colNotFree[N-1] = true;
+					
+					int[] temp = new int[N];					// 1, wenn belegt, 0 sonst
+					for(int m = 0; m < N; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
+						for(int n = 0; n < N; n++) {			// schon belegt sind
+							if(!SquareIsSafe(m, n)) 
+								temp[m] += 1 << (N-1-n);
+						}
+					}
+					
+					colNotFree[0] = false;
+					colNotFree[N-1] = false;
+					
+					temp[0] = mask >> 1;
+					temp[N-1] = ~(1 << (N-1-j)) & mask;
+					temp[l] = (mask >> 1) << 1;
+					boardPropertiesList.add(new BoardProperties(temp, 8));	
+			
 					startConstellations.add(new int[]{0, j, 0, l});
 					
 					rowNotFree[l] = false;
@@ -140,10 +163,12 @@ public class AlgorithmStarter {
 		
 		diaRightNotFree[N-1] = false;
 		diaLeftNotFree[0] = false;
+		colNotFree[0] = false;
+		colNotFree[N-1] = false;
 		
 		
 		//---
-		ArrayList< ArrayDeque<BoardProperties> > threadConstellations = new ArrayList< ArrayDeque<BoardProperties> >(cpu);
+		ArrayList< ArrayDeque<BoardProperties> > threadConstellations = new ArrayList< ArrayDeque<BoardProperties>>(cpu);
 		for(int i = 0; i < cpu; i++) {
 			threadConstellations.add(new ArrayDeque<BoardProperties>());
 		}
@@ -237,7 +262,7 @@ public class AlgorithmStarter {
 	
 	
 	public static void main(String[] args) {
-		AlgorithmStarter algStarter = new AlgorithmStarter(16, 8, false);
+		AlgorithmStarter algStarter = new AlgorithmStarter(18, 2, false);
 		algStarter.startAlgorithm();
 	}
 }
