@@ -5,7 +5,7 @@ public class BoardProperties {
 	public int symmetry;
 	
 	public BoardProperties(int[] boardIntegers, int symmetry) {
-		this.boardIntegers = boardIntegers.clone();
+		this.boardIntegers = boardIntegers;
 		this.symmetry = symmetry;
 	}
 	
