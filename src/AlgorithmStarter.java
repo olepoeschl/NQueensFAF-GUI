@@ -7,14 +7,14 @@ import java.util.Iterator;
 
 public class AlgorithmStarter {
 
-	private int N, mask;												//Brettgröße
-	private int cpu;											//Anzahl der gewünschten Threads (Anzahl der Kerne)
-	private int symmetry = 8;
-	int[] temp;
-	private boolean[] rowNotFree, colNotFree, diaLeftNotFree, diaRightNotFree;
-	private ArrayDeque<BoardProperties> boardPropertiesList;
+	private int N, mask;										// Brettgröße N, mask ist Integer mit N 1en rechts in der Bitdarstellung (entspricht dem Brett)
+	private int cpu;											// Anzahl der gewünschten Threads (Anzahl der Kerne)
+	private int symmetry = 8;									// Vielfachheit der gefundenen Lösung
+	int[] currentRows;											// beschreibt für aktuelle Startpos die Belegung der N Zeilen (als Int in Bitdarstellung)
+	private boolean[] rowNotFree, colNotFree, diaLeftNotFree, diaRightNotFree;	// Belegung der Diagonalen, Zeilen, Spalten (true belegt, false frei)
+	private ArrayDeque<BoardProperties> boardPropertiesList;	// Bretteigenschaften (Belegung einzelner Zeilen) zu jeder Startposition
 
-	ArrayDeque<int[]> startConstellations;
+	ArrayDeque<int[]> startConstellations;						// checkt, ob aktuelle Startposition schon gefunden wurde ( beachte Symmetrie)
 
 
 	public AlgorithmStarter(int N, int cpu, boolean pausable) {
@@ -33,64 +33,64 @@ public class AlgorithmStarter {
 	}
 
 	public void startAlgorithm() {
-		int halfN = (N + (N % 2)) / 2;
+		int halfN = (N + (N % 2)) / 2;				// Dame nur links setzen, Rest eh symmetrisch
 
-		//Start-Konstellationen berechnen für 1.Dame ist nicht in der oberen linken Ecke
-		for(int i = 1; i < halfN; i++) {
+		//Start-Konstellationen berechnen für 1.Dame ist nicht in der oberen linken Ecke (hier muss man Symmetrie checken)
+		for(int i = 1; i < halfN; i++) {			// erste Zeile durchgehen
 			colNotFree[i] = true;					// Spalte wird belegt
 			diaRightNotFree[-i+N-1] = true;			// dia right wird belegt
 			diaLeftNotFree[i] = true;				// dia left wird belegt
 			
-			for(int j = i+1; j < N-1; j++) {
+			for(int j = i+1; j < N-1; j++) {		// letzte Zeile durchgehen
 				if( ! SquareIsSafe(N-1, j))
 					continue;
 				colNotFree[j] = true;							// Spalte wird belegt
 				diaRightNotFree[(N-1)-j+N-1] = true;			// dia right wird belegt
 				diaLeftNotFree[(N-1)+j] = true;					// dia left wird belegt
 				
-				for(int k = i+1; k < N-1; k++) {
+				for(int k = i+1; k < N-1; k++) {				// erste Spalte durchgehen
 					if( ! SquareIsSafe(k, 0))
 						continue;
 					rowNotFree[k] = true;								// Zeile wird belegt
 					diaRightNotFree[k+N-1] = true;						// dia right wird belegt
 					diaLeftNotFree[k] = true;							// dia left wird belegt
 
-					for(int l = 1; l < N-1; l++) {
-						if( SquareIsSafe(l, N-1) && !checkRotations(i, j, k, l) && !checkDiaLeft(i, j, k, l)) {
+					for(int l = 1; l < N-1; l++) {						// letzte Spalte durchgehen
+						if( SquareIsSafe(l, N-1) && !checkRotations(i, j, k, l) && !checkDiaLeft(i, j, k, l)) {		// wenn zul. und neu, dann neue Startpos. gefunden
 							rowNotFree[l] = true;
 							diaRightNotFree[l] = true;
 							diaLeftNotFree[l + N-1] = true;
 
-							if(i == N-1-j && k == N-1-l)		//180° symmetrisch?
-								if(symmetry90(i, j, k, l))
+							if(i == N-1-j && k == N-1-l)		// 180° symmetrisch?
+								if(symmetry90(i, j, k, l))		// sogar 90° symmetrisch?
 									symmetry = 2;
 								else
 									symmetry = 4;
 							else
-								symmetry = 8;
+								symmetry = 8;					// gar nicht symmetrisch
 							
 							colNotFree[0] = true;
 							colNotFree[N-1] = true;
 							
-							temp = new int[N];					// 1, wenn belegt, 0 sonst
+							currentRows = new int[N];					// 1, wenn belegt, 0 sonst
 							for(int m = 1; m < N-1; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
 								for(int n = 0; n < N; n++) {			// schon belegt sind
 									if(!SquareIsSafe(m, n)) 
-										temp[m] += 1 << (N-1-n);
+										currentRows[m] += 1 << (N-1-n);
 								}
 							}
 							
 							colNotFree[0] = false;
 							colNotFree[N-1] = false;
 							
-							temp[k] = mask >> 1;
-							temp[l] = (mask >> 1) << 1;
-							temp[0] = mask - (1<<(N-1-i));
-							temp[N-1] = mask - (1<<(N-1-j));
+							currentRows[k] = mask >> 1;					// überschreibe die Belegungen in Zeile und Spalte 1 und N
+							currentRows[l] = (mask >> 1) << 1;
+							currentRows[0] = mask - (1<<(N-1-i));
+							currentRows[N-1] = mask - (1<<(N-1-j));
 							
-							boardPropertiesList.add(new BoardProperties(temp, symmetry));				// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
+							boardPropertiesList.add(new BoardProperties(currentRows, symmetry));	// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
 							
-							startConstellations.add(new int[]{i, j, k, l} );
+							startConstellations.add(new int[]{i, j, k, l} );						// Sachen wieder freigeben	
 							rowNotFree[l] = false;
 							diaRightNotFree[l] = false;
 							diaLeftNotFree[l + N-1] = false;
@@ -124,7 +124,7 @@ public class AlgorithmStarter {
 			diaLeftNotFree[N-1 + j] = true;
 			
 			for(int l = j+1; l < N-1; l++) {
-				if( SquareIsSafe(l, N-1) && !checkRotations(0, j, 0, l) && !checkDiaLeft(0, j, 0, l)) {
+				if( SquareIsSafe(l, N-1)) {		
 					rowNotFree[l] = true;
 					diaRightNotFree[l] = true;
 					diaLeftNotFree[l + N-1] = true;
@@ -132,22 +132,22 @@ public class AlgorithmStarter {
 					colNotFree[0] = true;
 					colNotFree[N-1] = true;
 					
-					temp = new int[N];					// 1, wenn belegt, 0 sonst
+					currentRows = new int[N];					// 1, wenn belegt, 0 sonst
 					for(int m = 1; m < N-1; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
 						for(int n = 0; n < N; n++) {			// schon belegt sind
 							if(!SquareIsSafe(m, n)) 
-								temp[m] += 1 << (N-1-n);
+								currentRows[m] += 1 << (N-1-n);
 						}
 					}
 					
 					colNotFree[0] = false;
 					colNotFree[N-1] = false;
 					
-					temp[0] = mask >> 1;
-					temp[N-1] = ~(1 << (N-1-j)) & mask;
-					temp[l] = (mask >> 1) << 1;
+					currentRows[0] = mask >> 1;
+					currentRows[N-1] = ~(1 << (N-1-j)) & mask;
+					currentRows[l] = (mask >> 1) << 1;
 					
-					boardPropertiesList.add(new BoardProperties(temp, 8));	
+					boardPropertiesList.add(new BoardProperties(currentRows, 8));	
 					startConstellations.add(new int[]{0, j, 0, l});
 					
 					rowNotFree[l] = false;
@@ -238,6 +238,8 @@ public class AlgorithmStarter {
 
 		return false;
 	}
+	
+	// true, wenn Spieg. der aktuellen Konstellation an der Diagonale (o.l. -> u.r.) bereits in startconstellations 
 	private boolean checkDiaLeft(int i, int j, int k, int l) {
 		for(int[] constellation : startConstellations) {
 			if(Arrays.equals(new int[]{N-1-l, N-1-k, N-1-j, N-1-i}, constellation)) {
@@ -247,6 +249,8 @@ public class AlgorithmStarter {
 		
 		return false;
 	}
+	
+	// true, wenn konstellation 90° drehsymmetrisch
 	private boolean symmetry90(int i, int j, int k, int l) {
 		if(Arrays.equals(new Integer[] {i, j, k, l}, new Integer[]{N-1-k, N-1-l, j, i}))
 			return true;
@@ -254,9 +258,9 @@ public class AlgorithmStarter {
 	}
 	
 	
-	
+	// start the main
 	public static void main(String[] args) {
-		AlgorithmStarter algStarter = new AlgorithmStarter(18, 1, false);
+		AlgorithmStarter algStarter = new AlgorithmStarter(16, 1, false);
 		algStarter.startAlgorithm();
 	}
 }
