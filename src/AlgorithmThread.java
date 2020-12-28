@@ -6,7 +6,7 @@ public class AlgorithmThread extends Thread {
 
 	//Globale Variablen
 	private int N;
-	private long trycounter = 0, tempcounter = 0, solvecounter = 0;
+	private long tempcounter = 0, solvecounter = 0;
 	private int index = 0;
 	private ArrayDeque<BoardProperties> boardPropertiesList;
 	private int symmetry = 8;
@@ -30,7 +30,7 @@ public class AlgorithmThread extends Thread {
 		
 		int free = ~(ld | rd | col | boardIntegers[index]);
 		
-		while((free & mask) != 0) {
+		while((free & mask) > 0) {
 			int bit = free & (-free);
 			free -= bit;
 			index++;
@@ -54,8 +54,5 @@ public class AlgorithmThread extends Thread {
 	
 	public long getSolvecounter() {
 		return solvecounter;
-	}
-	public long getTrycounter() {
-		return trycounter;
 	}
 }

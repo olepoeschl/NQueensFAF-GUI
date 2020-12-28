@@ -10,6 +10,7 @@ public class AlgorithmStarter {
 	private int N, mask;												//Brettgröße
 	private int cpu;											//Anzahl der gewünschten Threads (Anzahl der Kerne)
 	private int symmetry = 8;
+	int[] temp;
 	private boolean[] rowNotFree, colNotFree, diaLeftNotFree, diaRightNotFree;
 	private ArrayDeque<BoardProperties> boardPropertiesList;
 
@@ -43,7 +44,6 @@ public class AlgorithmStarter {
 			for(int j = i+1; j < N-1; j++) {
 				if( ! SquareIsSafe(N-1, j))
 					continue;
-				
 				colNotFree[j] = true;							// Spalte wird belegt
 				diaRightNotFree[(N-1)-j+N-1] = true;			// dia right wird belegt
 				diaLeftNotFree[(N-1)+j] = true;					// dia left wird belegt
@@ -61,7 +61,7 @@ public class AlgorithmStarter {
 							diaRightNotFree[l] = true;
 							diaLeftNotFree[l + N-1] = true;
 
-							if(i == N-1-j && k == N-1-l)
+							if(i == N-1-j && k == N-1-l)		//180° symmetrisch?
 								if(symmetry90(i, j, k, l))
 									symmetry = 2;
 								else
@@ -72,8 +72,8 @@ public class AlgorithmStarter {
 							colNotFree[0] = true;
 							colNotFree[N-1] = true;
 							
-							int[] temp = new int[N];					// 1, wenn belegt, 0 sonst
-							for(int m = 0; m < N; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
+							temp = new int[N];					// 1, wenn belegt, 0 sonst
+							for(int m = 1; m < N-1; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
 								for(int n = 0; n < N; n++) {			// schon belegt sind
 									if(!SquareIsSafe(m, n)) 
 										temp[m] += 1 << (N-1-n);
@@ -115,13 +115,14 @@ public class AlgorithmStarter {
 		//Start-Konstellationen berechnen für 1.Dame auf Feld (0, 0)
 		diaRightNotFree[N-1] = true;
 		diaLeftNotFree[0] = true;
+		
 		for(int j = 1; j < N-2; j++) {
 			if( ! SquareIsSafe(N-1, j))
 				continue;
-
 			colNotFree[j] = true;
 			diaRightNotFree[N-1 - j + N-1] = true;
 			diaLeftNotFree[N-1 + j] = true;
+			
 			for(int l = j+1; l < N-1; l++) {
 				if( SquareIsSafe(l, N-1) && !checkRotations(0, j, 0, l) && !checkDiaLeft(0, j, 0, l)) {
 					rowNotFree[l] = true;
@@ -131,8 +132,8 @@ public class AlgorithmStarter {
 					colNotFree[0] = true;
 					colNotFree[N-1] = true;
 					
-					int[] temp = new int[N];					// 1, wenn belegt, 0 sonst
-					for(int m = 0; m < N; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
+					temp = new int[N];					// 1, wenn belegt, 0 sonst
+					for(int m = 1; m < N-1; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
 						for(int n = 0; n < N; n++) {			// schon belegt sind
 							if(!SquareIsSafe(m, n)) 
 								temp[m] += 1 << (N-1-n);
@@ -145,26 +146,20 @@ public class AlgorithmStarter {
 					temp[0] = mask >> 1;
 					temp[N-1] = ~(1 << (N-1-j)) & mask;
 					temp[l] = (mask >> 1) << 1;
+					
 					boardPropertiesList.add(new BoardProperties(temp, 8));	
-			
 					startConstellations.add(new int[]{0, j, 0, l});
 					
 					rowNotFree[l] = false;
 					diaRightNotFree[l] = false;
 					diaLeftNotFree[l + N-1] = false;
 				}
-
 			}
 
 			colNotFree[j] = false;
 			diaRightNotFree[N-1 - j + N-1] = false;
 			diaLeftNotFree[N-1 + j] = false;
 		}
-		
-		diaRightNotFree[N-1] = false;
-		diaLeftNotFree[0] = false;
-		colNotFree[0] = false;
-		colNotFree[N-1] = false;
 		
 		
 		//---
@@ -204,13 +199,12 @@ public class AlgorithmStarter {
 		
 		
 		//Counter berechnen und Ergebnis ausgeben
-		long trycounter = 0, solvecounter = 0;
+		long solvecounter = 0;
 		for(AlgorithmThread algThread : threadlist) {
-			trycounter += algThread.getTrycounter();
 			solvecounter += algThread.getSolvecounter();
 		}
 		
-		System.out.println(timestr + "\tfertig, solvecounter = " + solvecounter + ", trycounter = " + trycounter);
+		System.out.println(timestr + "\tfertig, solvecounter = " + solvecounter);
 	}
 
 	private boolean SquareIsSafe(int r, int c) {					//Prüft ob das übergebene Feld von einer anderen Dame gedeckt ist.
@@ -262,7 +256,7 @@ public class AlgorithmStarter {
 	
 	
 	public static void main(String[] args) {
-		AlgorithmStarter algStarter = new AlgorithmStarter(18, 2, false);
+		AlgorithmStarter algStarter = new AlgorithmStarter(18, 1, false);
 		algStarter.startAlgorithm();
 	}
 }
