@@ -17,6 +17,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private int index = 0;				//index von boardIntegers[]; entspricht der akutellen Zeile
 	//Liste der von AlgorithmStarter berechneten Start-Konstellationen
 	private ArrayDeque<BoardProperties> boardPropertiesList;
+	private ArrayDeque<BoardProperties> calculatedStartConstellations;
 	
 	//Sachen fürs Pausieren und Speichern
 	private boolean pause = false, save = false;
