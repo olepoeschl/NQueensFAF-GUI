@@ -4,37 +4,62 @@ import javax.swing.JFrame;
 import javax.swing.JSplitPane;
 import java.awt.BorderLayout;
 import javax.swing.JPanel;
-import javax.swing.BoxLayout;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.text.DefaultCaret;
+
+import calc.AlgorithmStarter;
+
 import javax.swing.JButton;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+
 import javax.swing.JLabel;
 import java.awt.Font;
+
 import javax.swing.JTextArea;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+
 import java.awt.Color;
 import javax.swing.border.EtchedBorder;
-import javax.swing.UIManager;
+import javax.swing.border.LineBorder;
 
 public class Gui extends JFrame {
-	private JTextField textField;
-	private JTextField textField_1;
-
+	
+	//Gui-Komponenten
+	private JTextField tfN, tfThreadcount;
+	private JSlider sliderN, sliderThreadcount;
+	private JButton btnSave, btnStart;
+	private JLabel lblTime;
+	private JTextArea taOutput;
+	private JProgressBar progressBar;
+	
+	private EventListener eventListener;
+	
+	//AlgorithmStarter-Objekt
+	AlgorithmStarter algStarter;
 	
 	
 	public Gui() {
 		super("NQueens Algorithm FAF");
-		setIconImage(Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/faf.jpg")));
-		setResizable(false);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
+		eventListener = new EventListener();
 		initGui();
 		this.pack();
 	}
 	
 	private void initGui() {
+		this.setIconImage(Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/faf.jpg")));
+		this.setResizable(false);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
 		getContentPane().setLayout(new BorderLayout(0, 0));
 		
 		JSplitPane splitPane = new JSplitPane();
@@ -49,51 +74,58 @@ public class Gui extends JFrame {
 		pnlInput.add(pnlTop, BorderLayout.NORTH);
 		pnlTop.setLayout(new BorderLayout(0, 0));
 		
-		JPanel pnlFieldsize = new JPanel();
-		pnlFieldsize.setBorder(new TitledBorder(null, "Brettgr\u00F6\u00DFe N", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		pnlTop.add(pnlFieldsize, BorderLayout.NORTH);
+		JPanel pnlN = new JPanel();
+		pnlN.setBorder(new TitledBorder(null, "Brettgr\u00F6\u00DFe N", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		pnlTop.add(pnlN, BorderLayout.NORTH);
 		
-		JSlider slider = new JSlider();
-		slider.setValue(16);
-		slider.setMinimum(1);
-		slider.setMaximum(32);
-		pnlFieldsize.add(slider);
+		sliderN = new JSlider();
+		sliderN.setValue(16);
+		sliderN.setMinimum(1);
+		sliderN.setMaximum(32);
+		sliderN.addChangeListener(eventListener);
+		pnlN.add(sliderN);
 		
-		textField = new JTextField();
-		textField.setText("16");
-		pnlFieldsize.add(textField);
-		textField.setColumns(2);
+		tfN = new JTextField();
+		tfN.setText("16");
+		tfN.setColumns(2);
+		tfN.addKeyListener(eventListener);
+		pnlN.add(tfN);
 		
 		JPanel pnlThreadcount = new JPanel();
 		pnlThreadcount.setBorder(new TitledBorder(null, "Anzahl an Threads", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		pnlTop.add(pnlThreadcount, BorderLayout.SOUTH);
 		
-		JSlider slider_1 = new JSlider();
-		slider_1.setValue(1);
-		slider_1.setMinimum(1);
-		slider_1.setMaximum(16);
-		pnlThreadcount.add(slider_1);
+		sliderThreadcount = new JSlider();
+		sliderThreadcount.setValue(1);
+		sliderThreadcount.setMinimum(1);
+		sliderThreadcount.setMaximum(16);
+		sliderThreadcount.addChangeListener(eventListener);
+		pnlThreadcount.add(sliderThreadcount);
 		
-		textField_1 = new JTextField();
-		textField_1.setText("1");
-		pnlThreadcount.add(textField_1);
-		textField_1.setColumns(2);
+		tfThreadcount = new JTextField();
+		tfThreadcount.setText("1");
+		tfThreadcount.setColumns(2);
+		tfThreadcount.addKeyListener(eventListener);
+		pnlThreadcount.add(tfThreadcount);
 		
 		JPanel pnlControls = new JPanel();
 		pnlControls.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		pnlInput.add(pnlControls, BorderLayout.CENTER);
+		pnlControls.setLayout(new BorderLayout(0, 0));
 		
-		JButton btnNewButton = new JButton("Start");
-		pnlControls.add(btnNewButton);
+		btnSave = new JButton("Speichern");
+		btnSave.addActionListener(eventListener);
+		pnlControls.add(btnSave, BorderLayout.NORTH);
 		
-		JButton btnNewButton_1 = new JButton("Speichern");
-		pnlControls.add(btnNewButton_1);
+		btnStart = new JButton("GO");
+		btnStart.addActionListener(eventListener);
+		pnlControls.add(btnStart, BorderLayout.CENTER);
 		
 		JPanel pnlTime = new JPanel();
 		pnlTime.setBorder(new TitledBorder(null, "Zeit", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		pnlInput.add(pnlTime, BorderLayout.SOUTH);
 		
-		JLabel lblTime = new JLabel("00:00.000");
+		lblTime = new JLabel("00:00:00.000");
 		lblTime.setFont(new Font("Tahoma", Font.BOLD, 20));
 		pnlTime.add(lblTime);
 		
@@ -101,27 +133,257 @@ public class Gui extends JFrame {
 		splitPane.setRightComponent(pnlOutput);
 		pnlOutput.setLayout(new BorderLayout(0, 0));
 		
-		JTextArea taOutput = new JTextArea();
+		taOutput = new JTextArea();
 		taOutput.setFont(new Font("Microsoft YaHei UI Light", Font.PLAIN, 13));
-		taOutput.setText("Hallo ich bin cool fick dich ");
 		taOutput.setForeground(new Color(102, 205, 170));
-		taOutput.setColumns(40);
+		taOutput.setColumns(30);
+		taOutput.setRows(15);
 		taOutput.setBackground(Color.BLACK);
 		taOutput.setEditable(false);
 		taOutput.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Konsole", TitledBorder.LEADING, TitledBorder.TOP, null, Color.LIGHT_GRAY));
-		taOutput.setRows(15);
 		pnlOutput.add(taOutput, BorderLayout.NORTH);
 		
-		JProgressBar progressBar = new JProgressBar();
+		JScrollPane scrollPane = new JScrollPane(taOutput);
+		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollPane.setWheelScrollingEnabled(true);
+		pnlOutput.add(scrollPane);
+
+		DefaultCaret caret = (DefaultCaret)taOutput.getCaret();
+		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+
+		progressBar = new JProgressBar();
 		progressBar.setForeground(new Color(0, 255, 127));
-		progressBar.setBackground(Color.LIGHT_GRAY);
-		progressBar.setValue(50);
+		progressBar.setBackground(new Color(245, 245, 220));
+		progressBar.setMinimum(0);
+		progressBar.setMaximum(100);
+		TitledBorder border = new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "0%", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0));
+		border.setBorder(new LineBorder(border.getTitleColor(), 0));
+		progressBar.setBorder(border);
 		pnlOutput.add(progressBar, BorderLayout.SOUTH);
 	}
+	
+	public void print(String str, boolean append) {
+		if(append)
+			taOutput.append(str + "\n");
+		else
+			taOutput.setText(str);
+	}
+	
 	
 	
 	public static void main(String[] args) {
 		Gui gui = new Gui();
 		gui.setVisible(true);
+	}
+	
+	private class EventListener implements ChangeListener, KeyListener, ActionListener {
+		
+		//ChangeListener
+		@Override
+		public void stateChanged(ChangeEvent e) {
+			if(e.getSource() == sliderN) {
+				tfN.setText(sliderN.getValue() + "");
+			} else if(e.getSource() == sliderThreadcount) {
+				tfThreadcount.setText(sliderThreadcount.getValue() + "");
+			}
+		}
+		
+		//KeyListener
+		@Override
+		public void keyTyped(KeyEvent e) {}
+		@Override
+		public void keyPressed(KeyEvent e) {}
+		@Override
+		public void keyReleased(KeyEvent e) {
+			if(e.getSource() == tfN) {
+				if(tfN.getText().length() < 3) {
+					try {
+					     int N = Integer.parseInt(tfN.getText());
+					     System.out.println("N = " + N);
+					     sliderN.setValue(N);
+					}
+					catch (NumberFormatException nfe) {
+						tfN.setText(tfN.getText().substring(0, tfN.getText().length()-1));
+					}
+				} else {
+					tfN.setText(tfN.getText().substring(0, tfN.getText().length()-1));
+				}
+			} else if(e.getSource() == tfThreadcount) {
+				if(tfThreadcount.getText().length() < 3) {
+					try {
+					     int threadcount = Integer.parseInt(tfThreadcount.getText());
+					     System.out.println("threadcount = " + threadcount);
+					     sliderThreadcount.setValue(threadcount);
+					}
+					catch (NumberFormatException nfe) {
+						tfThreadcount.setText(tfThreadcount.getText().substring(0, tfThreadcount.getText().length()-1));
+					}
+				} else {
+					tfThreadcount.setText(tfThreadcount.getText().substring(0, tfThreadcount.getText().length()-1));
+				}
+			}
+		}
+
+		//ActionListener
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if(e.getSource() == btnSave) {
+				//Speichern des Zustandes
+			} else if (e.getSource() == btnStart) {
+				if(btnStart.getText().equals("Pause")) {
+					//Pause
+					
+					btnStart.setText("GO");
+				} else {
+					//Hole Parameter von den Input-Komponenten
+					int N = Integer.parseInt(tfN.getText());
+					int threadcount = Integer.parseInt(tfThreadcount.getText());
+					//initialisiere neues AlgorithmStarter-Objekt
+					algStarter = new AlgorithmStarter(N, threadcount, false);
+					
+					//Starter alle Threads
+					Thread algThread = new Thread() {
+						public void run() {
+							btnStart.setText("Pause");
+							
+							print("", false);
+							((TitledBorder)progressBar.getBorder()).setTitle("0%");
+							algStarter.startAlgorithm();
+							
+							while(progressBar.getValue() < 100) {
+								try {
+									sleep(50);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+							print("============================\n" + algStarter.getSolvecounter() + " Lösungen gefunden für N = " + N + "\n============================", true);
+							btnStart.setText("GO");
+						}
+					};
+					algThread.start();
+					
+					//Thread zum updaten von lblTime
+					new Thread() {
+						public void run() {
+							long time = 0, h = 0, m = 0, s = 0, ms = 0;
+							String strh, strm, strs, strms;
+							
+							//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
+							while(algStarter.getStarttime() == 0) {
+								try {
+									sleep(50);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+							
+							while(true) {
+								time = System.currentTimeMillis() - algStarter.getStarttime();
+								h = time/1000/60/60;
+								m = time/1000/60%60;
+								s = time/1000%60;
+								ms = time%1000;
+								
+								//Stunden-Anzeige
+								if(h == 0) {
+									strh = "00";
+								} else if((h+"").toString().length() == 3) {
+									strh = "" + h;
+								} else if((h+"").toString().length() == 2) {
+									strh = "0" + h;
+								} else {
+									strh = "00" + h;
+								}
+								//Minuten-Anzeige
+								if((m+"").toString().length() == 2) {
+									strm = "" + m;
+								}  else {
+									strm = "0" + m;
+								}
+								//Sekunden-Anzeige
+								if((s+"").toString().length() == 2) {
+									strs = "" + s;
+								} else {
+									strs = "0" + s;
+								}
+								//Millisekunden-Anzeige
+								if((ms+"").toString().length() == 3) {
+									strms = "" + ms;
+								} else if((ms+"").toString().length() == 2) {
+									strms = "0" + ms;
+								} else {
+									strms = "00" + ms;
+								}
+										
+								lblTime.setText(strh + ":" + strm + ":" + strs + "." + strms);
+								
+								//wenn Algorithmus fertig, verlasse Endlos-Schleife
+								if( ! algThread.isAlive())
+									break;
+								
+								//Warte 1 Millisekunde
+								try {
+									sleep(1);
+								} catch(InterruptedException ie) {
+									ie.printStackTrace();
+								}
+							}
+						}
+					}.start();
+					
+					//Thread zum updaten von progressBar
+					new Thread() {
+						public void run() {
+							//Setze progressBar zurück
+							progressBar.setValue(0);
+							
+							//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
+							while(algStarter.getProgress() == 0) {
+								try {
+									sleep(50);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+							print(algStarter.getStartConstLen() + " Start-Konstellationen gefunden", true);
+							
+							float value = 0;
+							int intvalue = 0, tempPercentage = 0;
+							while(progressBar.getValue() < 100) {
+								value = algStarter.getProgress() * 100;
+								intvalue = (int) value;
+								if(intvalue % 5 <= 1 && intvalue != progressBar.getValue()) {
+									if(intvalue % 5 == 1 && tempPercentage != intvalue - 1) {
+										tempPercentage = intvalue - 1;
+										print(tempPercentage + "% berechnet", true);
+									}
+									else if (intvalue % 5 == 0){
+										tempPercentage = intvalue;
+										print(tempPercentage + "% berechnet", true);
+									}
+								}
+								progressBar.setValue(intvalue);
+								if(value > 100)
+									value = 100;
+								((TitledBorder)progressBar.getBorder()).setTitle((((int)(value*100)) / 100f) + "%");
+								//wenn Algorithmus fertig, verlasse Endlos-Schleife
+								if( ! algThread.isAlive()) 
+									break;
+								
+								
+								//Warte 50 Millisekunden
+								try {
+									sleep(50);
+								} catch(InterruptedException ie) {
+									ie.printStackTrace();
+								}
+							}
+						}
+					}.start();
+				}
+			}
+		}
 	}
 }

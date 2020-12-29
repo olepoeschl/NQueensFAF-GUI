@@ -5,16 +5,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import gui.Gui;
+
 public class AlgorithmStarter {
 
 	private int N, mask;										// Brettgröße N, mask ist Integer mit N 1en rechts in der Bitdarstellung (entspricht dem Brett)
 	private int cpu;											// Anzahl der gewünschten Threads (Anzahl der Kerne)
+	private long solvecounter = 0;
 	private int symmetry = 8;									// Vielfachheit der gefundenen Lösung
 	int[] currentRows;											// beschreibt für aktuelle Startpos die Belegung der N Zeilen (als Int in Bitdarstellung)
 	private boolean[] rowNotFree, colNotFree, diaLeftNotFree, diaRightNotFree;	// Belegung der Diagonalen, Zeilen, Spalten (true belegt, false frei)
 	private ArrayDeque<BoardProperties> boardPropertiesList;	// Bretteigenschaften (Belegung einzelner Zeilen) zu jeder Startposition
 
 	ArrayDeque<int[]> startConstellations;						// checkt, ob aktuelle Startposition schon gefunden wurde ( beachte Symmetrie)
+	ArrayList<AlgorithmThread> threadlist;
+	
+	private long start = 0;
 
 
 	public AlgorithmStarter(int N, int cpu, boolean pausable) {
@@ -33,6 +39,9 @@ public class AlgorithmStarter {
 	}
 
 	public void startAlgorithm() {
+		//Speichere Start-Zeit
+		start = System.currentTimeMillis();
+		
 		int halfN = (N + (N % 2)) / 2;				// Dame nur links setzen, Rest eh symmetrisch
 
 		//Start-Konstellationen berechnen für 1.Dame ist nicht in der oberen linken Ecke (hier muss man Symmetrie checken)
@@ -176,12 +185,10 @@ public class AlgorithmStarter {
 			threadConstellations.get((i++) % cpu).add(iterator.next());
 		}
 		
-		long start = System.currentTimeMillis();
-		
 		//Thread starten und auf ihre Beendung warten
-		ArrayList<AlgorithmThread> threadlist = new ArrayList<AlgorithmThread>();
+		threadlist = new ArrayList<AlgorithmThread>();
 		for(ArrayDeque<BoardProperties> constellations : threadConstellations) {
-			AlgorithmThread algThread = new AlgorithmThread(N, constellations);
+			AlgorithmThread algThread = new AlgorithmThread( N, constellations);
 			threadlist.add(algThread);
 			algThread.start();
 		}
@@ -199,7 +206,6 @@ public class AlgorithmStarter {
 		
 		
 		//Counter berechnen und Ergebnis ausgeben
-		long solvecounter = 0;
 		for(AlgorithmThread algThread : threadlist) {
 			solvecounter += algThread.getSolvecounter();
 		}
@@ -260,7 +266,28 @@ public class AlgorithmStarter {
 	
 	// start the main
 	public static void main(String[] args) {
-		AlgorithmStarter algStarter = new AlgorithmStarter(16, 1, false);
+		AlgorithmStarter algStarter = new AlgorithmStarter(17, 2, false);
 		algStarter.startAlgorithm();
+	}
+	
+	public long getStarttime() {
+		return start;
+	}
+	public long getStartConstLen() {
+		return startConstellations.size();
+	}
+	public float getProgress() {
+		if(threadlist == null)
+			return 0;
+		
+		//Berechne progress
+		float progress = 0;
+		for(AlgorithmThread algThread : threadlist) {
+			progress += algThread.getStartConstIndex();
+		}
+		return progress / startConstellations.size();
+	}
+	public long getSolvecounter() {
+		return solvecounter;
 	}
 }
