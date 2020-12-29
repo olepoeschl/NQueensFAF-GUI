@@ -4,9 +4,11 @@ import java.util.ArrayDeque;
 
 public class AlgorithmThread extends Thread {
 
+	
 	//Brettgröße, Lösungszähler, Symmetrie-Faktor, Bitmaske
 	private int N;
 	private long tempcounter = 0, solvecounter = 0;	
+	private int startConstIndex = 1;
 	private int symmetry = 8;
 	private int mask;
 	//Array, enthält die zur Angabe besetzter Felder von AlgorithmStarter berechneten Integers
@@ -16,8 +18,8 @@ public class AlgorithmThread extends Thread {
 	private ArrayDeque<BoardProperties> boardPropertiesList;
 
 	public AlgorithmThread(int N, ArrayDeque<BoardProperties> boardPropertiesList) {
-		this.N = N;
 		
+		this.N = N;
 		this.boardPropertiesList = boardPropertiesList;
 		mask = (int) (Math.pow(2, N) - 1);						//Setze jedes Bit von mask auf 1
 		boardIntegers = new int[N];
@@ -49,6 +51,7 @@ public class AlgorithmThread extends Thread {
 
 	@Override
 	public void run() {
+		
 		for(BoardProperties boardProperties : boardPropertiesList) {
 			//übernimm Parameter von boardProperties
 			symmetry = boardProperties.symmetry;
@@ -59,6 +62,7 @@ public class AlgorithmThread extends Thread {
 			//suche alle Lösungen für die aktuelle Start-Konstellation
 			SetQueen(0, 0, 0);
 			
+			startConstIndex++;
 			solvecounter += tempcounter * symmetry;
 		}
 	}
@@ -66,5 +70,7 @@ public class AlgorithmThread extends Thread {
 	public long getSolvecounter() {
 		return solvecounter;
 	}
-	
+	public int getStartConstIndex() {
+		return startConstIndex;
+	}
 }
