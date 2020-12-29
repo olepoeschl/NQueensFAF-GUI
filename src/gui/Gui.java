@@ -372,7 +372,7 @@ public class Gui extends JFrame {
 										e.printStackTrace();
 									}
 								}
-								print(algStarter.getStartConstLen() + " Start-Konstellationen gefunden", true);
+								print(algStarter.getStartConstLen() + " Start-Konstellationen gefunden in " + updateTime(), true);
 								btnStart.setEnabled(true);
 								
 								float value = 0;
@@ -383,20 +383,22 @@ public class Gui extends JFrame {
 									if(intvalue % 5 <= 1 && intvalue != progressBar.getValue()) {
 										if(intvalue % 5 == 1 && tempPercentage != intvalue - 1) {
 											tempPercentage = intvalue - 1;
+											print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellations() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
 										}
 										else if (intvalue % 5 == 0){
 											tempPercentage = intvalue;
+											print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellations() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
 										}	
-										print(tempPercentage + "% berechnet \t[ " + algStarter.getCalculatedStartConstellations() + " von " + algStarter.getStartConstLen() + " Start-Konstellationen in " + updateTime() + " ]", true);
 									}
 									progressBar.setValue(intvalue);
 									if(value > 100)
 										value = 100;
 									((TitledBorder)progressBar.getBorder()).setTitle((((int)(value*100)) / 100f) + "%");
+									
+									
 									//wenn Algorithmus fertig, verlasse Endlos-Schleife
 									if( ! algThread.isAlive()) 
 										break;
-									
 									
 									//Warte 50 Millisekunden
 									try {
