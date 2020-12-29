@@ -27,6 +27,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		
 		this.N = N;
 		this.boardPropertiesList = boardPropertiesList;
+		this.calculatedStartConstellations = boardPropertiesList;
 		mask = (int) (Math.pow(2, N) - 1);						//Setze jedes Bit von mask auf 1
 		boardIntegers = new int[N];
 	}
