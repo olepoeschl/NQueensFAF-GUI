@@ -1,8 +1,9 @@
 package calc;
 
+import java.io.Serializable;
 import java.util.ArrayDeque;
 
-public class AlgorithmThread extends Thread {
+public class AlgorithmThread extends Thread implements Serializable {
 
 	
 	//Brettgröße, Lösungszähler, Symmetrie-Faktor, Bitmaske
@@ -16,6 +17,10 @@ public class AlgorithmThread extends Thread {
 	private int index = 0;				//index von boardIntegers[]; entspricht der akutellen Zeile
 	//Liste der von AlgorithmStarter berechneten Start-Konstellationen
 	private ArrayDeque<BoardProperties> boardPropertiesList;
+	
+	//Sachen fürs Pausieren und Speichern
+	private boolean pause = false, save = false;
+	
 
 	public AlgorithmThread(int N, ArrayDeque<BoardProperties> boardPropertiesList) {
 		
@@ -42,6 +47,23 @@ public class AlgorithmThread extends Thread {
 			int bit = free & (-free);
 			free -= bit;
 			
+			//prüfe, ob Benutzer pausieren will
+			if(pause) {
+				while(pause) {
+					if(save) {
+						
+						
+						save = false;
+					}
+					
+					try {
+						sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			
 			//gehe zu nächster Zeile
 			index++;
 			SetQueen((ld|bit)<<1, (rd|bit)>>1, col|bit);
@@ -66,6 +88,17 @@ public class AlgorithmThread extends Thread {
 			solvecounter += tempcounter * symmetry;
 		}
 	}
+	
+	public void pause() {
+		pause = true;
+	}
+	public void go() {
+		pause = false;
+	}
+	public void save() {
+		save = true;
+	}
+	
 	
 	public long getSolvecounter() {
 		return solvecounter;
