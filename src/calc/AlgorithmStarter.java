@@ -20,8 +20,10 @@ public class AlgorithmStarter {
 	ArrayDeque<int[]> startConstellations;						// checkt, ob aktuelle Startposition schon gefunden wurde ( beachte Symmetrie)
 	ArrayList<AlgorithmThread> threadlist;
 	
+	//
 	private long start = 0;
-
+	private boolean pause = false;
+	
 
 	public AlgorithmStarter(int N, int cpu, boolean pausable) {
 		this.N = N;
@@ -270,11 +272,34 @@ public class AlgorithmStarter {
 		algStarter.startAlgorithm();
 	}
 	
+	public void pause() {
+		pause = true;
+		for(AlgorithmThread algThread : threadlist) {
+			algThread.pause();
+		}
+	}
+	public void go() {
+		pause = false;
+		for(AlgorithmThread algThread : threadlist) {
+			algThread.go();
+		}
+	}
+	public boolean isPaused() {
+		return pause;
+	}
+	
 	public long getStarttime() {
 		return start;
 	}
 	public long getStartConstLen() {
 		return startConstellations.size();
+	}
+	public long getCalculatedStartConstellations() {
+		long counter = 0;
+		for(AlgorithmThread algThread : threadlist) {
+			counter += algThread.getStartConstIndex();
+		}
+		return counter - 1;
 	}
 	public float getProgress() {
 		if(threadlist == null)
