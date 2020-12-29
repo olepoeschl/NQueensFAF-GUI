@@ -86,6 +86,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			//suche alle Lösungen für die aktuelle Start-Konstellation
 			SetQueen(0, 0, 0);
 			
+			
 			startConstIndex++;
 			solvecounter += tempcounter * symmetry;
 		}
