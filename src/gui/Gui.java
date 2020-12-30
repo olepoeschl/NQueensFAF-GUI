@@ -250,7 +250,7 @@ public class Gui extends JFrame {
 						
 						//Warte 1 Millisekunde
 						try {
-							sleep(1);
+							sleep(70);
 						} catch(InterruptedException ie) {
 							ie.printStackTrace();
 						}
@@ -263,9 +263,6 @@ public class Gui extends JFrame {
 		//Thread zum updaten von progressBar
 		new Thread() {
 			public void run() {
-				//Setze progressBar zurück
-				progressBar.setValue(0);
-				
 				//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
 				while(algStarter.getProgress() == 0) {
 					try {
@@ -285,11 +282,11 @@ public class Gui extends JFrame {
 					if(intvalue % 5 <= 1 && intvalue != progressBar.getValue()) {
 						if(intvalue % 5 == 1 && tempPercentage != intvalue - 1) {
 							tempPercentage = intvalue - 1;
-							print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellations() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
+							print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellationsLen() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
 						}
 						else if (intvalue % 5 == 0){
 							tempPercentage = intvalue;
-							print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellations() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
+							print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellationsLen() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
 						}	
 					}
 					progressBar.setValue(intvalue);
@@ -315,10 +312,13 @@ public class Gui extends JFrame {
 	private void startAlgThread(int N) {
 		algThread = new Thread() {
 			public void run() {
-				
 				print("", false);
+				//Setze progressBar zurück
+				progressBar.setValue(0);
 				((TitledBorder)progressBar.getBorder()).setTitle("0%");
+				
 				algStarter.startAlgorithm();
+				
 				progressBar.setValue(100);
 				((TitledBorder)progressBar.getBorder()).setTitle("100%");
 				print("============================\n" + algStarter.getSolvecounter() + " Lösungen gefunden für N = " + N + "\n============================", true);
@@ -438,7 +438,7 @@ public class Gui extends JFrame {
 				if(btnStart.getText().equals("Pause")) {
 					//Pause
 					algStarter.pause();
-					btnStart.setText("GO");
+					btnStart.setText("Weiter");
 				} else {
 					if(algThread != null && algThread.isAlive()) {
 						//Wenn pausiert, dann lass ihn weiterlaufen

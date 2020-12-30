@@ -271,7 +271,7 @@ public class AlgorithmStarter {
 	
 	// start the main
 	public static void main(String[] args) {
-		AlgorithmStarter algStarter = new AlgorithmStarter(16, 1, false);
+		AlgorithmStarter algStarter = new AlgorithmStarter(17, 1, false);
 		algStarter.startAlgorithm();
 	}
 	
@@ -297,7 +297,7 @@ public class AlgorithmStarter {
 	public long getStartConstLen() {
 		return startConstellations.size();
 	}
-	public long getCalculatedStartConstellations() {
+	public long getCalculatedStartConstellationsLen() {
 		long counter = 0;
 		for(AlgorithmThread algThread : threadlist) {
 			counter += algThread.getStartConstIndex();
@@ -309,7 +309,7 @@ public class AlgorithmStarter {
 			return 0;
 		
 		//Berechne progress
-		float progress = getCalculatedStartConstellations();
+		float progress = getCalculatedStartConstellationsLen();
 		return progress / startConstellations.size();
 	}
 	public long getSolvecounter() {
