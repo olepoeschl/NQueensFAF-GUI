@@ -6,6 +6,7 @@ import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -17,6 +18,8 @@ import javax.swing.JButton;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -91,6 +94,7 @@ public class Gui extends JFrame {
 		tfN.setText("16");
 		tfN.setColumns(2);
 		tfN.addKeyListener(eventListener);
+		tfN.addFocusListener(eventListener);
 		pnlN.add(tfN);
 		
 		JPanel pnlThreadcount = new JPanel();
@@ -108,6 +112,7 @@ public class Gui extends JFrame {
 		tfThreadcount.setText("1");
 		tfThreadcount.setColumns(2);
 		tfThreadcount.addKeyListener(eventListener);
+		tfThreadcount.addFocusListener(eventListener);
 		pnlThreadcount.add(tfThreadcount);
 		
 		JPanel pnlControls = new JPanel();
@@ -212,15 +217,121 @@ public class Gui extends JFrame {
 		lblTime.setText(strh + ":" + strm + ":" + strs + "." + strms);
 		return strh + ":" + strm + ":" + strs + "." + strms;
 	}
-	
-	
+	private void startTimeUpdateThread() {
+		//Thread zum updaten von lblTime
+		new Thread() {
+			public void run() {
+				long pausetime = 0;
+				
+				//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
+				while(algStarter.getStarttime() == 0) {
+					try {
+						sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				
+				while(algThread.isAlive()) {
+					if(algStarter.isPaused()) {
+						long pausestart = System.currentTimeMillis();
+						while(algStarter.isPaused()) {
+							try {
+								sleep(50);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+						pausetime += System.currentTimeMillis() - pausestart;
+					} else {
+						//aktualisiere Zeit und Zeit-Anzeige
+						updateTime();
+						time = System.currentTimeMillis() - algStarter.getStarttime() - pausetime;
+						
+						//Warte 1 Millisekunde
+						try {
+							sleep(1);
+						} catch(InterruptedException ie) {
+							ie.printStackTrace();
+						}
+					}
+				}
+			}
+		}.start();
+	}
+	private void startProgressUpdateThread() {
+		//Thread zum updaten von progressBar
+		new Thread() {
+			public void run() {
+				//Setze progressBar zurück
+				progressBar.setValue(0);
+				
+				//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
+				while(algStarter.getProgress() == 0) {
+					try {
+						sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				print(algStarter.getStartConstLen() + " Start-Konstellationen gefunden in " + updateTime(), true);
+				btnStart.setEnabled(true);
+				
+				float value = 0;
+				int intvalue = 0, tempPercentage = 0;
+				while(algThread.isAlive()) {
+					value = algStarter.getProgress() * 100;
+					intvalue = (int) value;
+					if(intvalue % 5 <= 1 && intvalue != progressBar.getValue()) {
+						if(intvalue % 5 == 1 && tempPercentage != intvalue - 1) {
+							tempPercentage = intvalue - 1;
+							print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellations() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
+						}
+						else if (intvalue % 5 == 0){
+							tempPercentage = intvalue;
+							print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellations() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
+						}	
+					}
+					progressBar.setValue(intvalue);
+					if(value > 100)
+						value = 100;
+					((TitledBorder)progressBar.getBorder()).setTitle((((int)(value*100)) / 100f) + "%");
+					
+					
+					//wenn Algorithmus fertig, verlasse Endlos-Schleife
+					if( ! algThread.isAlive()) 
+						break;
+					
+					//Warte 50 Millisekunden
+					try {
+						sleep(50);
+					} catch(InterruptedException ie) {
+						ie.printStackTrace();
+					}
+				}
+			}
+		}.start();
+	}
+	private void startAlgThread(int N) {
+		algThread = new Thread() {
+			public void run() {
+				
+				print("", false);
+				((TitledBorder)progressBar.getBorder()).setTitle("0%");
+				algStarter.startAlgorithm();
+				print("============================\n" + algStarter.getSolvecounter() + " Lösungen gefunden für N = " + N + "\n============================", true);
+				btnStart.setText("GO");
+			}
+		};
+		algThread.start();
+	}
 	
 	public static void main(String[] args) {
 		Gui gui = new Gui();
 		gui.setVisible(true);
 	}
 	
-	private class EventListener implements ChangeListener, KeyListener, ActionListener {
+	private class EventListener implements ChangeListener, KeyListener, FocusListener, ActionListener {
 		
 		//ChangeListener
 		@Override
@@ -243,27 +354,75 @@ public class Gui extends JFrame {
 				if(tfN.getText().length() < 3) {
 					try {
 					     int N = Integer.parseInt(tfN.getText());
-					     System.out.println("N = " + N);
 					     sliderN.setValue(N);
-					}
-					catch (NumberFormatException nfe) {
-						tfN.setText(tfN.getText().substring(0, tfN.getText().length()-1));
+					} catch (NumberFormatException nfe) {
+						try {
+							tfN.setText(tfN.getText().substring(0, tfN.getText().length()-1));
+						} catch (StringIndexOutOfBoundsException sioofe) {
+							//tue nichts
+						}
 					}
 				} else {
-					tfN.setText(tfN.getText().substring(0, tfN.getText().length()-1));
+					while(true) {
+						tfN.setText(tfN.getText().substring(0, tfN.getText().length() - 1));
+						try {
+							Integer.parseInt(tfN.getText());
+							if(tfN.getText().length() < 3)
+								break;
+						} catch(NumberFormatException nfe) {
+							//tue nichts
+						}
+					}
 				}
 			} else if(e.getSource() == tfThreadcount) {
 				if(tfThreadcount.getText().length() < 3) {
 					try {
 					     int threadcount = Integer.parseInt(tfThreadcount.getText());
-					     System.out.println("threadcount = " + threadcount);
 					     sliderThreadcount.setValue(threadcount);
 					}
 					catch (NumberFormatException nfe) {
-						tfThreadcount.setText(tfThreadcount.getText().substring(0, tfThreadcount.getText().length()-1));
+						try {
+							tfThreadcount.setText(tfThreadcount.getText().substring(0, tfThreadcount.getText().length()-1));
+						} catch (StringIndexOutOfBoundsException sioofe) {
+							//tue nichts
+						}
 					}
 				} else {
-					tfThreadcount.setText(tfThreadcount.getText().substring(0, tfThreadcount.getText().length()-1));
+					while(true) {
+						tfThreadcount.setText(tfThreadcount.getText().substring(0, tfThreadcount.getText().length() - 1));
+						try {
+							Integer.parseInt(tfThreadcount.getText());
+							if(tfThreadcount.getText().length() < 3)
+								break;
+						} catch(NumberFormatException nfe) {
+							//tue nichts
+						}
+					}
+				}
+			}
+		}
+
+		//Focus-Listener der TextFelder
+		@Override
+		public void focusGained(FocusEvent e) {}
+
+		@Override
+		public void focusLost(FocusEvent e) {
+			if(e.getSource() == tfN) {
+				try {
+					//wenn tfN Integer enthält, tue nichts
+					Integer.parseInt(tfN.getText());
+				} catch(NumberFormatException nfe) {
+					//wenn nicht, setze Slider-Wert ein
+					tfN.setText(sliderN.getValue() + "");
+				}
+			} else if(e.getSource() == tfThreadcount) {
+				try {
+					//wenn tfN Integer enthält, tue nichts
+					Integer.parseInt(tfThreadcount.getText());
+				} catch(NumberFormatException nfe) {
+					//wenn nicht, setze Slider-Wert ein
+					tfThreadcount.setText(sliderThreadcount.getValue() + "");
 				}
 			}
 		}
@@ -280,9 +439,11 @@ public class Gui extends JFrame {
 					btnStart.setText("GO");
 				} else {
 					if(algThread != null && algThread.isAlive()) {
+						//Wenn pausiert, dann lass ihn weiterlaufen
 						algStarter.go();
 						btnStart.setText("Pause");
 					} else {
+						//wenn Algorithmus noch nicht läuft, starte ihn und die anderen Threads
 						btnStart.setText("Pause");
 						btnStart.setEnabled(false);
 						
@@ -292,123 +453,14 @@ public class Gui extends JFrame {
 						//initialisiere neues AlgorithmStarter-Objekt
 						algStarter = new AlgorithmStarter(N, threadcount, false);
 						
-						//Starter alle Threads
-						algThread = new Thread() {
+						//Starte alle Threads
+						SwingUtilities.invokeLater(new Runnable() {
 							public void run() {
-								
-								print("", false);
-								((TitledBorder)progressBar.getBorder()).setTitle("0%");
-								algStarter.startAlgorithm();
-								
-								while(progressBar.getValue() < 100) {
-									try {
-										sleep(50);
-									} catch (InterruptedException e) {
-										e.printStackTrace();
-									}
-								}
-								print("============================\n" + algStarter.getSolvecounter() + " Lösungen gefunden für N = " + N + "\n============================", true);
-								btnStart.setText("GO");
+								startAlgThread(N);
+								startTimeUpdateThread();
+								startProgressUpdateThread();
 							}
-						};
-						algThread.start();
-						
-						//Thread zum updaten von lblTime
-						new Thread() {
-							public void run() {
-								long pausetime = 0;
-								
-								//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
-								while(algStarter.getStarttime() == 0) {
-									try {
-										sleep(50);
-									} catch (InterruptedException e) {
-										e.printStackTrace();
-									}
-								}
-								
-								while(true) {
-									if(algStarter.isPaused()) {
-										long pausestart = System.currentTimeMillis();
-										while(algStarter.isPaused()) {
-											try {
-												sleep(50);
-											} catch (InterruptedException e) {
-												e.printStackTrace();
-											}
-										}
-										pausetime += System.currentTimeMillis() - pausestart;
-									} else {
-										//aktualisiere Zeit und Zeit-Anzeige
-										updateTime();
-										time = System.currentTimeMillis() - algStarter.getStarttime() - pausetime;
-										
-										//wenn Algorithmus fertig, verlasse Endlos-Schleife
-										if( ! algThread.isAlive())
-											break;
-										
-										//Warte 1 Millisekunde
-										try {
-											sleep(1);
-										} catch(InterruptedException ie) {
-											ie.printStackTrace();
-										}
-									}
-								}
-							}
-						}.start();
-						
-						//Thread zum updaten von progressBar
-						new Thread() {
-							public void run() {
-								//Setze progressBar zurück
-								progressBar.setValue(0);
-								
-								//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
-								while(algStarter.getProgress() == 0) {
-									try {
-										sleep(50);
-									} catch (InterruptedException e) {
-										e.printStackTrace();
-									}
-								}
-								print(algStarter.getStartConstLen() + " Start-Konstellationen gefunden in " + updateTime(), true);
-								btnStart.setEnabled(true);
-								
-								float value = 0;
-								int intvalue = 0, tempPercentage = 0;
-								while(progressBar.getValue() < 100) {
-									value = algStarter.getProgress() * 100;
-									intvalue = (int) value;
-									if(intvalue % 5 <= 1 && intvalue != progressBar.getValue()) {
-										if(intvalue % 5 == 1 && tempPercentage != intvalue - 1) {
-											tempPercentage = intvalue - 1;
-											print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellations() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
-										}
-										else if (intvalue % 5 == 0){
-											tempPercentage = intvalue;
-											print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellations() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
-										}	
-									}
-									progressBar.setValue(intvalue);
-									if(value > 100)
-										value = 100;
-									((TitledBorder)progressBar.getBorder()).setTitle((((int)(value*100)) / 100f) + "%");
-									
-									
-									//wenn Algorithmus fertig, verlasse Endlos-Schleife
-									if( ! algThread.isAlive()) 
-										break;
-									
-									//Warte 50 Millisekunden
-									try {
-										sleep(50);
-									} catch(InterruptedException ie) {
-										ie.printStackTrace();
-									}
-								}
-							}
-						}.start();
+						});
 					}
 				}
 			}

@@ -24,6 +24,9 @@ public class AlgorithmStarter {
 	private long start = 0;
 	private boolean pause = false;
 	
+	//wie viele x-symmetrische startpositionen?
+	private int sym2 = 0, sym4 = 0, sym8 = 0;
+	
 
 	public AlgorithmStarter(int N, int cpu, boolean pausable) {
 		this.N = N;
@@ -79,6 +82,18 @@ public class AlgorithmStarter {
 									symmetry = 4;
 							else
 								symmetry = 8;					// gar nicht symmetrisch
+							
+							switch(symmetry) {
+							case 2:
+								sym2++;
+								break;
+							case 4:
+								sym4++;
+								break;
+							case 8:
+								sym8++;
+								break;
+							}
 							
 							colNotFree[0] = true;
 							colNotFree[N-1] = true;
@@ -139,6 +154,8 @@ public class AlgorithmStarter {
 					rowNotFree[l] = true;
 					diaRightNotFree[l] = true;
 					diaLeftNotFree[l + N-1] = true;
+					
+					sym8++;
 					
 					colNotFree[0] = true;
 					colNotFree[N-1] = true;
@@ -213,6 +230,7 @@ public class AlgorithmStarter {
 		}
 		
 		System.out.println(timestr + "\tfertig, solvecounter = " + solvecounter);
+		System.out.println(sym8 + " Startkonstellationen zählen 8fach, " + sym4 + " zählen 4fach, " + sym2 + " zählen 2fach");
 	}
 
 	private boolean SquareIsSafe(int r, int c) {					//Prüft ob das übergebene Feld von einer anderen Dame gedeckt ist.
@@ -268,7 +286,7 @@ public class AlgorithmStarter {
 	
 	// start the main
 	public static void main(String[] args) {
-		AlgorithmStarter algStarter = new AlgorithmStarter(17, 2, false);
+		AlgorithmStarter algStarter = new AlgorithmStarter(16, 1, false);
 		algStarter.startAlgorithm();
 	}
 	
@@ -306,10 +324,7 @@ public class AlgorithmStarter {
 			return 0;
 		
 		//Berechne progress
-		float progress = 0;
-		for(AlgorithmThread algThread : threadlist) {
-			progress += algThread.getStartConstIndex();
-		}
+		float progress = getCalculatedStartConstellations();
 		return progress / startConstellations.size();
 	}
 	public long getSolvecounter() {

@@ -20,7 +20,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private ArrayDeque<BoardProperties> calculatedStartConstellations;
 	
 	//Sachen fürs Pausieren und Speichern
-	private boolean pause = false, save = false;
+	private boolean pause = false;
 	
 
 	public AlgorithmThread(int N, ArrayDeque<BoardProperties> boardPropertiesList) {
@@ -52,12 +52,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 			//prüfe, ob Benutzer pausieren will
 			if(pause) {
 				while(pause) {
-					if(save) {
-						
-						
-						save = false;
-					}
-					
 					try {
 						sleep(50);
 					} catch (InterruptedException e) {
@@ -65,6 +59,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 					}
 				}
 			}
+			//---
 			
 			//gehe zu nächster Zeile
 			index++;
@@ -97,9 +92,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 	}
 	public void go() {
 		pause = false;
-	}
-	public void save() {
-		save = true;
 	}
 	
 	
