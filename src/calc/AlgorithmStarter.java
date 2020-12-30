@@ -25,7 +25,6 @@ public class AlgorithmStarter {
 	private boolean pause = false;
 	
 	//wie viele x-symmetrische startpositionen?
-	private int sym2 = 0, sym4 = 0, sym8 = 0;
 	
 
 	public AlgorithmStarter(int N, int cpu, boolean pausable) {
@@ -83,17 +82,6 @@ public class AlgorithmStarter {
 							else
 								symmetry = 8;					// gar nicht symmetrisch
 							
-							switch(symmetry) {
-							case 2:
-								sym2++;
-								break;
-							case 4:
-								sym4++;
-								break;
-							case 8:
-								sym8++;
-								break;
-							}
 							
 							colNotFree[0] = true;
 							colNotFree[N-1] = true;
@@ -154,8 +142,6 @@ public class AlgorithmStarter {
 					rowNotFree[l] = true;
 					diaRightNotFree[l] = true;
 					diaLeftNotFree[l + N-1] = true;
-					
-					sym8++;
 					
 					colNotFree[0] = true;
 					colNotFree[N-1] = true;
@@ -230,7 +216,6 @@ public class AlgorithmStarter {
 		}
 		
 		System.out.println(timestr + "\tfertig, solvecounter = " + solvecounter);
-		System.out.println(sym8 + " Startkonstellationen zählen 8fach, " + sym4 + " zählen 4fach, " + sym2 + " zählen 2fach");
 	}
 
 	private boolean SquareIsSafe(int r, int c) {					//Prüft ob das übergebene Feld von einer anderen Dame gedeckt ist.
