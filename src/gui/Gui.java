@@ -319,6 +319,8 @@ public class Gui extends JFrame {
 				print("", false);
 				((TitledBorder)progressBar.getBorder()).setTitle("0%");
 				algStarter.startAlgorithm();
+				progressBar.setValue(100);
+				((TitledBorder)progressBar.getBorder()).setTitle("100%");
 				print("============================\n" + algStarter.getSolvecounter() + " Lösungen gefunden für N = " + N + "\n============================", true);
 				btnStart.setText("GO");
 			}
