@@ -21,7 +21,7 @@ public class AlgorithmStarter {
 	ArrayList<AlgorithmThread> threadlist;
 
 	//
-	private long start = 0;
+	private long start = 0, end = 0;
 	private boolean pause = false;
 
 	//wie viele x-symmetrische startpositionen?
@@ -158,15 +158,15 @@ public class AlgorithmStarter {
 					colNotFree[N-1] = false;
 
 					currentRows[0] = mask >> 1;
-							currentRows[N-1] = ~(1 << (N-1-j)) & mask;
-							currentRows[l] = (mask >> 1) << 1;
+					currentRows[N-1] = ~(1 << (N-1-j)) & mask;
+					currentRows[l] = (mask >> 1) << 1;
 
-							boardPropertiesList.add(new BoardProperties(currentRows, 8));	
-							startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
+					boardPropertiesList.add(new BoardProperties(currentRows, 8));	
+					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
 
-							rowNotFree[l] = false;
-							diaRightNotFree[l] = false;
-							diaLeftNotFree[l + N-1] = false;
+					rowNotFree[l] = false;
+					diaRightNotFree[l] = false;
+					diaLeftNotFree[l + N-1] = false;
 				}
 			}
 
@@ -206,7 +206,7 @@ public class AlgorithmStarter {
 			}
 		}
 
-		long end = System.currentTimeMillis();
+		end = System.currentTimeMillis();
 		long time = end - start;
 		String timestr = "[" + ( time/1000/60 ) + ":" + (time/1000%60) + "." + (time%1000) + "]";
 
@@ -285,6 +285,10 @@ public class AlgorithmStarter {
 	public long getStarttime() {
 		return start;
 	}
+	public long getEndtime() {
+		return end;
+	}
+	
 	public long getStartConstLen() {
 		return startConstellations.size();
 	}

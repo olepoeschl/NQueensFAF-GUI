@@ -36,6 +36,9 @@ import javax.swing.border.LineBorder;
 
 public class Gui extends JFrame {
 	
+	private static final long serialVersionUID = 1L;
+	
+	
 	//Gui-Komponenten
 	private JTextField tfN, tfThreadcount;
 	private JSlider sliderN, sliderThreadcount;
@@ -49,7 +52,8 @@ public class Gui extends JFrame {
 	//AlgorithmStarter-Objekt
 	private AlgorithmStarter algStarter;
 	private Thread algThread;
-	private long time = 0;
+	private long time = 0, pausetime = 0;
+	private boolean updateTime = true;
 	
 	
 	public Gui() {
@@ -221,7 +225,7 @@ public class Gui extends JFrame {
 		//Thread zum updaten von lblTime
 		new Thread() {
 			public void run() {
-				long pausetime = 0;
+				pausetime = 0;
 				
 				//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
 				while(algStarter.getStarttime() == 0) {
@@ -232,7 +236,7 @@ public class Gui extends JFrame {
 					}
 				}
 				
-				while(algThread.isAlive()) {
+				while(updateTime) {
 					if(algStarter.isPaused()) {
 						long pausestart = System.currentTimeMillis();
 						while(algStarter.isPaused()) {
@@ -317,7 +321,15 @@ public class Gui extends JFrame {
 				progressBar.setValue(0);
 				((TitledBorder)progressBar.getBorder()).setTitle("0%");
 				
+				//Zeit starten
+				updateTime = true;
+				
 				algStarter.startAlgorithm();
+				
+				//Zeit stoppen
+				updateTime = false;
+				time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime;
+				updateTime();
 				
 				progressBar.setValue(100);
 				((TitledBorder)progressBar.getBorder()).setTitle("100%");
