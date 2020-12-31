@@ -36,6 +36,9 @@ import javax.swing.border.LineBorder;
 
 public class Gui extends JFrame {
 	
+	private static final long serialVersionUID = 1L;
+	
+	
 	//Gui-Komponenten
 	private JTextField tfN, tfThreadcount;
 	private JSlider sliderN, sliderThreadcount;
@@ -49,7 +52,8 @@ public class Gui extends JFrame {
 	//AlgorithmStarter-Objekt
 	private AlgorithmStarter algStarter;
 	private Thread algThread;
-	private long time = 0;
+	private long time = 0, pausetime = 0;
+	private boolean updateTime = true;
 	
 	
 	public Gui() {
@@ -221,7 +225,7 @@ public class Gui extends JFrame {
 		//Thread zum updaten von lblTime
 		new Thread() {
 			public void run() {
-				long pausetime = 0;
+				pausetime = 0;
 				
 				//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
 				while(algStarter.getStarttime() == 0) {
@@ -232,7 +236,7 @@ public class Gui extends JFrame {
 					}
 				}
 				
-				while(algThread.isAlive()) {
+				while(updateTime) {
 					if(algStarter.isPaused()) {
 						long pausestart = System.currentTimeMillis();
 						while(algStarter.isPaused()) {
@@ -271,7 +275,10 @@ public class Gui extends JFrame {
 						e.printStackTrace();
 					}
 				}
+				//Start-Konstellationen gefunden
+				time = System.currentTimeMillis() - algStarter.getStarttime();
 				print(algStarter.getStartConstLen() + " Start-Konstellationen gefunden in " + updateTime(), true);
+				
 				btnStart.setEnabled(true);
 				
 				float value = 0;
@@ -289,15 +296,11 @@ public class Gui extends JFrame {
 							print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellationsLen() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
 						}	
 					}
-					progressBar.setValue(intvalue);
 					if(value > 100)
 						value = 100;
-					((TitledBorder)progressBar.getBorder()).setTitle((((int)(value*100)) / 100f) + "%");
-					
-					
-					//wenn Algorithmus fertig, verlasse Endlos-Schleife
-					if( ! algThread.isAlive()) 
-						break;
+					progressBar.setValue(intvalue);
+					((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*100)) / 100f) + "%");
+					progressBar.repaint();
 					
 					//Warte 50 Millisekunden
 					try {
@@ -317,7 +320,15 @@ public class Gui extends JFrame {
 				progressBar.setValue(0);
 				((TitledBorder)progressBar.getBorder()).setTitle("0%");
 				
+				//Zeit starten
+				updateTime = true;
+				
 				algStarter.startAlgorithm();
+				
+				//Zeit stoppen
+				updateTime = false;
+				time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime;
+				updateTime();
 				
 				progressBar.setValue(100);
 				((TitledBorder)progressBar.getBorder()).setTitle("100%");

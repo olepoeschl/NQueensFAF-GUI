@@ -5,6 +5,8 @@ import java.util.ArrayDeque;
 
 public class AlgorithmThread extends Thread implements Serializable {
 
+	private static final long serialVersionUID = 1L;
+	
 	
 	//Brettgröße, Lösungszähler, Symmetrie-Faktor, Bitmaske
 	private int N;
@@ -14,10 +16,8 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private int mask;
 	//Array, enthält die zur Angabe besetzter Felder von AlgorithmStarter berechneten Integers
 	private int[] boardIntegers;
-	private int index = 0;				//index von boardIntegers[]; entspricht der akutellen Zeile
 	//Liste der von AlgorithmStarter berechneten Start-Konstellationen
 	private ArrayDeque<BoardProperties> boardPropertiesList;
-	private ArrayDeque<BoardProperties> calculatedStartConstellations;
 	
 	//Sachen fürs Pausieren und Speichern
 	private boolean pause = false;
@@ -27,21 +27,20 @@ public class AlgorithmThread extends Thread implements Serializable {
 		
 		this.N = N;
 		this.boardPropertiesList = boardPropertiesList;
-		this.calculatedStartConstellations = boardPropertiesList;
 		mask = (int) (Math.pow(2, N) - 1);						//Setze jedes Bit von mask auf 1
 		boardIntegers = new int[N];
 	}
 	
 	//Rekursive Funktion
-	private void SetQueen(int ld, int rd, int col) {
-		if(index == N-1) {
-			//Lösung gefunden
-			tempcounter++;
+	private void SetQueen(int ld, int rd, int col, int row) {
+		if(row == N-2) {
+			if( ((~(ld | rd | col | boardIntegers[row])) & mask) > 0)
+				tempcounter++;
 			return;
 		}
 		
 		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col | boardIntegers[index]);
+		int free = ~(ld | rd | col | boardIntegers[row]);
 		
 		//Solange es in der aktuellen Zeile freie Positionen gibt...
 		while((free & mask) > 0) {
@@ -49,22 +48,8 @@ public class AlgorithmThread extends Thread implements Serializable {
 			int bit = free & (-free);
 			free -= bit;
 			
-			//prüfe, ob Benutzer pausieren will
-			if(pause) {
-				while(pause) {
-					try {
-						sleep(50);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			//---
-			
 			//gehe zu nächster Zeile
-			index++;
-			SetQueen((ld|bit)<<1, (rd|bit)>>1, col|bit);
-			index--;
+			SetQueen((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
 
@@ -76,13 +61,23 @@ public class AlgorithmThread extends Thread implements Serializable {
 			symmetry = boardProperties.symmetry;
 			boardIntegers = boardProperties.boardIntegers;
 			tempcounter = 0;
-			index = 0;
 			
-			//suche alle Lösungen für die aktuelle Start-Konstellation
-			SetQueen(0, 0, 0);
+			//suche alle Lösungen für die aktuelle Start-Konstellation, beginne ab Zeile 1
+			SetQueen(0, 0, 0, 1);
 			
 			startConstIndex++;
 			solvecounter += tempcounter * symmetry;
+			
+			//prüfe, ob Benutzer pausieren will
+			if(pause) {
+				while(pause) {
+					try {
+						sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 	}
 	
