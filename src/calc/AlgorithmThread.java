@@ -5,6 +5,8 @@ import java.util.ArrayDeque;
 
 public class AlgorithmThread extends Thread implements Serializable {
 
+	private static final long serialVersionUID = 1L;
+	
 	
 	//Brettgröße, Lösungszähler, Symmetrie-Faktor, Bitmaske
 	private int N;
@@ -16,7 +18,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private int[] boardIntegers;
 	//Liste der von AlgorithmStarter berechneten Start-Konstellationen
 	private ArrayDeque<BoardProperties> boardPropertiesList;
-	private ArrayDeque<BoardProperties> calculatedStartConstellations;
 	
 	//Sachen fürs Pausieren und Speichern
 	private boolean pause = false;
@@ -26,7 +27,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 		
 		this.N = N;
 		this.boardPropertiesList = boardPropertiesList;
-		this.calculatedStartConstellations = boardPropertiesList;
 		mask = (int) (Math.pow(2, N) - 1);						//Setze jedes Bit von mask auf 1
 		boardIntegers = new int[N];
 	}
