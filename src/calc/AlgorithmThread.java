@@ -33,9 +33,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	//Rekursive Funktion
 	private void SetQueen(int ld, int rd, int col, int row) {
-		if(row == N-1) {
-			//Lösung gefunden
-			tempcounter++;
+		if(row == N-2) {
+			if( ((~(ld | rd | col | boardIntegers[row])) & mask) > 0)
+				tempcounter++;
 			return;
 		}
 		

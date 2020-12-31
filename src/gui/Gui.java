@@ -275,7 +275,10 @@ public class Gui extends JFrame {
 						e.printStackTrace();
 					}
 				}
+				//Start-Konstellationen gefunden
+				time = System.currentTimeMillis() - algStarter.getStarttime();
 				print(algStarter.getStartConstLen() + " Start-Konstellationen gefunden in " + updateTime(), true);
+				
 				btnStart.setEnabled(true);
 				
 				float value = 0;

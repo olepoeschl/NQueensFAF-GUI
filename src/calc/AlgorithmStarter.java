@@ -2,7 +2,6 @@ package calc;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -183,7 +182,7 @@ public class AlgorithmStarter {
 		}
 
 		//startConstellations in cpu viele Teile aufteilen
-		System.out.println("Länge von startConstellations = " + startConstellations.size());
+//		System.out.println("Länge von startConstellations = " + startConstellations.size());
 		Iterator<BoardProperties> iterator = boardPropertiesList.iterator();
 		int i = 0;
 		while(iterator.hasNext()) {
@@ -207,8 +206,8 @@ public class AlgorithmStarter {
 		}
 
 		end = System.currentTimeMillis();
-		long time = end - start;
-		String timestr = "[" + ( time/1000/60 ) + ":" + (time/1000%60) + "." + (time%1000) + "]";
+//		long time = end - start;
+//		String timestr = "[" + ( time/1000/60 ) + ":" + (time/1000%60) + "." + (time%1000) + "]";
 
 
 		//Counter berechnen und Ergebnis ausgeben
@@ -216,7 +215,7 @@ public class AlgorithmStarter {
 			solvecounter += algThread.getSolvecounter();
 		}
 
-		System.out.println(timestr + "\tfertig, solvecounter = " + solvecounter);
+//		System.out.println(timestr + "\tfertig, solvecounter = " + solvecounter);
 	}
 
 	private boolean SquareIsSafe(int r, int c) {					//Prüft ob das übergebene Feld von einer anderen Dame gedeckt ist.
