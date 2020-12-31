@@ -194,7 +194,7 @@ public class AlgorithmStarter {
 		for(ArrayDeque<BoardProperties> constellations : threadConstellations) {
 			AlgorithmThread algThread = new AlgorithmThread( N, constellations);
 			threadlist.add(algThread);
-			algThread.setPriority(7);
+//			algThread.setPriority(7);
 			algThread.start();
 		}
 		for(AlgorithmThread algThread : threadlist) {

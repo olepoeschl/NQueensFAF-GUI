@@ -296,15 +296,11 @@ public class Gui extends JFrame {
 							print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstellationsLen() + " von " + algStarter.getStartConstLen() + " in " + updateTime() + " ]", true);
 						}	
 					}
-					progressBar.setValue(intvalue);
 					if(value > 100)
 						value = 100;
-					((TitledBorder)progressBar.getBorder()).setTitle((((int)(value*100)) / 100f) + "%");
-					
-					
-					//wenn Algorithmus fertig, verlasse Endlos-Schleife
-					if( ! algThread.isAlive()) 
-						break;
+					progressBar.setValue(intvalue);
+					((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*100)) / 100f) + "%");
+					progressBar.repaint();
 					
 					//Warte 50 Millisekunden
 					try {
