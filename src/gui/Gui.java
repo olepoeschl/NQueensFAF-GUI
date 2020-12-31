@@ -299,12 +299,12 @@ public class Gui extends JFrame {
 					if(value > 100)
 						value = 100;
 					progressBar.setValue(intvalue);
-					((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*100)) / 100f) + "%");
+					((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "%");
 					progressBar.repaint();
 					
 					//Warte 50 Millisekunden
 					try {
-						sleep(50);
+						sleep(100);
 					} catch(InterruptedException ie) {
 						ie.printStackTrace();
 					}
