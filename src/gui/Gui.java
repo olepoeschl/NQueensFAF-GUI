@@ -290,8 +290,10 @@ public class Gui extends JFrame {
 				}
 				//Start-Konstellationen gefunden
 				time = System.currentTimeMillis() - algStarter.getStarttime();
-				print(algStarter.getStartConstCount() + " Start-Konstellationen gefunden in " + updateTime(), true);
-				
+				if(!load)
+					print(algStarter.getStartConstCount() + " Start-Konstellationen gefunden in " + updateTime(), true);
+				else
+					print(algStarter.getUncalculatedStartConstCount() + " übrige Start-Konstellationen gefunden (von insgesamt " + algStarter.getStartConstCount() + ")\n", true);
 				//Ab jetzt kann pausiert oder abgebrochen werden
 				btnStart.setEnabled(true);
 				btnCancel.setEnabled(true);
@@ -513,32 +515,38 @@ public class Gui extends JFrame {
 				print("##### Abgebrochen #####", true);
 			}
 			else if(e.getSource() == btnSave){
-				//Dateipfad auswählen
-				String filename = "";
-				JFileChooser filechooser = new JFileChooser();
-				if(filechooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-					filename = filechooser.getSelectedFile().getAbsolutePath();
-				}
-				
-				//Speichere fafprocessdata in Dateipfad filename
-				FAFProcessData fafprocessdata = new FAFProcessData();
-				fafprocessdata.addAll(algStarter.getUncalculatedStartConstellations());
-				fafprocessdata.N = algStarter.getN();
-				fafprocessdata.solvecounter = algStarter.getSolvecounter();
-				fafprocessdata.startConstCount = algStarter.getStartConstCount();
-				fafprocessdata.calculatedStartConstCount = algStarter.getCalculatedStartConstCount();
-				fafprocessdata.time = time;
-				fafprocessdata.save(filename);
+				new Thread() {
+					public void run() {
+						//Dateipfad auswählen
+						String filepath = "";
+						JFileChooser filechooser = new JFileChooser();
+						if(filechooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+							filepath = filechooser.getSelectedFile().getAbsolutePath();
+						}
+						
+						//Speichere fafprocessdata in Dateipfad filename
+						FAFProcessData fafprocessdata = new FAFProcessData();
+						fafprocessdata.addAll(algStarter.getUncalculatedStartConstellations());
+						fafprocessdata.N = algStarter.getN();
+						fafprocessdata.solvecounter = algStarter.getSolvecounter();
+						fafprocessdata.startConstCount = algStarter.getStartConstCount();
+						fafprocessdata.calculatedStartConstCount = algStarter.getCalculatedStartConstCount();
+						fafprocessdata.time = time;
+						fafprocessdata.save(filepath);
+						
+						print("/- Aktueller Prozess wurde erfolgreich in Datei " + filechooser.getSelectedFile().getName().toString() + " gespeichert. \\-\n", true);
+					}
+				}.start();
 			}
 			else if(e.getSource() == btnLoad) {
 				//Dateipfad auswählen
-				String filename = "";
+				String filepath = "";
 				JFileChooser filechooser = new JFileChooser();
 				if(filechooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-					filename = filechooser.getSelectedFile().getAbsolutePath();
+					filepath = filechooser.getSelectedFile().getAbsolutePath();
 					
 					//Lade FAFProcessData us Dateipfad filename
-					FAFProcessData fafprocessdata = FAFProcessData.load(filename);
+					FAFProcessData fafprocessdata = FAFProcessData.load(filepath);
 					
 					//initialisiere AlgorithmStarter mit den geladenen Daten
 					int threadcount = Integer.parseInt(tfThreadcount.getText());
@@ -548,16 +556,18 @@ public class Gui extends JFrame {
 					//aktualisiere Gui mit den geladenen Werten
 					sliderN.setValue(fafprocessdata.N);
 					tfN.setText(fafprocessdata.N + "");
+					((TitledBorder)progressBar.getBorder()).setTitle("0%");
+					progressBar.setValue(0);
 					
 					oldtime = fafprocessdata.time;
 					
 					//Datei geladen
 					load = true;
 					
-					print("Alter Prozess wurde erfolgreich aus Datei " + filechooser.getSelectedFile().getName() + " geladen.\n", false);
-					print("Zum starten GO drücken\n", true);
+					print("/- Alter Prozess wurde erfolgreich aus Datei " + filechooser.getSelectedFile().getName().toString() + " geladen. \\-\n", false);
+					print("/- Zum Starten GO drücken \\-\n", true);
 				} else {
-					print("Laden abgebrochen", true);
+					print("/- Laden abgebrochen \\-", true);
 				}
 			}
 		}

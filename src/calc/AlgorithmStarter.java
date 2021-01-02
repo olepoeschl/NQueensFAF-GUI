@@ -312,6 +312,9 @@ public class AlgorithmStarter {
 		}
 		return uncalcbplist;
 	}
+	public long getUncalculatedStartConstCount() {
+		return getUncalculatedStartConstellations().size();
+	}
 	
 	public float getProgress() {
 		if(threadlist == null)
