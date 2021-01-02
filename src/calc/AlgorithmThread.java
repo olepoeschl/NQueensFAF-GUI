@@ -11,22 +11,23 @@ public class AlgorithmThread extends Thread implements Serializable {
 	//Brettgröße, Lösungszähler, Symmetrie-Faktor, Bitmaske
 	private int N;
 	private long tempcounter = 0, solvecounter = 0;	
-	private int startConstIndex = 1;
+	private int startConstIndex = 0;
 	private int symmetry = 8;
 	private int mask;
 	//Array, enthält die zur Angabe besetzter Felder von AlgorithmStarter berechneten Integers
 	private int[] boardIntegers;
 	//Liste der von AlgorithmStarter berechneten Start-Konstellationen
-	private ArrayDeque<BoardProperties> boardPropertiesList;
+	private ArrayDeque<BoardProperties> boardPropertiesList, uncalculatedStartConstList;
 	
 	//Sachen fürs Pausieren und Speichern
-	private boolean pause = false;
+	private boolean pause = false, cancel = false;
 	
 
 	public AlgorithmThread(int N, ArrayDeque<BoardProperties> boardPropertiesList) {
 		
 		this.N = N;
 		this.boardPropertiesList = boardPropertiesList;
+		uncalculatedStartConstList = boardPropertiesList;
 		mask = (int) (Math.pow(2, N) - 1);						//Setze jedes Bit von mask auf 1
 		boardIntegers = new int[N];
 	}
@@ -55,7 +56,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	@Override
 	public void run() {
-		
+		loop:
 		for(BoardProperties boardProperties : boardPropertiesList) {
 			//übernimm Parameter von boardProperties
 			symmetry = boardProperties.symmetry;
@@ -68,15 +69,23 @@ public class AlgorithmThread extends Thread implements Serializable {
 			startConstIndex++;
 			solvecounter += tempcounter * symmetry;
 			
-			//prüfe, ob Benutzer pausieren will
+			//für Speicher- und Ladefunktion
+			uncalculatedStartConstList.remove(boardProperties);
+			
+			//prüfe, ob Benutzer pausieren oder abbrechen will
 			if(pause) {
 				while(pause) {
+					if(cancel)
+						break loop;
+					
 					try {
 						sleep(50);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
+			} else if(cancel) {
+				break;
 			}
 		}
 	}
@@ -87,12 +96,19 @@ public class AlgorithmThread extends Thread implements Serializable {
 	public void go() {
 		pause = false;
 	}
+	public void cancel() {
+		cancel = true;
+	}
 	
-	
+
+	public int getStartConstIndex() {
+		return startConstIndex;
+	}
 	public long getSolvecounter() {
 		return solvecounter;
 	}
-	public int getStartConstIndex() {
-		return startConstIndex;
+	
+	public ArrayDeque<BoardProperties> getUncalculatedStartConstellations(){
+		return uncalculatedStartConstList;
 	}
 }
