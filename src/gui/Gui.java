@@ -10,6 +10,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.text.DefaultCaret;
 
 import calc.AlgorithmStarter;
@@ -25,6 +26,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
 
 import javax.swing.JLabel;
 import java.awt.Font;
@@ -518,10 +520,15 @@ public class Gui extends JFrame {
 				new Thread() {
 					public void run() {
 						//Dateipfad auswählen
-						String filepath = "";
+						String filepath = "", filename = "";
 						JFileChooser filechooser = new JFileChooser();
 						if(filechooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 							filepath = filechooser.getSelectedFile().getAbsolutePath();
+							filename = filechooser.getSelectedFile().getName().toString();
+							if( ! filepath.endsWith(".faf") ) {
+								filepath = filepath + ".faf";
+								filename = filename + ".faf";
+							}
 						}
 						
 						//Speichere fafprocessdata in Dateipfad filename
@@ -534,7 +541,7 @@ public class Gui extends JFrame {
 						fafprocessdata.time = time;
 						fafprocessdata.save(filepath);
 						
-						print("/- Aktueller Prozess wurde erfolgreich in Datei " + filechooser.getSelectedFile().getName().toString() + " gespeichert. \\-\n", true);
+						print("/- Aktueller Prozess wurde erfolgreich in Datei " + filename + " gespeichert. \\-", true);
 					}
 				}.start();
 			}
@@ -542,6 +549,21 @@ public class Gui extends JFrame {
 				//Dateipfad auswählen
 				String filepath = "";
 				JFileChooser filechooser = new JFileChooser();
+				filechooser.setMultiSelectionEnabled(false);
+				filechooser.setCurrentDirectory(null);
+				filechooser.setAcceptAllFileFilterUsed(false);
+				filechooser.setFileFilter(new FileFilter() {
+					@Override
+					public String getDescription() {
+						return null;
+					}
+					@Override
+					public boolean accept(File f) {
+						if(f.isDirectory() || f.getName().endsWith(".faf"))
+							return true;
+						return false;
+					}
+				});
 				if(filechooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					filepath = filechooser.getSelectedFile().getAbsolutePath();
 					
@@ -565,7 +587,7 @@ public class Gui extends JFrame {
 					load = true;
 					
 					print("/- Alter Prozess wurde erfolgreich aus Datei " + filechooser.getSelectedFile().getName().toString() + " geladen. \\-\n", false);
-					print("/- Zum Starten GO drücken \\-\n", true);
+					print("/- Zum Starten GO drücken \\-", true);
 				} else {
 					print("/- Laden abgebrochen \\-", true);
 				}
