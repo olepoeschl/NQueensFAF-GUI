@@ -6,11 +6,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import util.FAFProcessData;
+
 public class AlgorithmStarter {
 
 	private int N, mask;										// Brettgröße N, mask ist Integer mit N 1en rechts in der Bitdarstellung (entspricht dem Brett)
 	private int cpu;											// Anzahl der gewünschten Threads (Anzahl der Kerne)
-	private long solvecounter = 0;
+	private long old_solvecounter = 0;
 	private int symmetry = 8;									// Vielfachheit der gefundenen Lösung
 	int[] currentRows;											// beschreibt für aktuelle Startpos die Belegung der N Zeilen (als Int in Bitdarstellung)
 	private boolean[] rowNotFree, colNotFree, diaLeftNotFree, diaRightNotFree;	// Belegung der Diagonalen, Zeilen, Spalten (true belegt, false frei)
@@ -18,15 +20,20 @@ public class AlgorithmStarter {
 
 	Set<Integer> startConstellations = new HashSet<Integer>();					// checkt, ob aktuelle Startposition schon gefunden wurde ( beachte Symmetrie)
 	ArrayList<AlgorithmThread> threadlist;
+	
+	private long startConstCount = 0, calculatedStartConstCount = 0;
+	
+	//Variablen für den Speicher- und Ladevorgang
+	//private long startConstCount;
+	private boolean load = false;
 
-	//
+	//Prozesszustands-Regelung
 	private long start = 0, end = 0;
 	private boolean pause = false;
+	
 
-	//wie viele x-symmetrische startpositionen?
 
-
-	public AlgorithmStarter(int N, int cpu, boolean pausable) {
+	public AlgorithmStarter(int N, int cpu) {
 		this.N = N;
 		this.cpu = cpu;
 		mask = (int) (Math.pow(2, N) - 1);
@@ -44,145 +51,148 @@ public class AlgorithmStarter {
 	public void startAlgorithm() {
 		//Speichere Start-Zeit
 		start = System.currentTimeMillis();
+		
+		if(!load) {
+			int halfN = (N + (N % 2)) / 2;				// Dame nur links setzen, Rest eh symmetrisch
+			//Start-Konstellationen berechnen für 1.Dame ist nicht in der oberen linken Ecke (hier muss man Symmetrie checken)
+			for(int i = 1; i < halfN; i++) {			// erste Zeile durchgehen
+				colNotFree[i] = true;					// Spalte wird belegt
+				diaRightNotFree[-i+N-1] = true;			// dia right wird belegt
+				diaLeftNotFree[i] = true;				// dia left wird belegt
 
-		int halfN = (N + (N % 2)) / 2;				// Dame nur links setzen, Rest eh symmetrisch
+				for(int j = i+1; j < N-1; j++) {		// letzte Zeile durchgehen
+					if( ! SquareIsSafe(N-1, j))
+						continue;
+					colNotFree[j] = true;							// Spalte wird belegt
+					diaRightNotFree[(N-1)-j+N-1] = true;			// dia right wird belegt
+					diaLeftNotFree[(N-1)+j] = true;					// dia left wird belegt
 
-		//Start-Konstellationen berechnen für 1.Dame ist nicht in der oberen linken Ecke (hier muss man Symmetrie checken)
-		for(int i = 1; i < halfN; i++) {			// erste Zeile durchgehen
-			colNotFree[i] = true;					// Spalte wird belegt
-			diaRightNotFree[-i+N-1] = true;			// dia right wird belegt
-			diaLeftNotFree[i] = true;				// dia left wird belegt
+					for(int k = i+1; k < N-1; k++) {				// erste Spalte durchgehen
+						if( ! SquareIsSafe(k, 0))
+							continue;
+						rowNotFree[k] = true;								// Zeile wird belegt
+						diaRightNotFree[k+N-1] = true;						// dia right wird belegt
+						diaLeftNotFree[k] = true;							// dia left wird belegt
 
-			for(int j = i+1; j < N-1; j++) {		// letzte Zeile durchgehen
+						for(int l = 1; l < N-1; l++) {						// letzte Spalte durchgehen
+							if( SquareIsSafe(l, N-1) && !checkRotations(i, j, k, l) && !checkDiaLeft(i, j, k, l)) {		// wenn zul. und neu, dann neue Startpos. gefunden
+								rowNotFree[l] = true;
+								diaRightNotFree[l] = true;
+								diaLeftNotFree[l + N-1] = true;
+
+								if(i == N-1-j && k == N-1-l)		// 180° symmetrisch?
+									if(symmetry90(i, j, k, l))		// sogar 90° symmetrisch?
+										symmetry = 2;
+									else
+										symmetry = 4;
+								else
+									symmetry = 8;					// gar nicht symmetrisch
+
+
+								colNotFree[0] = true;
+								colNotFree[N-1] = true;
+
+								currentRows = new int[N];					// 1, wenn belegt, 0 sonst
+								for(int m = 1; m < N-1; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
+									for(int n = 0; n < N; n++) {			// schon belegt sind
+										if(!SquareIsSafe(m, n)) 
+											currentRows[m] += 1 << (N-1-n);
+									}
+								}
+
+								colNotFree[0] = false;
+								colNotFree[N-1] = false;
+
+								currentRows[k] = mask >> 1;					// überschreibe die Belegungen in Zeile und Spalte 1 und N
+								currentRows[l] = (mask >> 1) << 1;
+								currentRows[0] = mask - (1<<(N-1-i));
+								currentRows[N-1] = mask - (1<<(N-1-j));
+
+								boardPropertiesList.add(new BoardProperties(currentRows, symmetry));	// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
+
+								startConstellations.add((i<<24) + (j<<16) + (k<<8) + l);						// Sachen wieder freigeben	
+								rowNotFree[l] = false;
+								diaRightNotFree[l] = false;
+								diaLeftNotFree[l + N-1] = false;
+							}
+						}
+
+						rowNotFree[k] = false;								// Zeile wird freigegeben
+						diaRightNotFree[k+N-1] = false;						// dia right wird wieder frei gemacht
+						diaLeftNotFree[k] = false;							// dia left wird wieder frei gemacht
+					}
+
+					colNotFree[j] = false;							// col wird frei gegeben
+					diaRightNotFree[(N-1)-j+N-1] = false;			// dia right wird wieder frei gemacht
+					diaLeftNotFree[(N-1)+j] = false;				// dia left wird wieder frei gemacht
+				}
+
+				colNotFree[i] = false;					// col wird freigegeben
+				diaRightNotFree[-i+N-1] = false;		// dia right wird belegt
+				diaLeftNotFree[i] = false;				// dia left wird belegt
+			}
+
+			//Start-Konstellationen berechnen für 1.Dame auf Feld (0, 0)
+			diaRightNotFree[N-1] = true;
+			diaLeftNotFree[0] = true;
+
+			for(int j = 1; j < N-2; j++) {
 				if( ! SquareIsSafe(N-1, j))
 					continue;
-				colNotFree[j] = true;							// Spalte wird belegt
-				diaRightNotFree[(N-1)-j+N-1] = true;			// dia right wird belegt
-				diaLeftNotFree[(N-1)+j] = true;					// dia left wird belegt
+				colNotFree[j] = true;
+				diaRightNotFree[N-1 - j + N-1] = true;
+				diaLeftNotFree[N-1 + j] = true;
 
-				for(int k = i+1; k < N-1; k++) {				// erste Spalte durchgehen
-					if( ! SquareIsSafe(k, 0))
-						continue;
-					rowNotFree[k] = true;								// Zeile wird belegt
-					diaRightNotFree[k+N-1] = true;						// dia right wird belegt
-					diaLeftNotFree[k] = true;							// dia left wird belegt
+				for(int l = j+1; l < N-1; l++) {
+					if( SquareIsSafe(l, N-1)) {		
+						rowNotFree[l] = true;
+						diaRightNotFree[l] = true;
+						diaLeftNotFree[l + N-1] = true;
 
-					for(int l = 1; l < N-1; l++) {						// letzte Spalte durchgehen
-						if( SquareIsSafe(l, N-1) && !checkRotations(i, j, k, l) && !checkDiaLeft(i, j, k, l)) {		// wenn zul. und neu, dann neue Startpos. gefunden
-							rowNotFree[l] = true;
-							diaRightNotFree[l] = true;
-							diaLeftNotFree[l + N-1] = true;
+						colNotFree[0] = true;
+						colNotFree[N-1] = true;
 
-							if(i == N-1-j && k == N-1-l)		// 180° symmetrisch?
-								if(symmetry90(i, j, k, l))		// sogar 90° symmetrisch?
-									symmetry = 2;
-								else
-									symmetry = 4;
-							else
-								symmetry = 8;					// gar nicht symmetrisch
-
-
-							colNotFree[0] = true;
-							colNotFree[N-1] = true;
-
-							currentRows = new int[N];					// 1, wenn belegt, 0 sonst
-							for(int m = 1; m < N-1; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
-								for(int n = 0; n < N; n++) {			// schon belegt sind
-									if(!SquareIsSafe(m, n)) 
-										currentRows[m] += 1 << (N-1-n);
-								}
+						currentRows = new int[N];					// 1, wenn belegt, 0 sonst
+						for(int m = 1; m < N-1; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
+							for(int n = 0; n < N; n++) {			// schon belegt sind
+								if(!SquareIsSafe(m, n)) 
+									currentRows[m] += 1 << (N-1-n);
 							}
-
-							colNotFree[0] = false;
-							colNotFree[N-1] = false;
-
-							currentRows[k] = mask >> 1;					// überschreibe die Belegungen in Zeile und Spalte 1 und N
-							currentRows[l] = (mask >> 1) << 1;
-							currentRows[0] = mask - (1<<(N-1-i));
-							currentRows[N-1] = mask - (1<<(N-1-j));
-
-							boardPropertiesList.add(new BoardProperties(currentRows, symmetry));	// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
-
-							startConstellations.add((i<<24) + (j<<16) + (k<<8) + l);						// Sachen wieder freigeben	
-							rowNotFree[l] = false;
-							diaRightNotFree[l] = false;
-							diaLeftNotFree[l + N-1] = false;
 						}
-					}
 
-					rowNotFree[k] = false;								// Zeile wird freigegeben
-					diaRightNotFree[k+N-1] = false;						// dia right wird wieder frei gemacht
-					diaLeftNotFree[k] = false;							// dia left wird wieder frei gemacht
+						colNotFree[0] = false;
+						colNotFree[N-1] = false;
+
+						currentRows[0] = mask >> 1;
+						currentRows[N-1] = ~(1 << (N-1-j)) & mask;
+						currentRows[l] = (mask >> 1) << 1;
+
+						boardPropertiesList.add(new BoardProperties(currentRows, 8));	
+						startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
+
+						rowNotFree[l] = false;
+						diaRightNotFree[l] = false;
+						diaLeftNotFree[l + N-1] = false;
+					}
 				}
 
-				colNotFree[j] = false;							// col wird frei gegeben
-				diaRightNotFree[(N-1)-j+N-1] = false;			// dia right wird wieder frei gemacht
-				diaLeftNotFree[(N-1)+j] = false;				// dia left wird wieder frei gemacht
+				colNotFree[j] = false;
+				diaRightNotFree[N-1 - j + N-1] = false;
+				diaLeftNotFree[N-1 + j] = false;
 			}
-
-			colNotFree[i] = false;					// col wird freigegeben
-			diaRightNotFree[-i+N-1] = false;		// dia right wird belegt
-			diaLeftNotFree[i] = false;				// dia left wird belegt
+			
+			//schreibe in startConstCount
+			startConstCount = boardPropertiesList.size();
 		}
-
-		//Start-Konstellationen berechnen für 1.Dame auf Feld (0, 0)
-		diaRightNotFree[N-1] = true;
-		diaLeftNotFree[0] = true;
-
-		for(int j = 1; j < N-2; j++) {
-			if( ! SquareIsSafe(N-1, j))
-				continue;
-			colNotFree[j] = true;
-			diaRightNotFree[N-1 - j + N-1] = true;
-			diaLeftNotFree[N-1 + j] = true;
-
-			for(int l = j+1; l < N-1; l++) {
-				if( SquareIsSafe(l, N-1)) {		
-					rowNotFree[l] = true;
-					diaRightNotFree[l] = true;
-					diaLeftNotFree[l + N-1] = true;
-
-					colNotFree[0] = true;
-					colNotFree[N-1] = true;
-
-					currentRows = new int[N];					// 1, wenn belegt, 0 sonst
-					for(int m = 1; m < N-1; m++) {				// wird an AlgorithmThgread übergeben damit man weiß, welche Felder durch die Startpos. 
-						for(int n = 0; n < N; n++) {			// schon belegt sind
-							if(!SquareIsSafe(m, n)) 
-								currentRows[m] += 1 << (N-1-n);
-						}
-					}
-
-					colNotFree[0] = false;
-					colNotFree[N-1] = false;
-
-					currentRows[0] = mask >> 1;
-					currentRows[N-1] = ~(1 << (N-1-j)) & mask;
-					currentRows[l] = (mask >> 1) << 1;
-
-					boardPropertiesList.add(new BoardProperties(currentRows, 8));	
-					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
-
-					rowNotFree[l] = false;
-					diaRightNotFree[l] = false;
-					diaLeftNotFree[l + N-1] = false;
-				}
-			}
-
-			colNotFree[j] = false;
-			diaRightNotFree[N-1 - j + N-1] = false;
-			diaLeftNotFree[N-1 + j] = false;
-		}
-
-
+		
 		//---
+		
 		ArrayList< ArrayDeque<BoardProperties> > threadConstellations = new ArrayList< ArrayDeque<BoardProperties>>(cpu);
 		for(int i = 0; i < cpu; i++) {
 			threadConstellations.add(new ArrayDeque<BoardProperties>());
 		}
 
 		//startConstellations in cpu viele Teile aufteilen
-//		System.out.println("Länge von startConstellations = " + startConstellations.size());
 		Iterator<BoardProperties> iterator = boardPropertiesList.iterator();
 		int i = 0;
 		while(iterator.hasNext()) {
@@ -192,7 +202,7 @@ public class AlgorithmStarter {
 		//Thread starten und auf ihre Beendung warten
 		threadlist = new ArrayList<AlgorithmThread>();
 		for(ArrayDeque<BoardProperties> constellations : threadConstellations) {
-			AlgorithmThread algThread = new AlgorithmThread( N, constellations);
+			AlgorithmThread algThread = new AlgorithmThread(N, constellations);
 			threadlist.add(algThread);
 //			algThread.setPriority(7);
 			algThread.start();
@@ -205,17 +215,8 @@ public class AlgorithmStarter {
 			}
 		}
 
+		//Zeit stoppen
 		end = System.currentTimeMillis();
-//		long time = end - start;
-//		String timestr = "[" + ( time/1000/60 ) + ":" + (time/1000%60) + "." + (time%1000) + "]";
-
-
-		//Counter berechnen und Ergebnis ausgeben
-		for(AlgorithmThread algThread : threadlist) {
-			solvecounter += algThread.getSolvecounter();
-		}
-
-//		System.out.println(timestr + "\tfertig, solvecounter = " + solvecounter);
 	}
 
 	private boolean SquareIsSafe(int r, int c) {					//Prüft ob das übergebene Feld von einer anderen Dame gedeckt ist.
@@ -261,10 +262,11 @@ public class AlgorithmStarter {
 
 	// start the main
 	public static void main(String[] args) {
-		AlgorithmStarter algStarter = new AlgorithmStarter(18, 1, false);
+		AlgorithmStarter algStarter = new AlgorithmStarter(18, 1);
 		algStarter.startAlgorithm();
 	}
-
+	// --------------
+	
 	public void pause() {
 		pause = true;
 		for(AlgorithmThread algThread : threadlist) {
@@ -275,6 +277,11 @@ public class AlgorithmStarter {
 		pause = false;
 		for(AlgorithmThread algThread : threadlist) {
 			algThread.go();
+		}
+	}
+	public void cancel() {
+		for(AlgorithmThread algThread : threadlist) {
+			algThread.cancel();
 		}
 	}
 	public boolean isPaused() {
@@ -288,25 +295,55 @@ public class AlgorithmStarter {
 		return end;
 	}
 	
-	public long getStartConstLen() {
-		return startConstellations.size();
+	public long getStartConstCount() {
+		return startConstCount;
 	}
-	public long getCalculatedStartConstellationsLen() {
+	public long getCalculatedStartConstCount() {
 		long counter = 0;
 		for(AlgorithmThread algThread : threadlist) {
 			counter += algThread.getStartConstIndex();
 		}
-		return counter - 1;
+		return calculatedStartConstCount + counter;
 	}
+	public ArrayDeque<BoardProperties> getUncalculatedStartConstellations() {
+		ArrayDeque<BoardProperties> uncalcbplist = new ArrayDeque<BoardProperties>();
+		for(AlgorithmThread algThread : threadlist) {
+			uncalcbplist.addAll(algThread.getUncalculatedStartConstellations());
+		}
+		return uncalcbplist;
+	}
+	public long getUncalculatedStartConstCount() {
+		return getUncalculatedStartConstellations().size();
+	}
+	
 	public float getProgress() {
 		if(threadlist == null)
 			return 0;
 
 		//Berechne progress
-		float progress = getCalculatedStartConstellationsLen();
-		return progress / startConstellations.size();
+		float progress = getCalculatedStartConstCount();
+		return progress / getStartConstCount();
+	}
+	
+	public int getN() {
+		return N;
 	}
 	public long getSolvecounter() {
-		return solvecounter;
+		long solvecounter = 0;
+		for(AlgorithmThread algThread : threadlist) {
+			solvecounter += algThread.getSolvecounter();
+		}
+		return solvecounter + old_solvecounter;
+	}
+	
+	//Laden des Fortschritts eines alten Rechenvorganges
+	public void load(FAFProcessData fafprocessdata) {
+		load = true;
+
+//		N = fafprocessdata.N;
+		boardPropertiesList.addAll(fafprocessdata);
+		old_solvecounter = fafprocessdata.solvecounter;
+		startConstCount = fafprocessdata.startConstCount;
+		calculatedStartConstCount = fafprocessdata.calculatedStartConstCount;
 	}
 }
