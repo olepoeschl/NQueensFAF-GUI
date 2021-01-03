@@ -60,6 +60,9 @@ public class Gui extends JFrame {
 	private long time = 0, pausetime = 0, oldtime = 0;
 	private boolean updateTime = true, load = false;
 	
+	//FileFilter-Objekt
+	private FileFilter filefilter;
+	
 	
 	public Gui() {
 		super("NQueens Algorithm FAF");
@@ -67,6 +70,19 @@ public class Gui extends JFrame {
 		eventListener = new EventListener();
 		initGui();
 		this.pack();
+		
+		filefilter = new FileFilter() {
+			@Override
+			public String getDescription() {
+				return "Fast as fuck - Dateien (.faf)";
+			}
+			@Override
+			public boolean accept(File f) {
+				if(f.isDirectory() || f.getName().endsWith(".faf"))
+					return true;
+				return false;
+			}
+		};
 	}
 	
 	private void initGui() {
@@ -522,6 +538,11 @@ public class Gui extends JFrame {
 						//Dateipfad auswählen
 						String filepath = "", filename = "";
 						JFileChooser filechooser = new JFileChooser();
+						filechooser.setMultiSelectionEnabled(false);
+						filechooser.setCurrentDirectory(null);
+						filechooser.setAcceptAllFileFilterUsed(false);
+						filechooser.addChoosableFileFilter(filefilter);
+						filechooser.setFileFilter(filefilter);
 						if(filechooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 							filepath = filechooser.getSelectedFile().getAbsolutePath();
 							filename = filechooser.getSelectedFile().getName().toString();
@@ -552,18 +573,8 @@ public class Gui extends JFrame {
 				filechooser.setMultiSelectionEnabled(false);
 				filechooser.setCurrentDirectory(null);
 				filechooser.setAcceptAllFileFilterUsed(false);
-				filechooser.setFileFilter(new FileFilter() {
-					@Override
-					public String getDescription() {
-						return null;
-					}
-					@Override
-					public boolean accept(File f) {
-						if(f.isDirectory() || f.getName().endsWith(".faf"))
-							return true;
-						return false;
-					}
-				});
+				filechooser.addChoosableFileFilter(filefilter);
+				filechooser.setFileFilter(filefilter);
 				if(filechooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					filepath = filechooser.getSelectedFile().getAbsolutePath();
 					
