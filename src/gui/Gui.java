@@ -624,7 +624,7 @@ public class Gui extends JFrame {
 					//Datei geladen
 					load = true;
 					
-					print("/- Alter Prozess wurde erfolgreich aus Datei " + filechooser.getSelectedFile().getName().toString() + " geladen. \\-\n", false);
+					print("/- Alter Prozess wurde erfolgreich aus Datei " + filechooser.getSelectedFile().getName().toString() + " geladen. \\-", false);
 					print("/- Zum Starten GO drücken \\-", true);
 				} else {
 					print("/- Laden abgebrochen \\-", true);
