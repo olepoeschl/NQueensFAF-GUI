@@ -30,6 +30,7 @@ public class AlgorithmStarter {
 	private long start = 0, end = 0;
 	private boolean pause = false;
 	
+	private boolean ready = false;
 
 
 	public AlgorithmStarter(int N, int cpu) {
@@ -139,6 +140,7 @@ public class AlgorithmStarter {
 		}
 		
 		//---
+		ready = true;
 		startConstCount = boardPropertiesList.size();
 		
 		ArrayList< ArrayDeque<BoardProperties> > threadConstellations = new ArrayList< ArrayDeque<BoardProperties>>(cpu);
@@ -255,6 +257,9 @@ public class AlgorithmStarter {
 		return getUncalculatedStartConstellations().size();
 	}
 	
+	public boolean isReady() {
+		return ready;
+	}
 	public float getProgress() {
 		if(threadlist == null)
 			return 0;

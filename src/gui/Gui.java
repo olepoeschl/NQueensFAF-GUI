@@ -299,9 +299,9 @@ public class Gui extends JFrame {
 		new Thread() {
 			public void run() {
 				//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
-				while(algStarter.getProgress() == 0) {
+				while(!algStarter.isReady()) {
 					try {
-						sleep(50);
+						sleep(5);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
