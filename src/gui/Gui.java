@@ -27,6 +27,8 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
+import java.util.ArrayDeque;
+import java.util.LinkedList;
 
 import javax.swing.JLabel;
 import java.awt.Font;
@@ -63,6 +65,9 @@ public class Gui extends JFrame {
 	//FileFilter-Objekt
 	private FileFilter filefilter;
 	
+	//Stack-Objekt für print-Methode
+	private LinkedList<String> msgStack;
+	
 	
 	public Gui() {
 		super("NQueens Algorithm FAF");
@@ -83,6 +88,23 @@ public class Gui extends JFrame {
 				return false;
 			}
 		};
+		
+		msgStack = new LinkedList<String>();
+		new Thread() {
+			public void run() {
+				while(true) {
+					if(msgStack.size() > 0) {
+						String msg = msgStack.removeFirst();
+						taOutput.append(msg);
+					}
+					try {
+						sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
 	}
 	
 	private void initGui() {
@@ -205,11 +227,13 @@ public class Gui extends JFrame {
 		pnlOutput.add(progressBar, BorderLayout.SOUTH);
 	}
 	
-	private void print(String str, boolean append) {
-		if(append)
-			taOutput.append(str + "\n");
-		else
-			taOutput.setText(str);
+	private void print(String msg, boolean append) {
+		if(append) {
+			msgStack.add(msg + "\n");
+		} else {
+			taOutput.setText("");
+			msgStack.add(msg + "\n");
+		}
 	}
 	private String updateTime() {
 		long h = time/1000/60/60;
@@ -299,9 +323,9 @@ public class Gui extends JFrame {
 		new Thread() {
 			public void run() {
 				//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
-				while(algStarter.getProgress() == 0) {
+				while(!algStarter.isReady()) {
 					try {
-						sleep(50);
+						sleep(5);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -350,7 +374,9 @@ public class Gui extends JFrame {
 	private void startAlgThread() {
 		algThread = new Thread() {
 			public void run() {
-				print("", false);
+				//Mach taOutput wieder clean
+				print("Starte Thread(s)...", false);
+				
 				//Setze progressBar zurück
 				progressBar.setValue(0);
 				((TitledBorder)progressBar.getBorder()).setTitle("0%");
@@ -359,19 +385,20 @@ public class Gui extends JFrame {
 				updateTime = true;
 
 				algStarter.startAlgorithm();
-
+				
 				//Zeit stoppen
 				updateTime = false;
 				time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
 				updateTime();
 				oldtime = 0;
-
+				
 				progressBar.setValue(100);
 				((TitledBorder)progressBar.getBorder()).setTitle("100%");
 				print("============================\n" + algStarter.getSolvecounter() + " Lösungen gefunden für N = " + algStarter.getN() + "\n============================", true);
 				
 				//Buttons zurücksetzen
 				btnStart.setText("GO");
+				btnStart.setEnabled(true);
 				btnCancel.setEnabled(false);
 				btnSave.setEnabled(false);
 				btnLoad.setEnabled(true);
@@ -597,7 +624,7 @@ public class Gui extends JFrame {
 					//Datei geladen
 					load = true;
 					
-					print("/- Alter Prozess wurde erfolgreich aus Datei " + filechooser.getSelectedFile().getName().toString() + " geladen. \\-\n", false);
+					print("/- Alter Prozess wurde erfolgreich aus Datei " + filechooser.getSelectedFile().getName().toString() + " geladen. \\-", false);
 					print("/- Zum Starten GO drücken \\-", true);
 				} else {
 					print("/- Laden abgebrochen \\-", true);
