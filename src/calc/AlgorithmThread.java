@@ -53,6 +53,43 @@ public class AlgorithmThread extends Thread implements Serializable {
 			SetQueen((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
+	private void SetQueenBig(int ld, int rd, int col, int row) {
+		//prüfe, ob Benutzer pausieren oder abbrechen will
+		if(pause) {
+			while(pause) {
+				if(cancel)
+					return;
+				
+				try {
+					sleep(50);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		} else if(cancel) {
+			return;
+		}
+		
+		if(row == N-2) {
+			if( ((~(ld | rd | col | boardIntegers[row])) & mask) > 0)
+				tempcounter++;
+			return;
+		}
+		
+		//jedes gesetzte Bit in free entspricht einem freien Feld
+		int free = ~(ld | rd | col | boardIntegers[row]);
+		
+		//Solange es in der aktuellen Zeile freie Positionen gibt...
+		while((free & mask) > 0) {
+			//setze Dame an Stelle bit
+			int bit = free & (-free);
+			free -= bit;
+			
+			//gehe zu nächster Zeile
+			SetQueenBig((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+		}
+	}
+	
 
 	@Override
 	public void run() {
@@ -64,7 +101,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 			tempcounter = 0;
 			
 			//suche alle Lösungen für die aktuelle Start-Konstellation, beginne ab Zeile 1
-			SetQueen(0, 0, 0, 1);
+			if(N < 20)
+				SetQueen(0, 0, 0, 1);
+			else
+				SetQueenBig(0, 0, 0, 1);
 			
 			startConstIndex++;
 			solvecounter += tempcounter * symmetry;
