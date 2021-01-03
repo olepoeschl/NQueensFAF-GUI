@@ -95,7 +95,10 @@ public class Gui extends JFrame {
 				while(true) {
 					if(msgStack.size() > 0) {
 						String msg = msgStack.removeFirst();
-						taOutput.append(msg);
+						if(msg.equals("_CLEAR_"))
+							taOutput.setText("");
+						else
+							taOutput.append(msg);
 					}
 					try {
 						sleep(50);
@@ -231,7 +234,7 @@ public class Gui extends JFrame {
 		if(append) {
 			msgStack.add(msg + "\n");
 		} else {
-			taOutput.setText("");
+			msgStack.add("_CLEAR_");
 			msgStack.add(msg + "\n");
 		}
 	}
