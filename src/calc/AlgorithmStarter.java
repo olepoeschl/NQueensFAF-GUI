@@ -140,7 +140,6 @@ public class AlgorithmStarter {
 		}
 		
 		//---
-		ready = true;
 		startConstCount = boardPropertiesList.size();
 		
 		ArrayList< ArrayDeque<BoardProperties> > threadConstellations = new ArrayList< ArrayDeque<BoardProperties>>(cpu);
@@ -163,6 +162,9 @@ public class AlgorithmStarter {
 //			algThread.setPriority(7);
 			algThread.start();
 		}
+		//threadlist erstellt, alles ready
+		ready = true;
+		
 		for(AlgorithmThread algThread : threadlist) {
 			try {
 				algThread.join();
