@@ -40,12 +40,18 @@ public class AlgorithmStarter {
 
 		startConstellations = new HashSet<Integer>();
 
+<<<<<<< Updated upstream
 		boardPropertiesList = new ArrayDeque<BoardProperties>();
 
 		colNotFree = new boolean[N];
 		rowNotFree = new boolean[N];
 		diaLeftNotFree = new boolean[2*N-1];
 		diaRightNotFree = new boolean[2*N-1];
+=======
+		startConstellations = new HashSet<Integer>();
+
+		boardPropertiesList = new ArrayDeque<BoardProperties>();
+>>>>>>> Stashed changes
 	}
 
 	public void startAlgorithm() {
@@ -54,6 +60,7 @@ public class AlgorithmStarter {
 		
 		if(!load) {
 			int halfN = (N + (N % 2)) / 2;				// Dame nur links setzen, Rest eh symmetrisch
+<<<<<<< Updated upstream
 			//Start-Konstellationen berechnen für 1.Dame ist nicht in der oberen linken Ecke (hier muss man Symmetrie checken)
 			for(int i = 1; i < halfN; i++) {			// erste Zeile durchgehen
 				colNotFree[i] = true;					// Spalte wird belegt
@@ -80,6 +87,23 @@ public class AlgorithmStarter {
 								diaRightNotFree[l] = true;
 								diaLeftNotFree[l + N-1] = true;
 
+=======
+			int mask = (int) (Math.pow(2, N)) - 1;
+			int col, ld, rd, row;
+
+			//Start-Konstellationen berechnen für 1.Dame ist nicht in der oberen linken Ecke (hier muss man Symmetrie checken)
+			for(int i = 1; i < halfN; i++) {			// erste Zeile durchgehen		
+				for(int j = i+1; j < N-1; j++) {		// letzte Zeile durchgehen
+					for(int k = i+1; k < N-1; k++) {				// erste Spalte durchgehen
+						if(k == N-1-j)
+							continue;
+						for(int l = N-i-2; l > 0; l--) {						// letzte Spalte durchgehen
+							if(l==k || l == j)
+								continue;
+							
+							if(!checkRotations(i, j, k, l)) {		// wenn zul. und neu, dann neue Startpos. gefunden
+								
+>>>>>>> Stashed changes
 								if(i == N-1-j && k == N-1-l)		// 180° symmetrisch?
 									if(symmetry90(i, j, k, l))		// sogar 90° symmetrisch?
 										symmetry = 2;
@@ -88,6 +112,7 @@ public class AlgorithmStarter {
 								else
 									symmetry = 8;					// gar nicht symmetrisch
 
+<<<<<<< Updated upstream
 
 								colNotFree[0] = true;
 								colNotFree[N-1] = true;
@@ -103,17 +128,44 @@ public class AlgorithmStarter {
 								colNotFree[0] = false;
 								colNotFree[N-1] = false;
 
+=======
+								currentRows = new int[N];					// 1, wenn belegt, 0 sonst
+								row = 1;
+								ld = (1 << (N-1-i)) | (1 << (N-1-k));
+								rd = (1 << (N-1-i)) | (1 << l);
+								col = (1 << (N-1)) | (1) | (1 << (N-1-i)) | (1 << (N-1-j));
+								
+								while(row<N-1) {
+									ld = (ld<<1) & mask;
+									rd >>= 1;
+									if(row == k)
+										rd |= (1 << (N-1));
+									if(row == l)
+										ld |= 1;
+									if(row == j)
+										ld |= 1;
+									if(row == N-1-j)
+										rd |= (1<<(N-1));
+									currentRows[row] = (ld | rd | col);
+									row++;
+								}
+								
+>>>>>>> Stashed changes
 								currentRows[k] = mask >> 1;					// überschreibe die Belegungen in Zeile und Spalte 1 und N
 								currentRows[l] = (mask >> 1) << 1;
 								currentRows[0] = mask - (1<<(N-1-i));
 								currentRows[N-1] = mask - (1<<(N-1-j));
 
 								boardPropertiesList.add(new BoardProperties(currentRows, symmetry));	// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
+<<<<<<< Updated upstream
 
 								startConstellations.add((i<<24) + (j<<16) + (k<<8) + l);						// Sachen wieder freigeben	
 								rowNotFree[l] = false;
 								diaRightNotFree[l] = false;
 								diaLeftNotFree[l + N-1] = false;
+=======
+								startConstellations.add((i<<24) + (j<<16) + (k<<8) + l);						// Sachen wieder freigeben	
+>>>>>>> Stashed changes
 							}
 						}
 
@@ -133,6 +185,7 @@ public class AlgorithmStarter {
 			}
 
 			//Start-Konstellationen berechnen für 1.Dame auf Feld (0, 0)
+<<<<<<< Updated upstream
 			diaRightNotFree[N-1] = true;
 			diaLeftNotFree[0] = true;
 
@@ -186,6 +239,43 @@ public class AlgorithmStarter {
 		}
 		
 		//---
+=======
+
+			for(int j = 1; j < N-2; j++) {
+				for(int l = j+1; l < N-1; l++) {
+
+					currentRows = new int[N];					// 1, wenn belegt, 0 sonst
+					row = 1;
+					ld = 0;
+					rd = (1 << (N-1)) | (1 << l);
+					col = (1 << (N-1)) | 1 | (1 << (N-1-j));
+
+					while(row<N-1) {
+						ld = (ld<<1) & mask;
+						rd >>= 1;
+						if(row == l)
+							ld |= 1;
+						if(row == j)
+							ld |= 1;
+						if(row == N-1-j)
+							rd |= (1<<(N-1));
+						currentRows[row] = (ld | rd | col);
+						row++;
+					}
+
+					currentRows[0] = mask >> 1;
+					currentRows[N-1] = ~(1 << (N-1-j)) & mask;
+					currentRows[l] = (mask >> 1) << 1;
+
+					boardPropertiesList.add(new BoardProperties(currentRows, 8));	
+					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
+				}
+			}
+		}
+		
+		//---
+		startConstCount = boardPropertiesList.size();
+>>>>>>> Stashed changes
 		
 		ArrayList< ArrayDeque<BoardProperties> > threadConstellations = new ArrayList< ArrayDeque<BoardProperties>>(cpu);
 		for(int i = 0; i < cpu; i++) {
@@ -217,6 +307,7 @@ public class AlgorithmStarter {
 
 		//Zeit stoppen
 		end = System.currentTimeMillis();
+<<<<<<< Updated upstream
 	}
 
 	private boolean SquareIsSafe(int r, int c) {					//Prüft ob das übergebene Feld von einer anderen Dame gedeckt ist.
@@ -224,6 +315,8 @@ public class AlgorithmStarter {
 			return false;										
 
 		return true;
+=======
+>>>>>>> Stashed changes
 	}
 
 	//gibt true zurück, wenn Rotation von aktueller Konstellation bereits vorhanden
@@ -311,10 +404,17 @@ public class AlgorithmStarter {
 			uncalcbplist.addAll(algThread.getUncalculatedStartConstellations());
 		}
 		return uncalcbplist;
+<<<<<<< Updated upstream
 	}
 	public long getUncalculatedStartConstCount() {
 		return getUncalculatedStartConstellations().size();
 	}
+=======
+	}
+	public long getUncalculatedStartConstCount() {
+		return getUncalculatedStartConstellations().size();
+	}
+>>>>>>> Stashed changes
 	
 	public float getProgress() {
 		if(threadlist == null)
@@ -340,7 +440,10 @@ public class AlgorithmStarter {
 	public void load(FAFProcessData fafprocessdata) {
 		load = true;
 
+<<<<<<< Updated upstream
 //		N = fafprocessdata.N;
+=======
+>>>>>>> Stashed changes
 		boardPropertiesList.addAll(fafprocessdata);
 		old_solvecounter = fafprocessdata.solvecounter;
 		startConstCount = fafprocessdata.startConstCount;
