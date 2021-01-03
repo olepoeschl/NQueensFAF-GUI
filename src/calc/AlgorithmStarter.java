@@ -137,10 +137,12 @@ public class AlgorithmStarter {
 					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
 				}
 			}
+			
+			//speichere anzahl der startkonstellationen in startConstCount
+			startConstCount = boardPropertiesList.size();
 		}
 		
 		//---
-		startConstCount = boardPropertiesList.size();
 		
 		ArrayList< ArrayDeque<BoardProperties> > threadConstellations = new ArrayList< ArrayDeque<BoardProperties>>(cpu);
 		for(int i = 0; i < cpu; i++) {
@@ -238,6 +240,10 @@ public class AlgorithmStarter {
 		return end;
 	}
 	
+	public boolean isReady() {
+		return ready;
+	}
+	
 	public long getStartConstCount() {
 		return startConstCount;
 	}
@@ -259,9 +265,6 @@ public class AlgorithmStarter {
 		return getUncalculatedStartConstellations().size();
 	}
 	
-	public boolean isReady() {
-		return ready;
-	}
 	public float getProgress() {
 		if(threadlist == null)
 			return 0;
@@ -286,6 +289,7 @@ public class AlgorithmStarter {
 	public void load(FAFProcessData fafprocessdata) {
 		load = true;
 
+//		N = fafprocessdata.N;
 		boardPropertiesList.addAll(fafprocessdata);
 		old_solvecounter = fafprocessdata.solvecounter;
 		startConstCount = fafprocessdata.startConstCount;
