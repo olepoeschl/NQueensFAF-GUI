@@ -27,7 +27,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
-import java.util.ArrayDeque;
 import java.util.LinkedList;
 
 import javax.swing.JLabel;
@@ -60,7 +59,8 @@ public class Gui extends JFrame {
 	private AlgorithmStarter algStarter;
 	private Thread algThread;
 	private long time = 0, pausetime = 0, oldtime = 0;
-	private boolean updateTime = true, load = false;
+	private boolean load = false;
+	private int updateTime = 0;
 	
 	//FileFilter-Objekt
 	private FileFilter filefilter;
@@ -294,7 +294,7 @@ public class Gui extends JFrame {
 					}
 				}
 				
-				while(updateTime) {
+				while(updateTime == 1) {
 					if(algStarter.isPaused()) {
 						long pausestart = System.currentTimeMillis();
 						while(algStarter.isPaused()) {
@@ -312,12 +312,13 @@ public class Gui extends JFrame {
 						
 						//Warte 1 Millisekunde
 						try {
-							sleep(69);
+							sleep(200);
 						} catch(InterruptedException ie) {
 							ie.printStackTrace();
 						}
 					}
 				}
+				updateTime = 0;
 			}
 		}.start();
 	}
@@ -385,15 +386,22 @@ public class Gui extends JFrame {
 				((TitledBorder)progressBar.getBorder()).setTitle("0%");
 
 				//Zeit starten
-				updateTime = true;
+				updateTime = 1;
 
 				algStarter.startAlgorithm();
 				
 				//Zeit stoppen
-				updateTime = false;
+				updateTime = 2;
+				while(updateTime == 2) {
+					//warte solange
+					try {
+						sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 				time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
 				updateTime();
-				oldtime = 0;
 				
 				progressBar.setValue(100);
 				((TitledBorder)progressBar.getBorder()).setTitle("100%");
