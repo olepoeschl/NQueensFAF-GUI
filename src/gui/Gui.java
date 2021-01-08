@@ -136,7 +136,7 @@ public class Gui extends JFrame {
 		sliderN = new JSlider();
 		sliderN.setValue(16);
 		sliderN.setMinimum(1);
-		sliderN.setMaximum(32);
+		sliderN.setMaximum(31);
 		sliderN.addChangeListener(eventListener);
 		pnlN.add(sliderN);
 		
