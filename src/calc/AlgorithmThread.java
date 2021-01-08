@@ -35,18 +35,19 @@ public class AlgorithmThread extends Thread implements Serializable {
 	//Rekursive Funktion
 	private void SetQueen(int ld, int rd, int col, int row) {
 		if(row == N-2) {
-			if( ((~(ld | rd | col | boardIntegers[row])) & mask) > 0)
+			if( ((~(ld | rd | col | boardIntegers[N-2])) & mask) > 0)
 				tempcounter++;
 			return;
 		}
 		
 		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col | boardIntegers[row]);
+		int free = ~(ld | rd | col | boardIntegers[row]) & mask;
+		int bit;
 		
 		//Solange es in der aktuellen Zeile freie Positionen gibt...
-		while((free & mask) > 0) {
+		while(free > 0) {
 			//setze Dame an Stelle bit
-			int bit = free & (-free);
+			bit = free & (-free);
 			free -= bit;
 			
 			//gehe zu nächster Zeile
@@ -77,12 +78,13 @@ public class AlgorithmThread extends Thread implements Serializable {
 		}
 		
 		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col | boardIntegers[row]);
+		int free = ~(ld | rd | col | boardIntegers[row]) & mask;
+		int bit;
 		
 		//Solange es in der aktuellen Zeile freie Positionen gibt...
-		while((free & mask) > 0) {
+		while(free > 0) {
 			//setze Dame an Stelle bit
-			int bit = free & (-free);
+			bit = free & (-free);
 			free -= bit;
 			
 			//gehe zu nächster Zeile

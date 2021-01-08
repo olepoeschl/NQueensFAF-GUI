@@ -208,7 +208,7 @@ public class AlgorithmStarter {
 
 	// start the main
 	public static void main(String[] args) {
-		AlgorithmStarter algStarter = new AlgorithmStarter(18, 1);
+		AlgorithmStarter algStarter = new AlgorithmStarter(16, 1);
 		algStarter.startAlgorithm();
 	}
 	// --------------

@@ -312,7 +312,7 @@ public class Gui extends JFrame {
 						
 						//Warte 1 Millisekunde
 						try {
-							sleep(200);
+							sleep(50);
 						} catch(InterruptedException ie) {
 							ie.printStackTrace();
 						}
@@ -367,7 +367,7 @@ public class Gui extends JFrame {
 					
 					//Warte 50 Millisekunden
 					try {
-						sleep(100);
+						sleep(50);
 					} catch(InterruptedException ie) {
 						ie.printStackTrace();
 					}
