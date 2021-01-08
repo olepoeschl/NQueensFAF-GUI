@@ -73,25 +73,25 @@ public class AlgorithmThread extends Thread implements Serializable {
 		
 		//Berechnungen		//		//
 		//jedes gesetzte Bit in free entspricht einem freien Feld
-				int free = ~(ld | rd | col | boardIntegers[row]) & mask;
-				
-				if(row == N-2) {
-					if(free > 0)
-						tempcounter++;
-					return;
-				}
-				
-				int bit;
-				
-				//Solange es in der aktuellen Zeile freie Positionen gibt...
-				while(free > 0) {
-					//setze Dame an Stelle bit
-					bit = free & (-free);
-					free -= bit;
-					
-					//gehe zu nächster Zeile
-					SetQueen((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
-				}
+		int free = ~(ld | rd | col | boardIntegers[row]) & mask;
+
+		if(row == N-2) {
+			if(free > 0)
+				tempcounter++;
+			return;
+		}
+
+		int bit;
+
+		//Solange es in der aktuellen Zeile freie Positionen gibt...
+		while(free > 0) {
+			//setze Dame an Stelle bit
+			bit = free & (-free);
+			free -= bit;
+
+			//gehe zu nächster Zeile
+			SetQueen((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+		}
 	}
 	
 
