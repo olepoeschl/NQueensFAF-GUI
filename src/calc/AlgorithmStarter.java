@@ -205,14 +205,7 @@ public class AlgorithmStarter {
 		return false;
 	}
 
-
-	// start the main
-	public static void main(String[] args) {
-		AlgorithmStarter algStarter = new AlgorithmStarter(16, 1);
-		algStarter.startAlgorithm();
-	}
-	// --------------
-	
+	//	//	//
 	public void pause() {
 		pause = true;
 		for(AlgorithmThread algThread : threadlist) {
