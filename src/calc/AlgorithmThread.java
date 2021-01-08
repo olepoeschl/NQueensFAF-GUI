@@ -90,7 +90,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			free -= bit;
 
 			//gehe zu nächster Zeile
-			SetQueen((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+			SetQueenBig((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
 	
