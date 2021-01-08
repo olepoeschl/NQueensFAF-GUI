@@ -48,7 +48,7 @@ public class AlgorithmStarter {
 		
 		if(!load) {
 			int halfN = (N + (N % 2)) / 2;				// Dame nur links setzen, Rest eh symmetrisch
-			int mask = (int) (Math.pow(2, N)) - 1;
+			int mask = (1 << N) - 1;
 			int col, ld, rd, row;
 
 			
@@ -208,7 +208,7 @@ public class AlgorithmStarter {
 
 	// start the main
 	public static void main(String[] args) {
-		AlgorithmStarter algStarter = new AlgorithmStarter(18, 1);
+		AlgorithmStarter algStarter = new AlgorithmStarter(16, 1);
 		algStarter.startAlgorithm();
 	}
 	// --------------

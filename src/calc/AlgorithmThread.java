@@ -12,7 +12,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private int N;
 	private long tempcounter = 0, solvecounter = 0;	
 	private int startConstIndex = 0;
-	private int symmetry = 8;
 	private int mask;
 	//Array, enthält die zur Angabe besetzter Felder von AlgorithmStarter berechneten Integers
 	private int[] boardIntegers;
@@ -28,25 +27,27 @@ public class AlgorithmThread extends Thread implements Serializable {
 		this.N = N;
 		this.boardPropertiesList = boardPropertiesList;
 		uncalculatedStartConstList = boardPropertiesList;
-		mask = (int) (Math.pow(2, N) - 1);						//Setze jedes Bit von mask auf 1
+		mask = (1 << N) - 1;						//Setze jedes Bit von mask auf 1
 		boardIntegers = new int[N];
 	}
 	
 	//Rekursive Funktion
 	private void SetQueen(int ld, int rd, int col, int row) {
+		//jedes gesetzte Bit in free entspricht einem freien Feld
+		int free = ~(ld | rd | col | boardIntegers[row]) & mask;
+		
 		if(row == N-2) {
-			if( ((~(ld | rd | col | boardIntegers[row])) & mask) > 0)
+			if(free > 0)
 				tempcounter++;
 			return;
 		}
 		
-		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col | boardIntegers[row]);
+		int bit;
 		
 		//Solange es in der aktuellen Zeile freie Positionen gibt...
-		while((free & mask) > 0) {
+		while(free > 0) {
 			//setze Dame an Stelle bit
-			int bit = free & (-free);
+			bit = free & (-free);
 			free -= bit;
 			
 			//gehe zu nächster Zeile
@@ -70,24 +71,27 @@ public class AlgorithmThread extends Thread implements Serializable {
 			return;
 		}
 		
-		if(row == N-2) {
-			if( ((~(ld | rd | col | boardIntegers[row])) & mask) > 0)
-				tempcounter++;
-			return;
-		}
-		
+		//Berechnungen		//		//
 		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col | boardIntegers[row]);
-		
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
-		while((free & mask) > 0) {
-			//setze Dame an Stelle bit
-			int bit = free & (-free);
-			free -= bit;
-			
-			//gehe zu nächster Zeile
-			SetQueenBig((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
-		}
+				int free = ~(ld | rd | col | boardIntegers[row]) & mask;
+				
+				if(row == N-2) {
+					if(free > 0)
+						tempcounter++;
+					return;
+				}
+				
+				int bit;
+				
+				//Solange es in der aktuellen Zeile freie Positionen gibt...
+				while(free > 0) {
+					//setze Dame an Stelle bit
+					bit = free & (-free);
+					free -= bit;
+					
+					//gehe zu nächster Zeile
+					SetQueen((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+				}
 	}
 	
 
@@ -96,7 +100,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 		loop:
 		for(BoardProperties boardProperties : boardPropertiesList) {
 			//übernimm Parameter von boardProperties
-			symmetry = boardProperties.symmetry;
 			boardIntegers = boardProperties.boardIntegers;
 			tempcounter = 0;
 			
@@ -107,7 +110,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 				SetQueenBig(0, 0, 0, 1);
 			
 			startConstIndex++;
-			solvecounter += tempcounter * symmetry;
+			solvecounter += tempcounter * boardProperties.symmetry;
 			
 			//für Speicher- und Ladefunktion
 			uncalculatedStartConstList.remove(boardProperties);
