@@ -27,7 +27,7 @@ public class AlgorithmStarter {
 	private boolean load = false;
 
 	//Prozesszustands-Regelung
-	private long start = 0, end = 0;
+	private long start = 0;
 	private boolean pause = false;
 	
 	private boolean ready = false;
@@ -175,9 +175,6 @@ public class AlgorithmStarter {
 				e.printStackTrace();
 			}
 		}
-
-		//Zeit stoppen
-		end = System.currentTimeMillis();
 	}
 
 	//gibt true zurück, wenn Rotation von aktueller Konstellation bereits vorhanden
@@ -226,16 +223,12 @@ public class AlgorithmStarter {
 	public boolean isPaused() {
 		return pause;
 	}
+	public boolean isReady() {
+		return ready;
+	}
 
 	public long getStarttime() {
 		return start;
-	}
-	public long getEndtime() {
-		return end;
-	}
-	
-	public boolean isReady() {
-		return ready;
 	}
 	
 	public long getStartConstCount() {
