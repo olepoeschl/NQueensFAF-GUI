@@ -58,7 +58,7 @@ public class Gui extends JFrame {
 	//AlgorithmStarter-Objekt
 	private AlgorithmStarter algStarter;
 	private Thread algThread;
-	private long time = 0, pausetime = 0, oldtime = 0;
+	private long time = 0, endtime = 0, pausetime = 0, oldtime = 0;
 	private boolean load = false;
 	private int updateTime = 0;
 	
@@ -359,8 +359,11 @@ public class Gui extends JFrame {
 							print(tempPercentage + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + updateTime() + " ]", true);
 						}	
 					}
-					if(value > 100)
+					if(value >= 100) {
 						value = 100;
+						if(endtime == 0)
+							endtime = time;
+					}
 					progressBar.setValue(intvalue);
 					((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
 					progressBar.repaint();
@@ -400,7 +403,8 @@ public class Gui extends JFrame {
 						e.printStackTrace();
 					}
 				}
-				time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
+				time = endtime;
+				endtime = 0;
 				updateTime();
 				
 				progressBar.setValue(100);
@@ -568,6 +572,8 @@ public class Gui extends JFrame {
 			}
 			else if(e.getSource() == btnCancel) {
 				algStarter.cancel();
+				if(algStarter.isPaused())
+					algStarter.go();
 				print("##### Abgebrochen #####", true);
 			}
 			else if(e.getSource() == btnSave){

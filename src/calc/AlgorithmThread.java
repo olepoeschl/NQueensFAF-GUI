@@ -1,6 +1,8 @@
 package calc;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 
 public class AlgorithmThread extends Thread implements Serializable {
@@ -32,7 +34,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	}
 	
 	//Rekursive Funktion
-	private void SetQueen(int ld, int rd, int col, int row) {
+	public void SetQueen(int ld, int rd, int col, int row) {
 		//jedes gesetzte Bit in free entspricht einem freien Feld
 		int free = ~(ld | rd | col | boardIntegers[row]) & mask;
 		
@@ -54,7 +56,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			SetQueen((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
-	private void SetQueenBig(int ld, int rd, int col, int row) {
+	public void SetQueenBig(int ld, int rd, int col, int row) {
 		//prüfe, ob Benutzer pausieren oder abbrechen will
 		if(pause) {
 			while(pause) {
@@ -97,6 +99,21 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	@Override
 	public void run() {
+		Method method = null;
+		try {
+			if(N < 20) {
+				method = this.getClass().getMethod("SetQueen", int.class, int.class, int.class, int.class);
+				
+			} else {
+				method = this.getClass().getMethod("SetQueenBig", int.class, int.class, int.class, int.class);
+				
+			}
+		} catch(NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch(SecurityException e) {
+			e.printStackTrace();
+		}
+		
 		loop:
 		for(BoardProperties boardProperties : boardPropertiesList) {
 			//übernimm Parameter von boardProperties
@@ -104,11 +121,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 			tempcounter = 0;
 			
 			//suche alle Lösungen für die aktuelle Start-Konstellation, beginne ab Zeile 1
-			if(N < 20)
-				SetQueen(0, 0, 0, 1);
-			else
-				SetQueenBig(0, 0, 0, 1);
-			
+			try {
+				method.invoke(this, 0, 0, 0, 1);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
+				e1.printStackTrace();
+			}
 			startConstIndex++;
 			solvecounter += tempcounter * boardProperties.symmetry;
 			
