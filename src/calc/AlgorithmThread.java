@@ -34,7 +34,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	}
 	
 	//Rekursive Funktion
-	public void SetQueen(int ld, int rd, int col, int row) {
+	private void SetQueen(int ld, int rd, int col, int row) {
 		//jedes gesetzte Bit in free entspricht einem freien Feld
 		int free = ~(ld | rd | col | boardIntegers[row]) & mask;
 		
@@ -56,7 +56,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			SetQueen((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
-	public void SetQueenBig(int ld, int rd, int col, int row) {
+	private void SetQueenBig(int ld, int rd, int col, int row) {
 		//prüfe, ob Benutzer pausieren oder abbrechen will
 		if(pause) {
 			while(pause) {
@@ -102,10 +102,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 		Method method = null;
 		try {
 			if(N < 20) {
-				method = this.getClass().getMethod("SetQueen", int.class, int.class, int.class, int.class);
+				method = this.getClass().getDeclaredMethod("SetQueen", int.class, int.class, int.class, int.class);
 				
 			} else {
-				method = this.getClass().getMethod("SetQueenBig", int.class, int.class, int.class, int.class);
+				method = this.getClass().getDeclaredMethod("SetQueenBig", int.class, int.class, int.class, int.class);
 				
 			}
 		} catch(NoSuchMethodException e) {
