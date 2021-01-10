@@ -147,11 +147,10 @@ public class Gui extends JFrame {
 								print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
 							}
 							else if (intvalue % 5 == 0){
-								if(intvalue == 100) {
-									value = intvalue;
+								if(intvalue != 100) {
+									tempvalue = intvalue;
+									print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
 								}
-								tempvalue = intvalue;
-								print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
 							}	
 						}
 					}
