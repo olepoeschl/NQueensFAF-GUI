@@ -5,6 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 
+import gui.Gui;
+
 public class AlgorithmThread extends Thread implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -101,11 +103,13 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	@Override
 	public void run() {
+		int const_delay_index = 200;
 		Method method = null;
 		try {
 			if(N < 20) {
 				method = this.getClass().getDeclaredMethod("SetQueen", int.class, int.class, int.class, int.class);
 			} else {
+				const_delay_index = 1;
 				method = this.getClass().getDeclaredMethod("SetQueenBig", int.class, int.class, int.class, int.class);
 			}
 		} catch(NoSuchMethodException e) {
@@ -126,7 +130,13 @@ public class AlgorithmThread extends Thread implements Serializable {
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
 				e1.printStackTrace();
 			}
+			
+			//wieder eine Startpos. geschafft
 			startConstIndex++;
+			if(startConstIndex % (const_delay_index) == 0)
+				Gui.updateProgress();
+			
+			//aktualisiere solvecounter
 			solvecounter += tempcounter * boardProperties.symmetry;
 			
 			//für Speicher- und Ladefunktion

@@ -29,9 +29,7 @@ public class AlgorithmStarter {
 
 	//Prozesszustands-Regelung
 	private long start = 0, end = 0;
-	private boolean pause = false;
-	
-	private boolean ready = false;
+	private boolean ready = false, pause = false;
 
 
 	public AlgorithmStarter(int N, int cpu) {
@@ -44,6 +42,9 @@ public class AlgorithmStarter {
 	}
 
 	public void startAlgorithm() {
+		//Garbage-Collection; einmal Müll aufsammeln bitte
+		System.gc();
+		
 		//Speichere Start-Zeit
 		start = System.currentTimeMillis();
 		
@@ -143,6 +144,8 @@ public class AlgorithmStarter {
 
 			//speichere anzahl der startkonstellationen in startConstCount
 			startConstCount = boardPropertiesList.size();
+			//Ausgabe in Gui
+			Gui.print(startConstCount + " Start-Konstellationen gefunden in " + Gui.getTimeStr(), true);
 		}
 		
 		//---
@@ -169,50 +172,15 @@ public class AlgorithmStarter {
 		//threadlist erstellt, alles ready
 		ready = true;
 		
-		
-		float value = 0;
-		int intvalue = 0, tempvalue = 0;
-		while(value < 100) {
-			//Berechne und aktualisiere Progress
-			value = getProgress() * 100;
-			intvalue = (int) value;
-			if(intvalue % 5 <= 1 && intvalue != tempvalue) {
-				if(intvalue % 5 == 1 && tempvalue != intvalue - 1) {
-					tempvalue = --intvalue;
-					Gui.print(intvalue + "% berechnet      \t[ " + getCalculatedStartConstCount() + " von " + getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
-				}
-				else if (intvalue % 5 == 0){
-					if(intvalue == 100) {
-						//Zeit stoppen, da 100% erreicht
-						end = System.currentTimeMillis();
-						
-						value = intvalue;
-					}
-					tempvalue = intvalue;
-					Gui.print(intvalue + "% berechnet      \t[ " + getCalculatedStartConstCount() + " von " + getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
-				}	
-			}
-
-			//akutalisiere ProgressBar
-			Gui.updateProgressBar(intvalue, "Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + getCalculatedStartConstCount() + " von " + getStartConstCount() + " ]");
-			
-			//Warte x Millisekunden
+		for(AlgorithmThread algThread : threadlist) {
 			try {
-				Thread.sleep(69);
-			} catch(InterruptedException ie) {
-				ie.printStackTrace();
+				algThread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-			
-			
 		}
-		
-//		for(AlgorithmThread algThread : threadlist) {
-//			try {
-//				algThread.join();
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
-//		}
+		//Zeit stoppen, da 100% erreicht
+		end = System.currentTimeMillis();
 	}
 
 	//gibt true zurück, wenn Rotation von aktueller Konstellation bereits vorhanden
