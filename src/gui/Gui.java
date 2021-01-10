@@ -27,7 +27,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 
 import javax.swing.JLabel;
 import java.awt.Font;
@@ -56,24 +56,22 @@ public class Gui extends JFrame {
 	private EventListener eventListener;
 	
 	//AlgorithmStarter-Objekt
-	private AlgorithmStarter algStarter;
+	private static AlgorithmStarter algStarter;
 	private Thread algThread;
 	private static long time = 0;
-
-
-	private long pausetime = 0;
-
-
-	private long oldtime = 0;
+	private long pausetime = 0, oldtime = 0;
 	private boolean load = false;
 	private int updateTime = 0;
+	
+	//Variablen für die Fortschritts-Anzeige
+	private static int intvalue = 0, tempvalue = 0;
 	
 	//FileFilter-Objekt
 	private FileFilter filefilter;
 	
 	//Stack-Objekt für print-Methode
-	private static LinkedList<String> msgQueue;
-	private static LinkedList<Float> progressUpdateQueue;
+	private static ArrayDeque<String> msgQueue;
+//	private static ArrayDeque<Float> progressUpdateQueue;
 	
 	
 	public Gui() {
@@ -97,7 +95,7 @@ public class Gui extends JFrame {
 		};
 		
 		//Queue fürs printen in taOutput
-		msgQueue = new LinkedList<String>();
+		msgQueue = new ArrayDeque<String>();
 		new Thread() {
 			public void run() {
 				String msg;
@@ -119,33 +117,33 @@ public class Gui extends JFrame {
 		}.start();
 		
 		//Queue fürs Anzeigen des Fortschritts
-		progressUpdateQueue = new LinkedList<Float>();
-		new Thread() {
-			public void run() {
-				float value;
-				while(true) {
-					if(progressUpdateQueue.size() > 0) {
-						value = progressUpdateQueue.removeFirst();
-						
-						//aktualisiere progressBar und ihre Text-Anzeige
-						if((int)value == 100 || (int)value == 0) {
-							progressBar.setValue((int)value);
-							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (int)value + "%");
-							progressBar.repaint();
-						} else {
-							progressBar.setValue((int)value);
-							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
-							progressBar.repaint();
-						}
-					}
-					try {
-						sleep(50);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}.start();
+//		progressUpdateQueue = new ArrayDeque<Float>();
+//		new Thread() {
+//			public void run() {
+//				float value;
+//				while(true) {
+//					if(progressUpdateQueue.size() > 0) {
+//						value = progressUpdateQueue.removeFirst();
+//						
+//						//aktualisiere progressBar und ihre Text-Anzeige
+//						if((int)value == 100 || (int)value == 0) {
+//							progressBar.setValue((int)value);
+//							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (int)value + "%");
+//							progressBar.repaint();
+//						} else {
+//							progressBar.setValue((int)value);
+//							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
+//							progressBar.repaint();
+//						}
+//					}
+//					try {
+//						sleep(50);
+//					} catch (InterruptedException e) {
+//						e.printStackTrace();
+//					}
+//				}
+//			}
+//		}.start();
 	}
 	
 	private void initGui() {
@@ -320,7 +318,38 @@ public class Gui extends JFrame {
 		lblTime.setText(getTimeStr());
 	}
 	public static void updateProgressBar(float value) {
-		progressUpdateQueue.add(value);
+//		progressUpdateQueue.add(value);
+		if((int)value == 100 || (int)value == 0) {
+			progressBar.setValue((int)value);
+			((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (int)value + "%");
+			progressBar.repaint();
+		} else {
+			progressBar.setValue((int)value);
+			((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
+			progressBar.repaint();
+		}
+	}
+	//Berechne und aktualisiere Progress
+	public static void updateProgress() {
+		float value = algStarter.getProgress() * 100;
+		
+		intvalue = (int) value;
+		if(intvalue % 5 <= 1 && intvalue != tempvalue) {
+			if(intvalue % 5 == 1 && tempvalue != intvalue - 1) {
+				tempvalue = --intvalue;
+				Gui.print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
+			}
+			else if (intvalue % 5 == 0){
+				if(intvalue == 100) {
+					value = intvalue;
+				}
+				tempvalue = intvalue;
+				Gui.print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
+			}	
+		}
+
+		//akutalisiere ProgressBar
+		updateProgressBar(value);
 	}
 	
 	private void startTimeUpdateThread() {
@@ -379,6 +408,7 @@ public class Gui extends JFrame {
 				updateProgressBar(0);
 
 				//Zeit starten
+				time = 0;
 				updateTime = 1;
 
 				algStarter.startAlgorithm();
