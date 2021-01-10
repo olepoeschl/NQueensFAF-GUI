@@ -72,7 +72,8 @@ public class Gui extends JFrame {
 	private FileFilter filefilter;
 	
 	//Stack-Objekt für print-Methode
-	private static LinkedList<String> msgStack;
+	private static LinkedList<String> msgQueue;
+	private static LinkedList<Float> progressUpdateQueue;
 	
 	
 	public Gui() {
@@ -95,16 +96,47 @@ public class Gui extends JFrame {
 			}
 		};
 		
-		msgStack = new LinkedList<String>();
+		//Queue fürs printen in taOutput
+		msgQueue = new LinkedList<String>();
 		new Thread() {
 			public void run() {
+				String msg;
 				while(true) {
-					if(msgStack.size() > 0) {
-						String msg = msgStack.removeFirst();
+					if(msgQueue.size() > 0) {
+						msg = msgQueue.removeFirst();
 						if(msg.equals("_CLEAR_"))
 							taOutput.setText("");
 						else
 							taOutput.append(msg);
+					}
+					try {
+						sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
+		
+		//Queue fürs Anzeigen des Fortschritts
+		progressUpdateQueue = new LinkedList<Float>();
+		new Thread() {
+			public void run() {
+				float value;
+				while(true) {
+					if(progressUpdateQueue.size() > 0) {
+						value = progressUpdateQueue.removeFirst();
+						
+						//aktualisiere progressBar und ihre Text-Anzeige
+						if((int)value == 100 || (int)value == 0) {
+							progressBar.setValue((int)value);
+							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (int)value + "%");
+							progressBar.repaint();
+						} else {
+							progressBar.setValue((int)value);
+							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
+							progressBar.repaint();
+						}
 					}
 					try {
 						sleep(50);
@@ -238,10 +270,10 @@ public class Gui extends JFrame {
 	
 	public static void print(String msg, boolean append) {
 		if(append) {
-			msgStack.add(msg + "\n");
+			msgQueue.add(msg + "\n");
 		} else {
-			msgStack.add("_CLEAR_");
-			msgStack.add(msg + "\n");
+			msgQueue.add("_CLEAR_");
+			msgQueue.add(msg + "\n");
 		}
 	}
 	public static String getTimeStr() {
@@ -287,10 +319,8 @@ public class Gui extends JFrame {
 	private void updateTime() {
 		lblTime.setText(getTimeStr());
 	}
-	public static void updateProgressBar(int intvalue, String text) {
-		progressBar.setValue(intvalue);
-		((TitledBorder)progressBar.getBorder()).setTitle(text);
-		progressBar.repaint();
+	public static void updateProgressBar(float value) {
+		progressUpdateQueue.add(value);
 	}
 	
 	private void startTimeUpdateThread() {
@@ -336,7 +366,6 @@ public class Gui extends JFrame {
 			}
 		}.start();
 	}
-	
 	private void startAlgThread() {
 		algThread = new Thread() {
 			public void run() {
@@ -347,8 +376,7 @@ public class Gui extends JFrame {
 				btnCancel.setEnabled(true);
 				
 				//Setze progressBar zurück
-				progressBar.setValue(0);
-				((TitledBorder)progressBar.getBorder()).setTitle("0%");
+				updateProgressBar(0);
 
 				//Zeit starten
 				updateTime = 1;
@@ -365,11 +393,11 @@ public class Gui extends JFrame {
 						e.printStackTrace();
 					}
 				}
-				time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
+				if(algStarter.getEndtime() != 0)
+					time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
 				updateTime();
 				
-				progressBar.setValue(100);
-				((TitledBorder)progressBar.getBorder()).setTitle("100%");
+				updateProgressBar(100);
 				print("============================\n" + algStarter.getSolvecounter() + " Lösungen gefunden für N = " + algStarter.getN() + "\n============================", true);
 				
 				//Buttons zurücksetzen
@@ -591,8 +619,7 @@ public class Gui extends JFrame {
 					//aktualisiere Gui mit den geladenen Werten
 					sliderN.setValue(fafprocessdata.N);
 					tfN.setText(fafprocessdata.N + "");
-					((TitledBorder)progressBar.getBorder()).setTitle("0%");
-					progressBar.setValue(0);
+					updateProgressBar(0);
 					
 					oldtime = fafprocessdata.time;
 					

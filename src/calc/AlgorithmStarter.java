@@ -29,9 +29,7 @@ public class AlgorithmStarter {
 
 	//Prozesszustands-Regelung
 	private long start = 0, end = 0;
-	private boolean pause = false;
-	
-	private boolean ready = false;
+	private boolean ready = false, pause = false, cancel = false;
 
 
 	public AlgorithmStarter(int N, int cpu) {
@@ -143,6 +141,8 @@ public class AlgorithmStarter {
 
 			//speichere anzahl der startkonstellationen in startConstCount
 			startConstCount = boardPropertiesList.size();
+			//Ausgabe in Gui
+			Gui.print(startConstCount + " Start-Konstellationen gefunden in " + Gui.getTimeStr(), true);
 		}
 		
 		//---
@@ -172,7 +172,7 @@ public class AlgorithmStarter {
 		
 		float value = 0;
 		int intvalue = 0, tempvalue = 0;
-		while(value < 100) {
+		while(value < 100 && !cancel) {
 			//Berechne und aktualisiere Progress
 			value = getProgress() * 100;
 			intvalue = (int) value;
@@ -194,16 +194,14 @@ public class AlgorithmStarter {
 			}
 
 			//akutalisiere ProgressBar
-			Gui.updateProgressBar(intvalue, "Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + getCalculatedStartConstCount() + " von " + getStartConstCount() + " ]");
+			Gui.updateProgressBar(value);
 			
 			//Warte x Millisekunden
 			try {
-				Thread.sleep(69);
+				Thread.sleep(50);
 			} catch(InterruptedException ie) {
 				ie.printStackTrace();
 			}
-			
-			
 		}
 		
 //		for(AlgorithmThread algThread : threadlist) {
@@ -213,6 +211,8 @@ public class AlgorithmStarter {
 //				e.printStackTrace();
 //			}
 //		}
+//		//Zeit stoppen, da 100% erreicht
+//		end = System.currentTimeMillis();
 	}
 
 	//gibt true zurück, wenn Rotation von aktueller Konstellation bereits vorhanden
@@ -254,6 +254,7 @@ public class AlgorithmStarter {
 		}
 	}
 	public void cancel() {
+		cancel = true;
 		for(AlgorithmThread algThread : threadlist) {
 			algThread.cancel();
 		}
