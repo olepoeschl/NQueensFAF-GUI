@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import gui.Gui;
 import util.FAFProcessData;
 
 public class AlgorithmStarter {
@@ -27,7 +28,7 @@ public class AlgorithmStarter {
 	private boolean load = false;
 
 	//Prozesszustands-Regelung
-	private long start = 0;
+	private long start = 0, end = 0;
 	private boolean pause = false;
 	
 	private boolean ready = false;
@@ -168,13 +169,50 @@ public class AlgorithmStarter {
 		//threadlist erstellt, alles ready
 		ready = true;
 		
-		for(AlgorithmThread algThread : threadlist) {
-			try {
-				algThread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		
+		float value = 0;
+		int intvalue = 0, tempvalue = 0;
+		while(value < 100) {
+			//Berechne und aktualisiere Progress
+			value = getProgress() * 100;
+			intvalue = (int) value;
+			if(intvalue % 5 <= 1 && intvalue != tempvalue) {
+				if(intvalue % 5 == 1 && tempvalue != intvalue - 1) {
+					tempvalue = --intvalue;
+					Gui.print(intvalue + "% berechnet      \t[ " + getCalculatedStartConstCount() + " von " + getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
+				}
+				else if (intvalue % 5 == 0){
+					if(intvalue == 100) {
+						//Zeit stoppen, da 100% erreicht
+						end = System.currentTimeMillis();
+						
+						value = intvalue;
+					}
+					tempvalue = intvalue;
+					Gui.print(intvalue + "% berechnet      \t[ " + getCalculatedStartConstCount() + " von " + getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
+				}	
 			}
+
+			//akutalisiere ProgressBar
+			Gui.updateProgressBar(intvalue, "Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + getCalculatedStartConstCount() + " von " + getStartConstCount() + " ]");
+			
+			//Warte x Millisekunden
+			try {
+				Thread.sleep(69);
+			} catch(InterruptedException ie) {
+				ie.printStackTrace();
+			}
+			
+			
 		}
+		
+//		for(AlgorithmThread algThread : threadlist) {
+//			try {
+//				algThread.join();
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+//		}
 	}
 
 	//gibt true zurück, wenn Rotation von aktueller Konstellation bereits vorhanden
@@ -229,6 +267,9 @@ public class AlgorithmStarter {
 
 	public long getStarttime() {
 		return start;
+	}
+	public long getEndtime() {
+		return end;
 	}
 	
 	public long getStartConstCount() {
