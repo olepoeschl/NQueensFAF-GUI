@@ -208,7 +208,7 @@ public class Gui extends JFrame {
 		sliderThreadcount = new JSlider();
 		sliderThreadcount.setValue(1);
 		sliderThreadcount.setMinimum(1);
-		sliderThreadcount.setMaximum(16);
+		sliderThreadcount.setMaximum( Runtime.getRuntime().availableProcessors() );
 		sliderThreadcount.addChangeListener(eventListener);
 		pnlThreadcount.add(sliderThreadcount);
 		

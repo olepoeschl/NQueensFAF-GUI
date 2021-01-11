@@ -175,7 +175,12 @@ public class AlgorithmStarter {
 		//Warte auf Beendigung des executors
 		executor.shutdown();
 		try {
-			executor.awaitTermination(1, TimeUnit.DAYS);
+			if(executor.awaitTermination(2, TimeUnit.DAYS)) {
+//				System.out.println("fertig geworden");
+			} else {
+//				System.out.println("Zeitlimit abgelaufen");
+				//Speichern
+			}
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
