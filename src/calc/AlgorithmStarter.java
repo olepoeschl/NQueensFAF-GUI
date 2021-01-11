@@ -80,7 +80,7 @@ public class AlgorithmStarter {
 
 					currentRows[l-1] = 1;
 
-					boardPropertiesList.add(new BoardProperties(currentRows, 8));	
+					boardPropertiesList.add(new BoardProperties(currentRows, 8, 0, l));	
 					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
 				}
 			}
@@ -130,7 +130,7 @@ public class AlgorithmStarter {
 								currentRows[k-1] = 1 << (N-1);					// überschreibe die Belegungen in Zeile und Spalte 1 und N
 								currentRows[l-1] = 1;
 
-								boardPropertiesList.add(new BoardProperties(currentRows, symmetry));	// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
+								boardPropertiesList.add(new BoardProperties(currentRows, symmetry, k, l));	// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
 								startConstellations.add((i<<24) + (j<<16) + (k<<8) + l);						// Sachen wieder freigeben	
 							}
 						}

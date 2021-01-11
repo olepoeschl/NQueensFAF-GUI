@@ -376,7 +376,7 @@ public class Gui extends JFrame {
 						
 						//Warte x Millisekunden
 						try {
-							sleep(69);
+							sleep(128);
 						} catch(InterruptedException ie) {
 							ie.printStackTrace();
 						}
