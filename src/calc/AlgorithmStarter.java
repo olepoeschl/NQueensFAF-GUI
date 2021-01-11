@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import gui.Gui;
 import util.FAFProcessData;
@@ -52,7 +55,6 @@ public class AlgorithmStarter {
 			int halfN = (N + (N % 2)) / 2;				// Dame nur links setzen, Rest eh symmetrisch
 			int mask = (1 << N) - 1;
 			int col, ld, rd, row;
-
 			
 
 			//Start-Konstellationen berechnen für 1.Dame auf Feld (0, 0)
@@ -158,23 +160,26 @@ public class AlgorithmStarter {
 		}
 
 		//Thread starten und auf ihre Beendung warten
+		ExecutorService executor = Executors.newFixedThreadPool(cpu);
+		
 		threadlist = new ArrayList<AlgorithmThread>();
 		for(ArrayDeque<BoardProperties> constellations : threadConstellations) {
 			AlgorithmThread algThread = new AlgorithmThread(N, constellations);
 			threadlist.add(algThread);
-//			algThread.setPriority(7);
-			algThread.start();
+			executor.submit(algThread);
 		}
+		
 		//threadlist erstellt, alles ready
 		ready = true;
 		
-		for(AlgorithmThread algThread : threadlist) {
-			try {
-				algThread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+		//Warte auf Beendigung des executors
+		executor.shutdown();
+		try {
+			executor.awaitTermination(1, TimeUnit.DAYS);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
 		}
+		
 		//Zeit stoppen, da 100% erreicht
 		end = System.currentTimeMillis();
 	}
