@@ -1,8 +1,6 @@
 package calc;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 
 import gui.Gui;
@@ -17,6 +15,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private long tempcounter = 0, solvecounter = 0;	
 	private int startConstIndex = 0;
 	private int mask;
+	private int row1, row2;
 	//Array, enthält die zur Angabe besetzter Felder von AlgorithmStarter berechneten Integers
 	private int[] boardIntegers;
 	//Liste der von AlgorithmStarter berechneten Start-Konstellationen
@@ -36,17 +35,15 @@ public class AlgorithmThread extends Thread implements Serializable {
 	}
 	
 	//Rekursive Funktion
-	@SuppressWarnings("unused")
-	private void SetQueen(int ld, int rd, int col, int row) {
-		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col | boardIntegers[row]) & mask;
+	private void SetQueen1(int ld, int rd, int col, int row) {
 		
-		if(row == N-2) {
-			if(free > 0)
-				tempcounter++;
+		if(row == row1) {
+			SetQueen2(ld<<1, rd>>1, col, row+1);
 			return;
 		}
 		
+		//jedes gesetzte Bit in free entspricht einem freien Feld
+		int free = ~(ld | rd | col) & boardIntegers[row-1];
 		int bit;
 		
 		//Solange es in der aktuellen Zeile freie Positionen gibt...
@@ -56,10 +53,62 @@ public class AlgorithmThread extends Thread implements Serializable {
 			free -= bit;
 			
 			//gehe zu nächster Zeile
-			SetQueen((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+			SetQueen1((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
-	@SuppressWarnings("unused")
+	
+	private void SetQueen2(int ld, int rd, int col, int row) {
+		
+		if(row == row2) {
+			SetQueen3(ld<<1, rd>>1, col, row+1);
+			return;
+		}
+		
+		//jedes gesetzte Bit in free entspricht einem freien Feld
+		int free = ~(ld | rd | col) & boardIntegers[row-1];
+		int bit;
+		
+		//Solange es in der aktuellen Zeile freie Positionen gibt...
+		while(free > 0) {
+			//setze Dame an Stelle bit
+			bit = free & (-free);
+			free -= bit;
+			
+			//gehe zu nächster Zeile
+			SetQueen2((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+		}
+	}
+	
+	
+	private void SetQueen3(int ld, int rd, int col, int row) {
+		
+		if(row > N-3) {
+			if(row == N-2) {
+				if((~(ld | rd | col) & boardIntegers[row-1])>0)
+					tempcounter++;
+			}
+			else
+				tempcounter++;
+			return;
+		}
+		
+	
+		//jedes gesetzte Bit in free entspricht einem freien Feld
+		int free = ~(ld | rd | col) & boardIntegers[row-1];
+		int bit;
+		
+		//Solange es in der aktuellen Zeile freie Positionen gibt...
+		while(free > 0) {
+			//setze Dame an Stelle bit
+			bit = free & (-free);
+			free -= bit;
+			
+			//gehe zu nächster Zeile
+			SetQueen3((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+		}
+	}
+	
+	
 	private void SetQueenBig(int ld, int rd, int col, int row) {
 		//prüfe, ob Benutzer pausieren oder abbrechen will
 		if(pause) {
@@ -103,38 +152,48 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	@Override
 	public void run() {
-		int const_delay_index = 200;
-		Method method = null;
-		try {
-			if(N < 20) {
-				method = this.getClass().getDeclaredMethod("SetQueen", int.class, int.class, int.class, int.class);
-			} else {
-				const_delay_index = 1;
-				method = this.getClass().getDeclaredMethod("SetQueenBig", int.class, int.class, int.class, int.class);
-			}
-		} catch(NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch(SecurityException e) {
-			e.printStackTrace();
-		}
+		int const_delay_index;
+		if(N < 16)
+			const_delay_index = 1 << 12;
+		else if(N < 18)
+			const_delay_index = 200;
+		else if(N == 18)
+			const_delay_index = 50;
+		else if(N == 19)
+			const_delay_index = 10;
+		else if(N == 20)
+			const_delay_index = 3;
+		else
+			const_delay_index = 1;
 		
 		loop:
 		for(BoardProperties boardProperties : boardPropertiesList) {
 			//übernimm Parameter von boardProperties
 			boardIntegers = boardProperties.boardIntegers;
 			tempcounter = 0;
+			if(boardProperties.k > boardProperties.l) {
+				row1 = boardProperties.l;
+				row2 = boardProperties.k;
+			}
+			else {
+				row1 = boardProperties.k;
+				row2 = boardProperties.l;
+			}
 			
-			//suche alle Lösungen für die aktuelle Start-Konstellation, beginne ab Zeile 1
-			try {
-				method.invoke(this, 0, 0, 0, 1);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-				e1.printStackTrace();
+			//Überspringe SetQueen1 ggf.
+			if(N < 23) {
+				if(row1 > 0)
+					SetQueen1(0, 0, 0, 1);
+				else
+					SetQueen2(0, 0, 0, 1);
+			} else {
+				SetQueenBig(0, 0, 0, 1);
 			}
 			
 			//wieder eine Startpos. geschafft
 			startConstIndex++;
 			if(startConstIndex % (const_delay_index) == 0)
-				Gui.updateProgress();
+				Gui.progressUpdateQueue.add(128f);
 			
 			//aktualisiere solvecounter
 			solvecounter += tempcounter * boardProperties.symmetry;

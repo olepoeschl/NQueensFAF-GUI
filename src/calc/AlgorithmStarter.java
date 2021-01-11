@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import gui.Gui;
 import util.FAFProcessData;
@@ -52,14 +55,13 @@ public class AlgorithmStarter {
 			int halfN = (N + (N % 2)) / 2;				// Dame nur links setzen, Rest eh symmetrisch
 			int mask = (1 << N) - 1;
 			int col, ld, rd, row;
-
 			
 
 			//Start-Konstellationen berechnen für 1.Dame auf Feld (0, 0)
 			for(int j = 1; j < N-2; j++) {
 				for(int l = j+1; l < N-1; l++) {
 
-					currentRows = new int[N];					// 1, wenn belegt, 0 sonst
+					currentRows = new int[N-2];					// 1, wenn belegt, 0 sonst
 					row = 1;
 					ld = 0;
 					rd = (1 << (N-1)) | (1 << l);
@@ -74,15 +76,13 @@ public class AlgorithmStarter {
 							ld |= 1;
 						if(row == N-1-j)
 							rd |= (1<<(N-1));
-						currentRows[row] = (ld | rd | col);
+						currentRows[row-1] = ~(ld | rd | col) & mask;
 						row++;
 					}
 
-					currentRows[0] = mask >> 1;
-					currentRows[N-1] = ~(1 << (N-1-j)) & mask;
-					currentRows[l] = (mask >> 1) << 1;
+					currentRows[l-1] = 1;
 
-					boardPropertiesList.add(new BoardProperties(currentRows, 8));	
+					boardPropertiesList.add(new BoardProperties(currentRows, 8, 0, l));	
 					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
 				}
 			}
@@ -108,7 +108,7 @@ public class AlgorithmStarter {
 								else
 									symmetry = 8;					// gar nicht symmetrisch
 
-								currentRows = new int[N];					// 1, wenn belegt, 0 sonst
+								currentRows = new int[N-2];					// 1, wenn belegt, 0 sonst
 								row = 1;
 								ld = (1 << (N-1-i)) | (1 << (N-1-k));
 								rd = (1 << (N-1-i)) | (1 << l);
@@ -125,16 +125,14 @@ public class AlgorithmStarter {
 										ld |= 1;
 									if(row == N-1-j)
 										rd |= (1<<(N-1));
-									currentRows[row] = (ld | rd | col);
+									currentRows[row-1] = ~(ld | rd | col) & mask;
 									row++;
 								}
 								
-								currentRows[k] = mask >> 1;					// überschreibe die Belegungen in Zeile und Spalte 1 und N
-								currentRows[l] = (mask >> 1) << 1;
-								currentRows[0] = mask - (1<<(N-1-i));
-								currentRows[N-1] = mask - (1<<(N-1-j));
+								currentRows[k-1] = 1 << (N-1);					// überschreibe die Belegungen in Zeile und Spalte 1 und N
+								currentRows[l-1] = 1;
 
-								boardPropertiesList.add(new BoardProperties(currentRows, symmetry));	// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
+								boardPropertiesList.add(new BoardProperties(currentRows, symmetry, k, l));	// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
 								startConstellations.add((i<<24) + (j<<16) + (k<<8) + l);						// Sachen wieder freigeben	
 							}
 						}
@@ -162,23 +160,31 @@ public class AlgorithmStarter {
 		}
 
 		//Thread starten und auf ihre Beendung warten
+		ExecutorService executor = Executors.newFixedThreadPool(cpu);
+		
 		threadlist = new ArrayList<AlgorithmThread>();
 		for(ArrayDeque<BoardProperties> constellations : threadConstellations) {
 			AlgorithmThread algThread = new AlgorithmThread(N, constellations);
 			threadlist.add(algThread);
-//			algThread.setPriority(7);
-			algThread.start();
+			executor.submit(algThread);
 		}
+		
 		//threadlist erstellt, alles ready
 		ready = true;
 		
-		for(AlgorithmThread algThread : threadlist) {
-			try {
-				algThread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+		//Warte auf Beendigung des executors
+		executor.shutdown();
+		try {
+			if(executor.awaitTermination(2, TimeUnit.DAYS)) {
+//				System.out.println("fertig geworden");
+			} else {
+//				System.out.println("Zeitlimit abgelaufen");
+				//Speichern
 			}
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
 		}
+		
 		//Zeit stoppen, da 100% erreicht
 		end = System.currentTimeMillis();
 	}
