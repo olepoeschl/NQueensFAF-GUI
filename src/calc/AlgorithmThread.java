@@ -1,8 +1,6 @@
 package calc;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 
 import gui.Gui;
@@ -17,7 +15,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private long tempcounter = 0, solvecounter = 0;	
 	private int startConstIndex = 0;
 	private int mask;
-	private int[] rows_k_l;
+	private int row1, row2;
 	//Array, enthält die zur Angabe besetzter Felder von AlgorithmStarter berechneten Integers
 	private int[] boardIntegers;
 	//Liste der von AlgorithmStarter berechneten Start-Konstellationen
@@ -34,14 +32,12 @@ public class AlgorithmThread extends Thread implements Serializable {
 		uncalculatedStartConstList = boardPropertiesList;
 		mask = (1 << N) - 1;						//Setze jedes Bit von mask auf 1
 		boardIntegers = new int[N];
-		
-		rows_k_l = new int[2];
 	}
 	
 	//Rekursive Funktion
 	private void SetQueen1(int ld, int rd, int col, int row) {
 		
-		if(row == rows_k_l[0]) {
+		if(row == row1) {
 			SetQueen2(ld<<1, rd>>1, col, row+1);
 			return;
 		}
@@ -63,7 +59,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	private void SetQueen2(int ld, int rd, int col, int row) {
 		
-		if(row == rows_k_l[1]) {
+		if(row == row2) {
 			SetQueen3(ld<<1, rd>>1, col, row+1);
 			return;
 		}
@@ -168,17 +164,17 @@ public class AlgorithmThread extends Thread implements Serializable {
 			boardIntegers = boardProperties.boardIntegers;
 			tempcounter = 0;
 			if(boardProperties.k > boardProperties.l) {
-				rows_k_l[0] = boardProperties.l;
-				rows_k_l[1] = boardProperties.k;
+				row1 = boardProperties.l;
+				row2 = boardProperties.k;
 			}
 			else {
-				rows_k_l[0] = boardProperties.k;
-				rows_k_l[1] = boardProperties.l;
+				row1 = boardProperties.k;
+				row2 = boardProperties.l;
 			}
 			
 			//Überspringe SetQueen1 ggf.
 			if(N < 20) {
-				if(rows_k_l[0] > 0)
+				if(row1 > 0)
 					SetQueen1(0, 0, 0, 1);
 				else
 					SetQueen2(0, 0, 0, 1);
