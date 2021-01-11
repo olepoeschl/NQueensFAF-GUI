@@ -129,7 +129,7 @@ public class Gui extends JFrame {
 						}
 						
 						//aktualisiere progressBar und ihre Text-Anzeige
-						if((int)value == 100 || (int)value == 0) {
+						if((int)value == 100 || value == 0) {
 							progressBar.setValue((int)value);
 							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (int)value + "%");
 							progressBar.repaint();
