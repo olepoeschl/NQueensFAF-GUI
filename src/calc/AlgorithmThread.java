@@ -16,7 +16,8 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private int N;
 	private long tempcounter = 0, solvecounter = 0;	
 	private int startConstIndex = 0;
-	private int mask, row1, row2;
+	private int mask;
+	private int[] rows_k_l;
 	//Array, enthält die zur Angabe besetzter Felder von AlgorithmStarter berechneten Integers
 	private int[] boardIntegers;
 	//Liste der von AlgorithmStarter berechneten Start-Konstellationen
@@ -33,13 +34,14 @@ public class AlgorithmThread extends Thread implements Serializable {
 		uncalculatedStartConstList = boardPropertiesList;
 		mask = (1 << N) - 1;						//Setze jedes Bit von mask auf 1
 		boardIntegers = new int[N];
+		
+		rows_k_l = new int[2];
 	}
 	
 	//Rekursive Funktion
-	@SuppressWarnings("unused")
 	private void SetQueen1(int ld, int rd, int col, int row) {
 		
-		if(row == row1) {
+		if(row == rows_k_l[0]) {
 			SetQueen2(ld<<1, rd>>1, col, row+1);
 			return;
 		}
@@ -61,7 +63,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	private void SetQueen2(int ld, int rd, int col, int row) {
 		
-		if(row == row2) {
+		if(row == rows_k_l[1]) {
 			SetQueen3(ld<<1, rd>>1, col, row+1);
 			return;
 		}
@@ -111,7 +113,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 	}
 	
 	
-	@SuppressWarnings("unused")
 	private void SetQueenBig(int ld, int rd, int col, int row) {
 		//prüfe, ob Benutzer pausieren oder abbrechen will
 		if(pause) {
@@ -155,23 +156,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	@Override
 	public void run() {
-		int const_delay_index = 200;
-		Method method = null;
-		try {
-			if(N < 20) {
-				if(row1>0)
-					method = this.getClass().getDeclaredMethod("SetQueen1", int.class, int.class, int.class, int.class);
-				else
-					method = this.getClass().getDeclaredMethod("SetQueen2", int.class, int.class, int.class, int.class);
-			} else {
-				const_delay_index = 1;
-				method = this.getClass().getDeclaredMethod("SetQueenBig", int.class, int.class, int.class, int.class);
-			}
-		} catch(NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch(SecurityException e) {
-			e.printStackTrace();
-		}
+		int const_delay_index;
+		if(N < 20)
+			const_delay_index = 200;
+		else
+			const_delay_index = 1;
 		
 		loop:
 		for(BoardProperties boardProperties : boardPropertiesList) {
@@ -179,20 +168,22 @@ public class AlgorithmThread extends Thread implements Serializable {
 			boardIntegers = boardProperties.boardIntegers;
 			tempcounter = 0;
 			if(boardProperties.k > boardProperties.l) {
-				row1 = boardProperties.l;
-				row2 = boardProperties.k;
+				rows_k_l[0] = boardProperties.l;
+				rows_k_l[1] = boardProperties.k;
 			}
 			else {
-				row1 = boardProperties.k;
-				row2 = boardProperties.l;
+				rows_k_l[0] = boardProperties.k;
+				rows_k_l[1] = boardProperties.l;
 			}
 			
-			//suche alle Lösungen für die aktuelle Start-Konstellation, beginne ab Zeile 1
-			try {
-				
-				method.invoke(this, 0, 0, 0, 1);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-				e1.printStackTrace();
+			//Überspringe SetQueen1 ggf.
+			if(N < 20) {
+				if(rows_k_l[0] > 0)
+					SetQueen1(0, 0, 0, 1);
+				else
+					SetQueen2(0, 0, 0, 1);
+			} else {
+				SetQueenBig(0, 0, 0, 1);
 			}
 			
 			//wieder eine Startpos. geschafft

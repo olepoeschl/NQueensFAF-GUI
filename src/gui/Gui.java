@@ -141,7 +141,7 @@ public class Gui extends JFrame {
 						
 						//Gebe alle 5% was aus
 						intvalue = (int) value;
-						if(intvalue % 5 <= 1 && intvalue != tempvalue) {
+						if(intvalue % 5 <= 1 && intvalue != tempvalue && intvalue > 0) {
 							if(intvalue % 5 == 1 && tempvalue != intvalue - 1) {
 								tempvalue = --intvalue;
 								print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
@@ -396,7 +396,9 @@ public class Gui extends JFrame {
 				btnCancel.setEnabled(true);
 				
 				//Setze progressBar zurück
-				updateProgress(0);
+				progressUpdateQueue.clear();
+				if(!load)
+					updateProgress(0);
 
 				//Zeit starten
 				time = 0;
@@ -417,6 +419,8 @@ public class Gui extends JFrame {
 				if(algStarter.getEndtime() != 0)
 					time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
 				updateTime();
+				//oldtime zurücksetzen
+				oldtime = 0;
 				
 				updateProgress(100);
 				print("============================\n" + algStarter.getSolvecounter() + " Lösungen gefunden für N = " + algStarter.getN() + "\n============================", true);
