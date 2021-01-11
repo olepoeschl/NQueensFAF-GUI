@@ -63,9 +63,6 @@ public class Gui extends JFrame {
 	private boolean load = false;
 	private int updateTime = 0;
 	
-	//Variablen für die Fortschritts-Anzeige
-	private static int intvalue = 0, tempvalue = 0;
-	
 	//FileFilter-Objekt
 	private FileFilter filefilter;
 	
@@ -129,7 +126,7 @@ public class Gui extends JFrame {
 						}
 						
 						//aktualisiere progressBar und ihre Text-Anzeige
-						if((int)value == 100 || (int)value == 0) {
+						if((int)value == 100 || value == 0) {
 							progressBar.setValue((int)value);
 							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (int)value + "%");
 							progressBar.repaint();
@@ -139,19 +136,9 @@ public class Gui extends JFrame {
 							progressBar.repaint();
 						}
 						
-						//Gebe alle 5% was aus
-						intvalue = (int) value;
-						if(intvalue % 5 <= 1 && intvalue != tempvalue && intvalue > 0) {
-							if(intvalue % 5 == 1 && tempvalue != intvalue - 1) {
-								tempvalue = --intvalue;
-								print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
-							}
-							else if (intvalue % 5 == 0){
-								if(intvalue != 100) {
-									tempvalue = intvalue;
-									print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
-								}
-							}	
+						//Ausgabe
+						if((int)value != 100 && (int)value != 0) {
+							print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
 						}
 					}
 					try {

@@ -34,7 +34,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 		boardIntegers = new int[N];
 	}
 	
-	//Rekursive Funktion
+	//Rekursive Funktionen zum Setzen der Damen
+	// SetQueen1, SetQueen2 und SetQueen 3 werden für das füllen eines Bretts benötigt
+	
+	// Setze Damen, bis man die erste Zeile erreicht, wo schon eine Dame steht
+	// dann geht man einfach noch eine zeile weiter und ruft SetQueen2 auf
 	private void SetQueen1(int ld, int rd, int col, int row) {
 		
 		if(row == row1) {
@@ -57,6 +61,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 		}
 	}
 	
+	// Setze Damen, bis man die zweite Zeile erreicht, wo schon eine Dame steht
+	// dann geht man einfach noch eine zeile weiter und ruft SetQueen3 auf
+	// man beginnt bei SetQueen2, wenn die Dame der ersten Zeile in der Ecke steht
 	private void SetQueen2(int ld, int rd, int col, int row) {
 		
 		if(row == row2) {
@@ -79,12 +86,12 @@ public class AlgorithmThread extends Thread implements Serializable {
 		}
 	}
 	
-	
+	// läuft bis zum Ende (theoretisch N-2, aber es kann ausnahmen geben, daher "if(row > N-3)"
 	private void SetQueen3(int ld, int rd, int col, int row) {
 		
 		if(row > N-3) {
 			if(row == N-2) {
-				if((~(ld | rd | col) & boardIntegers[row-1])>0)
+				if((~(ld | rd | col) & boardIntegers[N-3])>0)
 					tempcounter++;
 			}
 			else
@@ -108,23 +115,81 @@ public class AlgorithmThread extends Thread implements Serializable {
 		}
 	}
 	
-	
-	private void SetQueenBig(int ld, int rd, int col, int row) {
-		//prüfe, ob Benutzer pausieren oder abbrechen will
-		if(pause) {
-			while(pause) {
-				if(cancel)
-					return;
-				
-				try {
-					sleep(50);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		} else if(cancel) {
+	// gleiche Funktionsweise wie beit den oberen 3 Methoden
+	// aber mit der Möglichkeit beim finden einer lösung abzubrechen
+	private void SetQueen1Big(int ld, int rd, int col, int row) {
+		
+		if(row == row1) {
+			SetQueen2Big(ld<<1, rd>>1, col, row+1);
 			return;
 		}
+		
+		//jedes gesetzte Bit in free entspricht einem freien Feld
+		int free = ~(ld | rd | col) & boardIntegers[row-1];
+		int bit;
+		
+		//Solange es in der aktuellen Zeile freie Positionen gibt...
+		while(free > 0) {
+			//setze Dame an Stelle bit
+			bit = free & (-free);
+			free -= bit;
+			
+			//gehe zu nächster Zeile
+			SetQueen1Big((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+		}
+	}
+	
+	private void SetQueen2Big(int ld, int rd, int col, int row) {
+		
+		if(row == row2) {
+			SetQueen3Big(ld<<1, rd>>1, col, row+1);
+			return;
+		}
+		
+		//jedes gesetzte Bit in free entspricht einem freien Feld
+		int free = ~(ld | rd | col) & boardIntegers[row-1];
+		int bit;
+		
+		//Solange es in der aktuellen Zeile freie Positionen gibt...
+		while(free > 0) {
+			//setze Dame an Stelle bit
+			bit = free & (-free);
+			free -= bit;
+			
+			//gehe zu nächster Zeile
+			SetQueen2Big((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+		}
+	}
+	
+	
+	private void SetQueen3Big(int ld, int rd, int col, int row) {
+		
+		if(row > N-3) {
+			//prüfe, ob Benutzer pausieren oder abbrechen will
+			if(pause) {
+				while(pause) {
+					if(cancel)
+						return;
+					
+					try {
+						sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			} else if(cancel) {
+				return;
+			}
+			
+			if(row == N-2) {
+				if((~(ld | rd | col) & boardIntegers[N-3])>0)
+					tempcounter++;
+			}
+			else
+				tempcounter++;
+			return;
+		}
+		
 		
 		//Berechnungen		//		//
 		//jedes gesetzte Bit in free entspricht einem freien Feld
@@ -145,7 +210,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			free -= bit;
 
 			//gehe zu nächster Zeile
-			SetQueenBig((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+			SetQueen3Big((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
 	
@@ -153,6 +218,8 @@ public class AlgorithmThread extends Thread implements Serializable {
 	@Override
 	public void run() {
 		int const_delay_index;
+		
+		// passe Aktualisierungsrate an N an
 		if(N < 16)
 			const_delay_index = 1 << 12;
 		else if(N < 18)
@@ -171,6 +238,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			//übernimm Parameter von boardProperties
 			boardIntegers = boardProperties.boardIntegers;
 			tempcounter = 0;
+			// row1 ist die kleinere
 			if(boardProperties.k > boardProperties.l) {
 				row1 = boardProperties.l;
 				row2 = boardProperties.k;
@@ -180,14 +248,18 @@ public class AlgorithmThread extends Thread implements Serializable {
 				row2 = boardProperties.l;
 			}
 			
-			//Überspringe SetQueen1 ggf.
-			if(N < 23) {
+			// Überspringe SetQueen1 ggf.
+			// wenn N groß, dann erlaube immer beim finden einer lösung dass abgebrochen wird (Big-Methoden)
+			if(N < 25) {
 				if(row1 > 0)
 					SetQueen1(0, 0, 0, 1);
 				else
 					SetQueen2(0, 0, 0, 1);
 			} else {
-				SetQueenBig(0, 0, 0, 1);
+				if(row1 > 0)
+					SetQueen1Big(0, 0, 0, 1);
+				else
+					SetQueen2Big(0, 0, 0, 1);
 			}
 			
 			//wieder eine Startpos. geschafft

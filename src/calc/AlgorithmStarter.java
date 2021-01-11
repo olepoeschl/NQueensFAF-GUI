@@ -56,37 +56,6 @@ public class AlgorithmStarter {
 			int mask = (1 << N) - 1;
 			int col, ld, rd, row;
 			
-
-			//Start-Konstellationen berechnen für 1.Dame auf Feld (0, 0)
-			for(int j = 1; j < N-2; j++) {
-				for(int l = j+1; l < N-1; l++) {
-
-					currentRows = new int[N-2];					// 1, wenn belegt, 0 sonst
-					row = 1;
-					ld = 0;
-					rd = (1 << (N-1)) | (1 << l);
-					col = (1 << (N-1)) | 1 | (1 << (N-1-j));
-
-					while(row<N-1) {
-						ld = (ld<<1) & mask;
-						rd >>= 1;
-						if(row == l)
-							ld |= 1;
-						if(row == j)
-							ld |= 1;
-						if(row == N-1-j)
-							rd |= (1<<(N-1));
-						currentRows[row-1] = ~(ld | rd | col) & mask;
-						row++;
-					}
-
-					currentRows[l-1] = 1;
-
-					boardPropertiesList.add(new BoardProperties(currentRows, 8, 0, l));	
-					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
-				}
-			}
-			
 			
 			//Start-Konstellationen berechnen für 1.Dame ist nicht in der oberen linken Ecke (hier muss man Symmetrie checken)
 			for(int i = 1; i < halfN; i++) {			// erste Zeile durchgehen		
@@ -139,6 +108,38 @@ public class AlgorithmStarter {
 					}
 				}
 			}
+			
+
+			//Start-Konstellationen berechnen für 1.Dame auf Feld (0, 0)
+			for(int j = 1; j < N-2; j++) {
+				for(int l = j+1; l < N-1; l++) {
+
+					currentRows = new int[N-2];					// 1, wenn belegt, 0 sonst
+					row = 1;
+					ld = 0;
+					rd = (1 << (N-1)) | (1 << l);
+					col = (1 << (N-1)) | 1 | (1 << (N-1-j));
+
+					while(row<N-1) {
+						ld = (ld<<1) & mask;
+						rd >>= 1;
+						if(row == l)
+							ld |= 1;
+						if(row == j)
+							ld |= 1;
+						if(row == N-1-j)
+							rd |= (1<<(N-1));
+						currentRows[row-1] = ~(ld | rd | col) & mask;
+						row++;
+					}
+
+					currentRows[l-1] = 1;
+
+					boardPropertiesList.add(new BoardProperties(currentRows, 8, 0, l));	
+					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
+				}
+			}
+			
 
 			//speichere anzahl der startkonstellationen in startConstCount
 			startConstCount = boardPropertiesList.size();
