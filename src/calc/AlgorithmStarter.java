@@ -74,11 +74,11 @@ public class AlgorithmStarter {
 							ld |= 1;
 						if(row == N-1-j)
 							rd |= (1<<(N-1));
-						currentRows[row-1] = (ld | rd | col);
+						currentRows[row-1] = ~(ld | rd | col) & mask;
 						row++;
 					}
 
-					currentRows[l-1] = (mask >> 1) << 1;
+					currentRows[l-1] = 1;
 
 					boardPropertiesList.add(new BoardProperties(currentRows, 8));	
 					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
@@ -123,12 +123,12 @@ public class AlgorithmStarter {
 										ld |= 1;
 									if(row == N-1-j)
 										rd |= (1<<(N-1));
-									currentRows[row-1] = (ld | rd | col);
+									currentRows[row-1] = ~(ld | rd | col) & mask;
 									row++;
 								}
 								
-								currentRows[k-1] = mask >> 1;					// überschreibe die Belegungen in Zeile und Spalte 1 und N
-								currentRows[l-1] = (mask >> 1) << 1;
+								currentRows[k-1] = 1 << (N-1);					// überschreibe die Belegungen in Zeile und Spalte 1 und N
+								currentRows[l-1] = 1;
 
 								boardPropertiesList.add(new BoardProperties(currentRows, symmetry));	// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
 								startConstellations.add((i<<24) + (j<<16) + (k<<8) + l);						// Sachen wieder freigeben	

@@ -39,7 +39,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	@SuppressWarnings("unused")
 	private void SetQueen(int ld, int rd, int col, int row) {
 		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col | boardIntegers[row-1]) & mask;
+		int free = ~(ld | rd | col) & boardIntegers[row-1];
 		
 		if(row == N-2) {
 			if(free > 0)
