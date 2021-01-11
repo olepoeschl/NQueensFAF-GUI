@@ -59,7 +59,7 @@ public class AlgorithmStarter {
 			for(int j = 1; j < N-2; j++) {
 				for(int l = j+1; l < N-1; l++) {
 
-					currentRows = new int[N];					// 1, wenn belegt, 0 sonst
+					currentRows = new int[N-2];					// 1, wenn belegt, 0 sonst
 					row = 1;
 					ld = 0;
 					rd = (1 << (N-1)) | (1 << l);
@@ -74,13 +74,11 @@ public class AlgorithmStarter {
 							ld |= 1;
 						if(row == N-1-j)
 							rd |= (1<<(N-1));
-						currentRows[row] = (ld | rd | col);
+						currentRows[row-1] = (ld | rd | col);
 						row++;
 					}
 
-					currentRows[0] = mask >> 1;
-					currentRows[N-1] = ~(1 << (N-1-j)) & mask;
-					currentRows[l] = (mask >> 1) << 1;
+					currentRows[l-1] = (mask >> 1) << 1;
 
 					boardPropertiesList.add(new BoardProperties(currentRows, 8));	
 					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
@@ -108,7 +106,7 @@ public class AlgorithmStarter {
 								else
 									symmetry = 8;					// gar nicht symmetrisch
 
-								currentRows = new int[N];					// 1, wenn belegt, 0 sonst
+								currentRows = new int[N-2];					// 1, wenn belegt, 0 sonst
 								row = 1;
 								ld = (1 << (N-1-i)) | (1 << (N-1-k));
 								rd = (1 << (N-1-i)) | (1 << l);
@@ -125,14 +123,12 @@ public class AlgorithmStarter {
 										ld |= 1;
 									if(row == N-1-j)
 										rd |= (1<<(N-1));
-									currentRows[row] = (ld | rd | col);
+									currentRows[row-1] = (ld | rd | col);
 									row++;
 								}
 								
-								currentRows[k] = mask >> 1;					// überschreibe die Belegungen in Zeile und Spalte 1 und N
-								currentRows[l] = (mask >> 1) << 1;
-								currentRows[0] = mask - (1<<(N-1-i));
-								currentRows[N-1] = mask - (1<<(N-1-j));
+								currentRows[k-1] = mask >> 1;					// überschreibe die Belegungen in Zeile und Spalte 1 und N
+								currentRows[l-1] = (mask >> 1) << 1;
 
 								boardPropertiesList.add(new BoardProperties(currentRows, symmetry));	// boeardIntegersList enthät für jede startpos. zu jeder zeile einen integer der die belegung angibt
 								startConstellations.add((i<<24) + (j<<16) + (k<<8) + l);						// Sachen wieder freigeben	
