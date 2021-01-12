@@ -43,7 +43,7 @@ import javax.swing.border.LineBorder;
 public class Gui extends JFrame {
 	
 	private static final long serialVersionUID = 1L;
-	public static final int sleeptime = 128;
+	
 	
 	//Gui-Komponenten
 	private JTextField tfN, tfThreadcount;
@@ -62,9 +62,6 @@ public class Gui extends JFrame {
 	private long pausetime = 0, oldtime = 0;
 	private boolean load = false;
 	private int updateTime = 0;
-	
-	//Variablen für die Fortschritts-Anzeige
-	private static int intvalue = 0, tempvalue = 0;
 	
 	//FileFilter-Objekt
 	private FileFilter filefilter;
@@ -96,15 +93,31 @@ public class Gui extends JFrame {
 		
 		//Queue fürs printen in taOutput
 		msgQueue = new ArrayDeque<String>();
-		//Queue fürs Anzeigen des Fortschritts
-		progressUpdateQueue = new ArrayDeque<Float>();
-		//Thread zum updaten der Gui mittels der beiden Queues
 		new Thread() {
 			public void run() {
-				float value = 0;
-				int valuecount = 5;
 				String msg;
-				
+				while(true) {
+					if(msgQueue.size() > 0) {
+						msg = msgQueue.removeFirst();
+						if(msg.equals("_CLEAR_"))
+							taOutput.setText("");
+						else
+							taOutput.append(msg);
+					}
+					try {
+						sleep(128);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
+		
+		//Queue fürs Anzeigen des Fortschritts
+		progressUpdateQueue = new ArrayDeque<Float>();
+		new Thread() {
+			public void run() {
+				float value;
 				while(true) {
 					if(progressUpdateQueue.size() > 0 && algStarter.isReady()) {
 						value = progressUpdateQueue.removeFirst();
@@ -121,47 +134,15 @@ public class Gui extends JFrame {
 							progressBar.setValue((int)value);
 							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
 							progressBar.repaint();
-							
-							//Fortschritts-Ausgabe
-							if((int)value >= valuecount) { 
-								print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
-								valuecount += 10;
-							}
 						}
 						
-					} 
-					else if( algStarter != null && algStarter.isFinished() ) {
-						valuecount = 5;
-					}
-						
-					//Ausgabe von msg aus msgQueue
-					if(msgQueue.size() > 0) {
-						msg = msgQueue.removeFirst();
-						if(msg.equals("_CLEAR_")) {
-							taOutput.setText("");
-						}
-						else {
-							taOutput.append(msg);
-						}
-						//Gebe alle 5% was aus
-						intvalue = (int) value;
-						if(intvalue % 5 <= 1 && intvalue != tempvalue && intvalue > 0) {
-							if(intvalue % 5 == 1 && tempvalue != intvalue - 1) {
-								tempvalue = --intvalue;
-								print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
-							}
-							else if (intvalue % 5 == 0){
-								if(intvalue != 100) {
-									tempvalue = intvalue;
-									print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
-								}
-							}
+						//Ausgabe
+						if((int)value != 100 && (int)value != 0) {
+							print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
 						}
 					}
-					
-					//Warte sleeptime
 					try {
-						sleep(sleeptime);
+						sleep(128);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -298,7 +279,6 @@ public class Gui extends JFrame {
 			msgQueue.add(msg + "\n");
 		}
 	}
-	
 	public static String getTimeStr() {
 		long h = time/1000/60/60;
 		long m = time/1000/60%60;
@@ -339,15 +319,15 @@ public class Gui extends JFrame {
 
 		return strh + ":" + strm + ":" + strs + "." + strms;
 	}
-	private void updateTimeLbl() {
+	private void updateTime() {
 		lblTime.setText(getTimeStr());
 	}
 	//Berechne und aktualisiere Progress
-	private static void updateProgress(float value) {
-		progressUpdateQueue.add(value);
-	}
 	public static void updateProgress() {
 		progressUpdateQueue.add(128f);
+	}
+	private static void updateProgress(float value) {
+		progressUpdateQueue.add(value);
 	}
 	
 	private void startTimeUpdateThread() {
@@ -359,7 +339,7 @@ public class Gui extends JFrame {
 				//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
 				while(algStarter.getStarttime() == 0) {
 					try {
-						sleep(sleeptime);
+						sleep(128);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -370,7 +350,7 @@ public class Gui extends JFrame {
 						long pausestart = System.currentTimeMillis();
 						while(algStarter.isPaused()) {
 							try {
-								sleep(sleeptime);
+								sleep(128);
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -378,12 +358,12 @@ public class Gui extends JFrame {
 						pausetime += System.currentTimeMillis() - pausestart;
 					} else {
 						//aktualisiere Zeit und Zeit-Anzeige
-						updateTimeLbl();
+						updateTime();
 						time = System.currentTimeMillis() - algStarter.getStarttime() - pausetime + oldtime;
 						
 						//Warte x Millisekunden
 						try {
-							sleep(sleeptime);
+							sleep(128);
 						} catch(InterruptedException ie) {
 							ie.printStackTrace();
 						}
@@ -418,13 +398,14 @@ public class Gui extends JFrame {
 				while(updateTime == 2) {
 					//warte solange
 					try {
-						sleep(sleeptime);
+						sleep(128);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
-				time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
-				updateTimeLbl();
+				if(algStarter.getEndtime() != 0)
+					time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
+				updateTime();
 				//oldtime zurücksetzen
 				oldtime = 0;
 				
