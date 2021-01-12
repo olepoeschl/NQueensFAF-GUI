@@ -32,7 +32,7 @@ public class AlgorithmStarter {
 
 	//Prozesszustands-Regelung
 	private long start = 0, end = 0;
-	private boolean ready = false, pause = false;
+	private boolean ready = false, finished = false, pause = false;
 
 
 	public AlgorithmStarter(int N, int cpu) {
@@ -144,7 +144,7 @@ public class AlgorithmStarter {
 			//speichere anzahl der startkonstellationen in startConstCount
 			startConstCount = boardPropertiesList.size();
 			//Ausgabe in Gui
-			Gui.print(startConstCount + " Start-Konstellationen gefunden in " + Gui.getTimeStr(), true);
+			Gui.print(startConstCount + " Start-Konstellationen gefunden in ", true, System.currentTimeMillis() - start);
 		}
 		
 		//---
@@ -188,6 +188,8 @@ public class AlgorithmStarter {
 		
 		//Zeit stoppen, da 100% erreicht
 		end = System.currentTimeMillis();
+		
+		finished = true;
 	}
 
 	//gibt true zurück, wenn Rotation von aktueller Konstellation bereits vorhanden
@@ -238,6 +240,9 @@ public class AlgorithmStarter {
 	}
 	public boolean isReady() {
 		return ready;
+	}
+	public boolean isFinished() {
+		return finished;
 	}
 
 	public long getStarttime() {

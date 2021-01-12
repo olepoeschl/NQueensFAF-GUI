@@ -44,6 +44,7 @@ public class Gui extends JFrame {
 	
 	private static final long serialVersionUID = 1L;
 	
+	private final int sleeptime = 128;
 	
 	//Gui-Komponenten
 	private JTextField tfN, tfThreadcount;
@@ -69,6 +70,7 @@ public class Gui extends JFrame {
 	//Stack-Objekt für print-Methode
 	private static ArrayDeque<String> msgQueue;
 	public static ArrayDeque<Float> progressUpdateQueue;
+	public static ArrayDeque<Long> timeQueue;
 	
 	
 	public Gui() {
@@ -93,31 +95,17 @@ public class Gui extends JFrame {
 		
 		//Queue fürs printen in taOutput
 		msgQueue = new ArrayDeque<String>();
-		new Thread() {
-			public void run() {
-				String msg;
-				while(true) {
-					if(msgQueue.size() > 0) {
-						msg = msgQueue.removeFirst();
-						if(msg.equals("_CLEAR_"))
-							taOutput.setText("");
-						else
-							taOutput.append(msg);
-					}
-					try {
-						sleep(128);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}.start();
-		
+		//Queue fürs Speichern von auszugebenden Zeiten
+		timeQueue = new ArrayDeque<Long>();
 		//Queue fürs Anzeigen des Fortschritts
 		progressUpdateQueue = new ArrayDeque<Float>();
+		//Thread zum updaten der Gui mittels der beiden Queues
 		new Thread() {
 			public void run() {
 				float value;
+				int valuecount = 5;
+				String msg;
+				
 				while(true) {
 					if(progressUpdateQueue.size() > 0 && algStarter.isReady()) {
 						value = progressUpdateQueue.removeFirst();
@@ -135,14 +123,39 @@ public class Gui extends JFrame {
 							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
 							progressBar.repaint();
 						}
-						
-						//Ausgabe
-						if((int)value != 100 && value != 0) {
+						//Fortschritts-Ausgabe
+						if((int)value >= valuecount && (int)value != 100 && (int)value != 0) {
 							print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
+							valuecount += 5;
+						}
+					} 
+					else if( algStarter != null && algStarter.isFinished() ) {
+						valuecount = 5;
+					}
+						
+					//Ausgabe von msg aus msgQueue
+					if(msgQueue.size() > 0) {
+						msg = msgQueue.removeFirst();
+						if(msg.equals("_CLEAR_")) {
+							taOutput.setText("");
+						}
+						else if(msg.startsWith("_TIME_")) {
+							if(timeQueue.size() > 0) {
+								long temp = time;
+								time = timeQueue.removeFirst();
+								msg = msg.substring("_TIME_".length()) + getTimeStr();
+								time = temp;
+								taOutput.append(msg);
+							}
+						}
+						else {
+							taOutput.append(msg);
 						}
 					}
+					
+					//Warte sleeptime
 					try {
-						sleep(128);
+						sleep(sleeptime);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -279,6 +292,17 @@ public class Gui extends JFrame {
 			msgQueue.add(msg + "\n");
 		}
 	}
+	public static void print(String msg, boolean append, long newtime) {
+		if(append) {
+			timeQueue.add(newtime);
+			msgQueue.add("_TIME_" + msg);
+			msgQueue.add("\n");
+		} else {
+			msgQueue.add("_CLEAR_");
+			msgQueue.add(msg + "\n");
+		}
+	}
+	
 	public static String getTimeStr() {
 		long h = time/1000/60/60;
 		long m = time/1000/60%60;
@@ -319,13 +343,10 @@ public class Gui extends JFrame {
 
 		return strh + ":" + strm + ":" + strs + "." + strms;
 	}
-	private void updateTime() {
+	private void updateTimeLbl() {
 		lblTime.setText(getTimeStr());
 	}
 	//Berechne und aktualisiere Progress
-	public static void updateProgress() {
-		progressUpdateQueue.add(128f);
-	}
 	private static void updateProgress(float value) {
 		progressUpdateQueue.add(value);
 	}
@@ -339,7 +360,7 @@ public class Gui extends JFrame {
 				//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
 				while(algStarter.getStarttime() == 0) {
 					try {
-						sleep(128);
+						sleep(sleeptime);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -350,7 +371,7 @@ public class Gui extends JFrame {
 						long pausestart = System.currentTimeMillis();
 						while(algStarter.isPaused()) {
 							try {
-								sleep(128);
+								sleep(sleeptime);
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -358,12 +379,12 @@ public class Gui extends JFrame {
 						pausetime += System.currentTimeMillis() - pausestart;
 					} else {
 						//aktualisiere Zeit und Zeit-Anzeige
-						updateTime();
+						updateTimeLbl();
 						time = System.currentTimeMillis() - algStarter.getStarttime() - pausetime + oldtime;
 						
 						//Warte x Millisekunden
 						try {
-							sleep(128);
+							sleep(sleeptime);
 						} catch(InterruptedException ie) {
 							ie.printStackTrace();
 						}
@@ -398,14 +419,14 @@ public class Gui extends JFrame {
 				while(updateTime == 2) {
 					//warte solange
 					try {
-						sleep(128);
+						sleep(sleeptime);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
 				if(algStarter.getEndtime() != 0)
 					time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
-				updateTime();
+				updateTimeLbl();
 				//oldtime zurücksetzen
 				oldtime = 0;
 				
