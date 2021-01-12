@@ -55,7 +55,7 @@ public class AlgorithmStarter {
 			int halfN = (N + (N % 2)) / 2;				// Dame nur links setzen, Rest eh symmetrisch
 			int mask = (1 << N) - 1;
 			int col, ld, rd, row;
-			
+			int hardConstellations = 0;
 			
 			//Start-Konstellationen berechnen für 1.Dame auf Feld (0, 0)
 			for(int j = 1; j < N-2; j++) {
@@ -84,6 +84,8 @@ public class AlgorithmStarter {
 
 					boardPropertiesList.add(new BoardProperties(currentRows, 8, 0, l));	
 					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
+					
+					hardConstellations++;
 				}
 			}
 			
@@ -144,7 +146,7 @@ public class AlgorithmStarter {
 			//speichere anzahl der startkonstellationen in startConstCount
 			startConstCount = boardPropertiesList.size();
 			//Ausgabe in Gui
-			Gui.print(startConstCount + " Start-Konstellationen gefunden in ", true, System.currentTimeMillis() - start);
+			Gui.print(startConstCount + " Start-Konstellationen gefunden, davon " + hardConstellations + " nervig", true);
 		}
 		
 		//---
@@ -185,7 +187,7 @@ public class AlgorithmStarter {
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
-		
+
 		//Zeit stoppen, da 100% erreicht
 		end = System.currentTimeMillis();
 		
