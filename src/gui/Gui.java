@@ -63,6 +63,9 @@ public class Gui extends JFrame {
 	private boolean load = false;
 	private int updateTime = 0;
 	
+	//Variablen für die Fortschritts-Anzeige
+	private static int intvalue = 0, tempvalue = 0;
+	
 	//FileFilter-Objekt
 	private FileFilter filefilter;
 	
@@ -98,7 +101,7 @@ public class Gui extends JFrame {
 		//Thread zum updaten der Gui mittels der beiden Queues
 		new Thread() {
 			public void run() {
-				float value;
+				float value = 0;
 				int valuecount = 5;
 				String msg;
 				
@@ -139,6 +142,20 @@ public class Gui extends JFrame {
 						}
 						else {
 							taOutput.append(msg);
+						}
+						//Gebe alle 5% was aus
+						intvalue = (int) value;
+						if(intvalue % 5 <= 1 && intvalue != tempvalue && intvalue > 0) {
+							if(intvalue % 5 == 1 && tempvalue != intvalue - 1) {
+								tempvalue = --intvalue;
+								print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
+							}
+							else if (intvalue % 5 == 0){
+								if(intvalue != 100) {
+									tempvalue = intvalue;
+									print(intvalue + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
+								}
+							}
 						}
 					}
 					
