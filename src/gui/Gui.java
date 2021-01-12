@@ -105,7 +105,7 @@ public class Gui extends JFrame {
 							taOutput.append(msg);
 					}
 					try {
-						sleep(50);
+						sleep(128);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -137,12 +137,12 @@ public class Gui extends JFrame {
 						}
 						
 						//Ausgabe
-						if((int)value != 100 && (int)value != 0) {
+						if((int)value != 100 && value != 0) {
 							print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
 						}
 					}
 					try {
-						sleep(50);
+						sleep(128);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -339,7 +339,7 @@ public class Gui extends JFrame {
 				//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
 				while(algStarter.getStarttime() == 0) {
 					try {
-						sleep(50);
+						sleep(128);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -350,7 +350,7 @@ public class Gui extends JFrame {
 						long pausestart = System.currentTimeMillis();
 						while(algStarter.isPaused()) {
 							try {
-								sleep(50);
+								sleep(128);
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -398,7 +398,7 @@ public class Gui extends JFrame {
 				while(updateTime == 2) {
 					//warte solange
 					try {
-						sleep(50);
+						sleep(128);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}

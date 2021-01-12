@@ -91,7 +91,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		
 		if(row > N-3) {
 			if(row == N-2) {
-				if((~(ld | rd | col) & boardIntegers[N-3])>0)
+				if((~(ld | rd | col) & boardIntegers[row-1])>0)
 					tempcounter++;
 			}
 			else
@@ -182,7 +182,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			}
 			
 			if(row == N-2) {
-				if((~(ld | rd | col) & boardIntegers[N-3])>0)
+				if((~(ld | rd | col) & boardIntegers[row-1])>0)
 					tempcounter++;
 			}
 			else
