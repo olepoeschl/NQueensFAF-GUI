@@ -103,7 +103,7 @@ public class Gui extends JFrame {
 		new Thread() {
 			public void run() {
 				float value;
-				int valuecount = 5;
+				int tempvalue = 0, valuecount = 5;
 				String msg;
 				
 				while(true) {
@@ -124,8 +124,9 @@ public class Gui extends JFrame {
 							progressBar.repaint();
 						}
 						//Fortschritts-Ausgabe
-						if((int)value >= valuecount && (int)value != 100 && (int)value != 0) {
+						if((int)value >= valuecount && (int)value != 100 && (int)value != 0 && (int)value != tempvalue) {
 							print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
+							tempvalue = (int)value;
 							valuecount += 5;
 						}
 					} 
