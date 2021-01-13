@@ -217,22 +217,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	@Override
 	public void run() {
-		int const_delay_index;
-		
-		// passe Aktualisierungsrate an N an
-		if(N < 16)
-			const_delay_index = 1 << 12;
-		else if(N < 18)
-			const_delay_index = 200;
-		else if(N == 18)
-			const_delay_index = 50;
-		else if(N == 19)
-			const_delay_index = 10;
-		else if(N == 20)
-			const_delay_index = 3;
-		else
-			const_delay_index = 1;
-		
 		loop:
 		for(BoardProperties boardProperties : boardPropertiesList) {
 			//übernimm Parameter von boardProperties
@@ -264,8 +248,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 			
 			//wieder eine Startpos. geschafft
 			startConstIndex++;
-//			if(startConstIndex % (const_delay_index) == 0)
-//				Gui.progressUpdateQueue.add(128f);
 			
 			//aktualisiere solvecounter
 			solvecounter += tempcounter * boardProperties.symmetry;

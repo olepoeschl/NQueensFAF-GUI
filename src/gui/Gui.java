@@ -93,25 +93,25 @@ public class Gui extends JFrame {
 		
 		//Queue fürs printen in taOutput
 		msgQueue = new ArrayDeque<String>();
-		new Thread() {
-			public void run() {
-				String msg;
-				while(true) {
-					if(msgQueue.size() > 0) {
-						msg = msgQueue.removeFirst();
-						if(msg.equals("_CLEAR_"))
-							taOutput.setText("");
-						else
-							taOutput.append(msg);
-					}
-					try {
-						sleep(128);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}.start();
+//		new Thread() {
+//			public void run() {
+//				String msg;
+//				while(true) {
+//					if(msgQueue.size() > 0) {
+//						msg = msgQueue.removeFirst();
+//						if(msg.equals("_CLEAR_"))
+//							taOutput.setText("");
+//						else
+//							taOutput.append(msg);
+//					}
+//					try {
+//						sleep(128);
+//					} catch (InterruptedException e) {
+//						e.printStackTrace();
+//					}
+//				}
+//			}
+//		}.start();
 		
 		//Queue fürs Anzeigen des Fortschritts
 		progressUpdateQueue = new ArrayDeque<Float>();
@@ -119,33 +119,48 @@ public class Gui extends JFrame {
 			public void run() {
 				float value;
 				int tempvalue = 0;
+				String msg;
 				
 				while(true) {
-					if(progressUpdateQueue.size() > 0 && algStarter.isReady()) {
-						value = progressUpdateQueue.removeFirst();
-						if(value == 128f) {
-							value = algStarter.getProgress()*100;
-						}
-						
-						//aktualisiere progressBar und ihre Text-Anzeige
-						if((int)value == 100 || value == 0) {
-							progressBar.setValue((int)value);
-							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (int)value + "%");
-							progressBar.repaint();
-						} else {
-							progressBar.setValue((int)value);
-							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
-							progressBar.repaint();
-
+					//Updaten der Progress-Anzeige (progressBar, Text-Anzeige, Prozent-Ausgabe in Konsole[taOutput])
+					if(algStarter != null) {
+						if(progressUpdateQueue.size() > 0) {
+							value = progressUpdateQueue.removeFirst();
+							if(value == 128f) {
+								value = algStarter.getProgress()*100;
+							}
 							
-							//Ausgabe
-							if((int)value != tempvalue) {
-								print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
-								tempvalue = (int) value;
+							//aktualisiere progressBar und ihre Text-Anzeige
+							if((int)value == 100 || value == 0) {
+								progressBar.setValue((int)value);
+								((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (int)value + "%");
+								progressBar.repaint();
+							} else {
+								progressBar.setValue((int)value);
+								((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
+								progressBar.repaint();
+
+								
+								//Ausgabe
+								if((int)value != tempvalue) {
+									print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
+									tempvalue = (int) value;
+								}
 							}
 						}
-						
 					}
+					
+
+					//Ausgabe von Strings aus Warteschlange
+					if(msgQueue.size() > 0) {
+						msg = msgQueue.removeFirst();
+						if(msg.equals("_CLEAR_"))
+							taOutput.setText("");
+						else
+							taOutput.append(msg);
+					}
+
+					
 					try {
 						sleep(128);
 					} catch (InterruptedException e) {
