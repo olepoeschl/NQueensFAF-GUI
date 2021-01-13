@@ -31,7 +31,7 @@ public class AlgorithmStarter {
 	
 	// for loading and saving and progress
 	private boolean load = false;
-	private long startConstCount = 0, calculatedStartConstCount = 0;
+	private long startConstCount = 0, calculatedStartConstCount = 0, startConstCountBad = 0;
 
 	// for pausing and canceling
 	private long start = 0, end = 0;
@@ -90,7 +90,7 @@ public class AlgorithmStarter {
 				}
 			}
 			
-			
+			startConstCountBad = boardPropertiesList.size();
 			
 			// calculate starting constellations for no Queens in corners
 			// look above for if missing explanation
@@ -148,7 +148,7 @@ public class AlgorithmStarter {
 			// save number of found starting constellations
 			startConstCount = boardPropertiesList.size();
 			// print in gui console
-			Gui.print(startConstCount + " Start-Konstellationen gefunden", true);
+			Gui.print(startConstCount + " Start-Konstellationen gefunden, davon " + startConstCountBad + " nervig", true);
 		}
 		
 		// split starting constellations in cpu many lists (splitting the work for the threads)
