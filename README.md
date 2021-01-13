@@ -1,6 +1,6 @@
 # NQueensFAF
 
-Gui-Programm zur Berechnung des N-Damen-Problems
+Gui-Program for calculating the number of solutions of the N-Queens Problem
 
 --- DISCLAIMER  ---
       !!!!
@@ -59,7 +59,7 @@ Gui-Programm zur Berechnung des N-Damen-Problems
       
       - N= 16 in ~2.5 sec (single)
       
-# Version 8:
+# Version 8 (yet to come):
       - definitely N=16 in < 1 sec (single)
       
       
