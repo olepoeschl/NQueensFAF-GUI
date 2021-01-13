@@ -264,8 +264,8 @@ public class AlgorithmThread extends Thread implements Serializable {
 			
 			//wieder eine Startpos. geschafft
 			startConstIndex++;
-			if(startConstIndex % (const_delay_index) == 0)
-				Gui.progressUpdateQueue.add(128f);
+//			if(startConstIndex % (const_delay_index) == 0)
+//				Gui.progressUpdateQueue.add(128f);
 			
 			//aktualisiere solvecounter
 			solvecounter += tempcounter * boardProperties.symmetry;

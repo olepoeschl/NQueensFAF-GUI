@@ -144,7 +144,7 @@ public class AlgorithmStarter {
 			//speichere anzahl der startkonstellationen in startConstCount
 			startConstCount = boardPropertiesList.size();
 			//Ausgabe in Gui
-			Gui.print(startConstCount + " Start-Konstellationen gefunden in " + Gui.getTimeStr(), true);
+			Gui.print(startConstCount + " Start-Konstellationen gefunden", true);
 		}
 		
 		//---
