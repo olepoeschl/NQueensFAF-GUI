@@ -3,92 +3,79 @@ package calc;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 
-import gui.Gui;
+// this is the solver
+// we use recursive functions for Backtracking
 
 public class AlgorithmThread extends Thread implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+
+	private int N;											// boardsize
+	private long tempcounter = 0, solvecounter = 0;			// tempcounter is #(unique solutions) of current start constellation, solvecounter is #(all solutions)
+	private int startConstIndex = 0;						// #(done start constellations)
+	private int mask;										// marks the board, N '1's' in bit representation
+	private int row1, row2;									// rows between 1,...,N-2 where Queen placed already
 	
+	private int[] boardIntegers;							// occupancy of squares for rows 1,...,N-2 from starting constellation
 	
-	//Brettgröße, Lösungszähler, Symmetrie-Faktor, Bitmaske
-	private int N;
-	private long tempcounter = 0, solvecounter = 0;	
-	private int startConstIndex = 0;
-	private int mask;
-	private int row1, row2;
-	//Array, enthält die zur Angabe besetzter Felder von AlgorithmStarter berechneten Integers
-	private int[] boardIntegers;
-	//Liste der von AlgorithmStarter berechneten Start-Konstellationen
+	// list of uncalculated starting positions, their indices
 	private ArrayDeque<BoardProperties> boardPropertiesList, uncalculatedStartConstList;
 	
-	//Sachen fürs Pausieren und Speichern
+	// for canceling and pausing 
 	private boolean pause = false, cancel = false;
 	
-
+	
 	public AlgorithmThread(int N, ArrayDeque<BoardProperties> boardPropertiesList) {
-		
 		this.N = N;
 		this.boardPropertiesList = boardPropertiesList;
 		uncalculatedStartConstList = boardPropertiesList;
-		mask = (1 << N) - 1;						//Setze jedes Bit von mask auf 1
+		mask = (1 << N) - 1;					
 		boardIntegers = new int[N];
 	}
 	
-	//Rekursive Funktionen zum Setzen der Damen
-	// SetQueen1, SetQueen2 und SetQueen 3 werden für das füllen eines Bretts benötigt
-	
-	// Setze Damen, bis man die erste Zeile erreicht, wo schon eine Dame steht
-	// dann geht man einfach noch eine zeile weiter und ruft SetQueen2 auf
+	// Recursive function for Placing the Queens
+	// SetQueen1 places Queens until reaching row k or l, then skips to the next row and calls SetQueen2
 	private void SetQueen1(int ld, int rd, int col, int row) {
-		
 		if(row == row1) {
 			SetQueen2(ld<<1, rd>>1, col, row+1);
 			return;
 		}
 		
-		//jedes gesetzte Bit in free entspricht einem freien Feld
+		// calculate free squares for this line and bit is the rightmost free square (Queen will be placed at bit)
 		int free = ~(ld | rd | col) & boardIntegers[row-1];
 		int bit;
 		
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
+		// while there are free squares in this row
 		while(free > 0) {
-			//setze Dame an Stelle bit
+			// set a Queen at bit
 			bit = free & (-free);
 			free -= bit;
 			
-			//gehe zu nächster Zeile
+			// go to the next row and occupy diagonals and column)
 			SetQueen1((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
 	
-	// Setze Damen, bis man die zweite Zeile erreicht, wo schon eine Dame steht
-	// dann geht man einfach noch eine zeile weiter und ruft SetQueen3 auf
-	// man beginnt bei SetQueen2, wenn die Dame der ersten Zeile in der Ecke steht
+	// places Queens until reaching row k or l, then calls SetQueen3
+	// we start with SetQueen2, if k = 0
 	private void SetQueen2(int ld, int rd, int col, int row) {
-		
 		if(row == row2) {
 			SetQueen3(ld<<1, rd>>1, col, row+1);
 			return;
 		}
 		
-		//jedes gesetzte Bit in free entspricht einem freien Feld
 		int free = ~(ld | rd | col) & boardIntegers[row-1];
 		int bit;
 		
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
 		while(free > 0) {
-			//setze Dame an Stelle bit
 			bit = free & (-free);
 			free -= bit;
-			
-			//gehe zu nächster Zeile
 			SetQueen2((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
 	
-	// läuft bis zum Ende (theoretisch N-2, aber es kann ausnahmen geben, daher "if(row > N-3)"
+	// places Queens until boatrd is full
 	private void SetQueen3(int ld, int rd, int col, int row) {
-		
 		if(row > N-3) {
 			if(row == N-2) {
 				if((~(ld | rd | col) & boardIntegers[row-1])>0)
@@ -99,73 +86,54 @@ public class AlgorithmThread extends Thread implements Serializable {
 			return;
 		}
 		
-	
-		//jedes gesetzte Bit in free entspricht einem freien Feld
 		int free = ~(ld | rd | col) & boardIntegers[row-1];
 		int bit;
 		
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
 		while(free > 0) {
-			//setze Dame an Stelle bit
 			bit = free & (-free);
 			free -= bit;
-			
-			//gehe zu nächster Zeile
 			SetQueen3((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
 	
-	// gleiche Funktionsweise wie beit den oberen 3 Methoden
-	// aber mit der Möglichkeit beim finden einer lösung abzubrechen
+	// same stuff with the possibility to stop when a solution is found
+	// this is slightly slower, but good for large N where a starting position might take several minutes or even longer
 	private void SetQueen1Big(int ld, int rd, int col, int row) {
-		
 		if(row == row1) {
 			SetQueen2Big(ld<<1, rd>>1, col, row+1);
 			return;
 		}
 		
-		//jedes gesetzte Bit in free entspricht einem freien Feld
 		int free = ~(ld | rd | col) & boardIntegers[row-1];
 		int bit;
 		
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
 		while(free > 0) {
-			//setze Dame an Stelle bit
 			bit = free & (-free);
 			free -= bit;
-			
-			//gehe zu nächster Zeile
 			SetQueen1Big((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
 	
 	private void SetQueen2Big(int ld, int rd, int col, int row) {
-		
 		if(row == row2) {
 			SetQueen3Big(ld<<1, rd>>1, col, row+1);
 			return;
 		}
 		
-		//jedes gesetzte Bit in free entspricht einem freien Feld
 		int free = ~(ld | rd | col) & boardIntegers[row-1];
 		int bit;
 		
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
 		while(free > 0) {
-			//setze Dame an Stelle bit
 			bit = free & (-free);
 			free -= bit;
-			
-			//gehe zu nächster Zeile
 			SetQueen2Big((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
 	
 	
 	private void SetQueen3Big(int ld, int rd, int col, int row) {
-		
 		if(row > N-3) {
-			//prüfe, ob Benutzer pausieren oder abbrechen will
+			// check, if the user wants to pause or interrupt and wait until he wants to continue
 			if(pause) {
 				while(pause) {
 					if(cancel)
@@ -179,7 +147,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 				}
 			} else if(cancel) {
 				return;
-			}
+			}															// end of checking the pause condition
 			
 			if(row == N-2) {
 				if((~(ld | rd | col) & boardIntegers[row-1])>0)
@@ -190,26 +158,12 @@ public class AlgorithmThread extends Thread implements Serializable {
 			return;
 		}
 		
-		
-		//Berechnungen		//		//
-		//jedes gesetzte Bit in free entspricht einem freien Feld
 		int free = ~(ld | rd | col | boardIntegers[row]) & mask;
-
-		if(row == N-2) {
-			if(free > 0)
-				tempcounter++;
-			return;
-		}
-
 		int bit;
 
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
 		while(free > 0) {
-			//setze Dame an Stelle bit
 			bit = free & (-free);
 			free -= bit;
-
-			//gehe zu nächster Zeile
 			SetQueen3Big((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
 		}
 	}
@@ -219,10 +173,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 	public void run() {
 		loop:
 		for(BoardProperties boardProperties : boardPropertiesList) {
-			//übernimm Parameter von boardProperties
+			// get occupancy of the board for each starting constellation from board Properties
 			boardIntegers = boardProperties.boardIntegers;
-			tempcounter = 0;
-			// row1 ist die kleinere
+			tempcounter = 0;								// set counter of solutions for this starting constellation to 0
+			// row1 is the smaller one
 			if(boardProperties.k > boardProperties.l) {
 				row1 = boardProperties.l;
 				row2 = boardProperties.k;
@@ -232,8 +186,8 @@ public class AlgorithmThread extends Thread implements Serializable {
 				row2 = boardProperties.l;
 			}
 			
-			// Überspringe SetQueen1 ggf.
-			// wenn N groß, dann erlaube immer beim finden einer lösung dass abgebrochen wird (Big-Methoden)
+			// use SetQueenBig - methods for large N
+			// skip SetQueen1 (or SetQueen1Big) if k = 0
 			if(N < 25) {
 				if(row1 > 0)
 					SetQueen1(0, 0, 0, 1);
@@ -246,16 +200,16 @@ public class AlgorithmThread extends Thread implements Serializable {
 					SetQueen2Big(0, 0, 0, 1);
 			}
 			
-			//wieder eine Startpos. geschafft
+			// one start constellation is done
 			startConstIndex++;
 			
-			//aktualisiere solvecounter
+			// sum up solutions
 			solvecounter += tempcounter * boardProperties.symmetry;
 			
-			//für Speicher- und Ladefunktion
+			// for saving and loading progress remove the finished starting constellation
 			uncalculatedStartConstList.remove(boardProperties);
 			
-			//prüfe, ob Benutzer pausieren oder abbrechen will
+			// check if the user wants to pause or break
 			if(pause) {
 				while(pause) {
 					if(cancel)
@@ -273,6 +227,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		}
 	}
 	
+	// for pause and continue
 	public void pause() {
 		pause = true;
 	}
@@ -282,15 +237,14 @@ public class AlgorithmThread extends Thread implements Serializable {
 	public void cancel() {
 		cancel = true;
 	}
-	
 
+	// for progress
 	public int getStartConstIndex() {
 		return startConstIndex;
 	}
 	public long getSolvecounter() {
 		return solvecounter;
 	}
-	
 	public ArrayDeque<BoardProperties> getUncalculatedStartConstellations(){
 		return uncalculatedStartConstList;
 	}
