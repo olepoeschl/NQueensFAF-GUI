@@ -46,6 +46,9 @@ public class Gui extends JFrame {
 	
 	private static final long serialVersionUID = 1L;
 	
+	// time that the helper-threads sleep after 1 iteration
+	private static final int sleeptime = 128;
+	
 	
 	// gui-components
 	private JTextField tfN, tfThreadcount;
@@ -96,26 +99,6 @@ public class Gui extends JFrame {
 		// Queue for printing in taOutput
 		msgQueue = new ArrayDeque<String>();
 		
-//		new Thread() {
-//			public void run() {
-//				String msg;
-//				while(true) {
-//					if(msgQueue.size() > 0) {
-//						msg = msgQueue.removeFirst();
-//						if(msg.equals("_CLEAR_"))
-//							taOutput.setText("");
-//						else
-//							taOutput.append(msg);
-//					}
-//					try {
-//						sleep(128);
-//					} catch (InterruptedException e) {
-//						e.printStackTrace();
-//					}
-//				}
-//			}
-//		}.start();
-		
 		//Queue displaying the progress
 		progressUpdateQueue = new ArrayDeque<Float>();
 		new Thread() {
@@ -152,6 +135,9 @@ public class Gui extends JFrame {
 							}
 						}
 					}
+
+					// update progress
+					updateProgress();
 					
 
 					// output string from queue
@@ -165,7 +151,7 @@ public class Gui extends JFrame {
 
 					
 					try {
-						sleep(128);
+						sleep(sleeptime);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -362,7 +348,7 @@ public class Gui extends JFrame {
 				// wait while the algorithm is calculating the start constellations
 				while(algStarter.getStarttime() == 0) {
 					try {
-						sleep(128);
+						sleep(sleeptime);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -373,7 +359,7 @@ public class Gui extends JFrame {
 						long pausestart = System.currentTimeMillis();
 						while(algStarter.isPaused()) {
 							try {
-								sleep(128);
+								sleep(sleeptime);
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -385,13 +371,9 @@ public class Gui extends JFrame {
 						time = System.currentTimeMillis() - algStarter.getStarttime() - pausetime + oldtime;
 					}
 					
-					
-					// update progress
-					updateProgress();
-					
 					// wait before updating again
 					try {
-						sleep(128);
+						sleep(sleeptime);
 					} catch(InterruptedException ie) {
 						ie.printStackTrace();
 					}
@@ -425,13 +407,12 @@ public class Gui extends JFrame {
 				while(updateTime == 2) {
 					// wait before cheking again
 					try {
-						sleep(128);
+						sleep(sleeptime);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
-				if(algStarter.getEndtime() != 0)
-					time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
+				time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
 				updateTime();
 				// reset oldtime
 				oldtime = 0;

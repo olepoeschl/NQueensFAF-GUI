@@ -19,7 +19,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private int[] boardIntegers;							// occupancy of squares for rows 1,...,N-2 from starting constellation
 	
 	// list of uncalculated starting positions, their indices
-	private ArrayDeque<BoardProperties> boardPropertiesList, uncalculatedStartConstList;
+	private ArrayDeque<BoardProperties> boardPropertiesList;
 	
 	// for canceling and pausing 
 	private boolean pause = false, cancel = false;
@@ -28,7 +28,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 	public AlgorithmThread(int N, ArrayDeque<BoardProperties> boardPropertiesList) {
 		this.N = N;
 		this.boardPropertiesList = boardPropertiesList;
-		uncalculatedStartConstList = boardPropertiesList;
 		mask = (1 << N) - 1;					
 		boardIntegers = new int[N];
 	}
@@ -171,19 +170,25 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	@Override
 	public void run() {
+		int listsize = boardPropertiesList.size();
+		BoardProperties bp;
+		
 		loop:
-		for(BoardProperties boardProperties : boardPropertiesList) {
+		for(int i = 0; i < listsize; i++) {
+			//initalize bp for this iteration
+			bp = boardPropertiesList.getFirst();
+			
 			// get occupancy of the board for each starting constellation from board Properties
-			boardIntegers = boardProperties.boardIntegers;
+			boardIntegers = bp.boardIntegers;
 			tempcounter = 0;								// set counter of solutions for this starting constellation to 0
 			// row1 is the smaller one
-			if(boardProperties.k > boardProperties.l) {
-				row1 = boardProperties.l;
-				row2 = boardProperties.k;
+			if(bp.k > bp.l) {
+				row1 = bp.l;
+				row2 = bp.k;
 			}
 			else {
-				row1 = boardProperties.k;
-				row2 = boardProperties.l;
+				row1 = bp.k;
+				row2 = bp.l;
 			}
 			
 			// use SetQueenBig - methods for large N
@@ -204,10 +209,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 			startConstIndex++;
 			
 			// sum up solutions
-			solvecounter += tempcounter * boardProperties.symmetry;
+			solvecounter += tempcounter * bp.symmetry;
 			
 			// for saving and loading progress remove the finished starting constellation
-			uncalculatedStartConstList.remove(boardProperties);
+			boardPropertiesList.removeFirst();
 			
 			// check if the user wants to pause or break
 			if(pause) {
@@ -246,6 +251,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 		return solvecounter;
 	}
 	public ArrayDeque<BoardProperties> getUncalculatedStartConstellations(){
-		return uncalculatedStartConstList;
+		return boardPropertiesList;
 	}
 }
