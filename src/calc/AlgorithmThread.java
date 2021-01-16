@@ -13,7 +13,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private int N;											// boardsize
 	private long tempcounter = 0, solvecounter = 0;			// tempcounter is #(unique solutions) of current start constellation, solvecounter is #(all solutions)
 	private int startConstIndex = 0;						// #(done start constellations)
-	private int mask;										// marks the board, N '1's' in bit representation
 	private int row1, row2;									// rows between 1,...,N-2 where Queen placed already
 	
 	private int[] boardIntegers;							// occupancy of squares for rows 1,...,N-2 from starting constellation
@@ -27,8 +26,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	public AlgorithmThread(int N, ArrayDeque<BoardProperties> boardPropertiesList) {
 		this.N = N;
-		this.boardPropertiesList = boardPropertiesList;
-		mask = (1 << N) - 1;					
+		this.boardPropertiesList = boardPropertiesList;	
 		boardIntegers = new int[N];
 	}
 	
@@ -59,7 +57,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 	// we start with SetQueen2, if k = 0
 	private void SetQueen2(int ld, int rd, int col, int row) {
 		if(row == row2) {
-			SetQueen3(ld<<1, rd>>1, col, row+1);
+			if(row > N-3) {
+				tempcounter++;
+			} else {
+				SetQueen3(ld<<1, rd>>1, col, row+1);
+			}
 			return;
 		}
 		
@@ -75,19 +77,15 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	// places Queens until boatrd is full
 	private void SetQueen3(int ld, int rd, int col, int row) {
-		if(row > N-3) {
-			if(row == N-2) {
-				if((~(ld | rd | col) & boardIntegers[row-1])>0)
-					tempcounter++;
-			}
-			else
+		if(row == N-2) {
+			if((~(ld | rd | col) & boardIntegers[row-1])>0)
 				tempcounter++;
 			return;
 		}
-		
+
 		int free = ~(ld | rd | col) & boardIntegers[row-1];
 		int bit;
-		
+
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
@@ -115,7 +113,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	private void SetQueen2Big(int ld, int rd, int col, int row) {
 		if(row == row2) {
-			SetQueen3Big(ld<<1, rd>>1, col, row+1);
+			if(row > N-3) {
+				tempcounter++;
+			} else {
+				SetQueen3Big(ld<<1, rd>>1, col, row+1);
+			}
 			return;
 		}
 		
@@ -131,13 +133,16 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	
 	private void SetQueen3Big(int ld, int rd, int col, int row) {
-		if(row > N-3) {
+		if(row == N-2) {
+			if((~(ld | rd | col) & boardIntegers[row-1])>0)
+				tempcounter++;
+			
 			// check, if the user wants to pause or interrupt and wait until he wants to continue
 			if(pause) {
 				while(pause) {
 					if(cancel)
 						return;
-					
+
 					try {
 						sleep(50);
 					} catch (InterruptedException e) {
@@ -147,17 +152,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 			} else if(cancel) {
 				return;
 			}															// end of checking the pause condition
-			
-			if(row == N-2) {
-				if((~(ld | rd | col) & boardIntegers[row-1])>0)
-					tempcounter++;
-			}
-			else
-				tempcounter++;
+						
 			return;
 		}
-		
-		int free = ~(ld | rd | col | boardIntegers[row]) & mask;
+
+		int free = ~(ld | rd | col) & boardIntegers[row-1];
 		int bit;
 
 		while(free > 0) {
