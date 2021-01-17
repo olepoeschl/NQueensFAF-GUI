@@ -55,7 +55,7 @@ public class Gui extends JFrame {
 	private JSlider sliderN, sliderThreadcount;
 	private JButton btnSave, btnLoad, btnStart, btnCancel;
 	private static JLabel lblTime;
-	private JTextArea taOutput;
+	private JTextArea taOutput; 
 	private static JProgressBar progressBar;
 	
 	private EventListener eventListener;
@@ -117,7 +117,7 @@ public class Gui extends JFrame {
 							}
 							
 							// update progressBar and text
-							if((int) value == 100 || (int) value == 0) {
+							if((int)value == 100 || value == 0) {
 								progressBar.setValue((int)value);
 								((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (int)value + "%");
 								progressBar.repaint();
@@ -257,14 +257,13 @@ public class Gui extends JFrame {
 		taOutput.setRows(15);
 		taOutput.setBackground(Color.BLACK);
 		taOutput.setEditable(false);
+		taOutput.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Konsole", TitledBorder.LEADING, TitledBorder.TOP, null, Color.LIGHT_GRAY));
 		pnlOutput.add(taOutput, BorderLayout.NORTH);
 		
 		JScrollPane scrollPane = new JScrollPane(taOutput);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setWheelScrollingEnabled(true);
-		scrollPane.setBackground(Color.BLACK);
-		scrollPane.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Konsole", TitledBorder.LEADING, TitledBorder.TOP, null, Color.LIGHT_GRAY));
 		pnlOutput.add(scrollPane);
 
 		DefaultCaret caret = (DefaultCaret)taOutput.getCaret();
