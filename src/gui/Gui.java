@@ -245,7 +245,7 @@ public class Gui extends JFrame {
 							}
 							
 							// update progressBar, text and the Windows-Taskbar-Icon-Progressbar
-							if((int) value == 100 || (int) value == 0) {
+							if((int) value == 100 || value == 0) {
 								progressBar.setValue((int)value);
 								((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + value + "%");
 								progressBar.repaint();
