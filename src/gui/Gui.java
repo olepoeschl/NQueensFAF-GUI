@@ -47,24 +47,22 @@ public class Gui extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
 	// time that the helper-threads sleep after 1 iteration
-	private static final int sleeptime = 128;
-	
+	private final int sleeptime = 128;
 	
 	// gui-components
 	private JTextField tfN, tfThreadcount;
 	private JSlider sliderN, sliderThreadcount;
 	private JButton btnSave, btnLoad, btnStart, btnCancel;
-	private static JLabel lblTime;
+	private JLabel lblTime;
 	private JTextArea taOutput; 
-	private static JProgressBar progressBar;
+	private JProgressBar progressBar;
 	
 	private EventListener eventListener;
 	
 	// AlgorithmStarter-object
-	private static AlgorithmStarter algStarter;
+	private AlgorithmStarter algStarter;
 	private Thread algThread;
-	private static long time = 0;
-	private long pausetime = 0, oldtime = 0;
+	private long time = 0, pausetime = 0, oldtime = 0;
 	private boolean load = false;
 	private int updateTime = 0;
 	
@@ -96,68 +94,18 @@ public class Gui extends JFrame {
 			}
 		};
 		
+		
 		// Queue for printing in taOutput
 		msgQueue = new ArrayDeque<String>();
-		
-		//Queue displaying the progress
+		// Queue displaying the progress
 		progressUpdateQueue = new ArrayDeque<Float>();
-		new Thread() {
+		// start the thread that updates the Gui's components
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
-				float value;
-				int tempvalue = 0;
-				String msg;
-				
-				while(true) {
-					// Updating the progress (progressBar, text, percentage in console[taOutput])
-					if(algStarter != null) {
-						if(progressUpdateQueue.size() > 0) {
-							value = progressUpdateQueue.removeFirst();
-							if(value == 128f) {
-								value = algStarter.getProgress()*100;
-							}
-							
-							// update progressBar and text
-							if((int) value == 100 || (int) value == 0) {
-								progressBar.setValue((int)value);
-								((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + value + "%");
-								progressBar.repaint();
-							} else {
-								progressBar.setValue((int)value);
-								((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
-								progressBar.repaint();
-
-								
-								// output
-								if((int)value >= tempvalue + 5 || (int) value < tempvalue) {
-									print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
-									tempvalue = (int) value;
-								}
-							}
-						}
-					}
-
-					// update progress
-					updateProgress();
-					
-
-					// output string from queue
-					if(msgQueue.size() > 0) {
-						msg = msgQueue.removeFirst();
-						if(msg.equals("_CLEAR_"))
-							taOutput.setText("");
-						else
-							taOutput.append(msg);
-					}
-
-					
-					try {
-						sleep(sleeptime);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
+				startGuiUpdateThread();
 			}
-		}.start();
+		});
 	}
 	
 	private void initGui() {
@@ -280,6 +228,87 @@ public class Gui extends JFrame {
 		progressBar.setBorder(border);
 		pnlOutput.add(progressBar, BorderLayout.SOUTH);
 	}
+	private void startGuiUpdateThread() {
+		new Thread() {
+			public void run() {
+				float value;
+				int tempvalue = 0;
+				String msg;
+				
+				while(true) {
+					// Updating the progress (progressBar, text, percentage in console[taOutput])
+					if(algStarter != null) {
+						if(progressUpdateQueue.size() > 0) {
+							value = progressUpdateQueue.removeFirst();
+							if(value == 128f) {
+								value = algStarter.getProgress()*100;
+							}
+							
+							// update progressBar, text and the Windows-Taskbar-Icon-Progressbar
+							if((int) value == 100 || (int) value == 0) {
+								progressBar.setValue((int)value);
+								((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + value + "%");
+								progressBar.repaint();
+							} else {
+								progressBar.setValue((int)value);
+								((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
+								progressBar.repaint();
+						        
+								// output
+								if((int)value >= tempvalue + 5 || (int) value < tempvalue) {
+									print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + getTimeStr() + " ]", true);
+									tempvalue = (int) value;
+								}
+							}
+							
+						}
+						
+						
+						// update time and check if the user paused the application
+						if(updateTime == 1) {
+							if(algStarter.isPaused()) {
+								long pausestart = System.currentTimeMillis();
+								while(algStarter.isPaused()) {
+									try {
+										sleep(sleeptime);
+									} catch (InterruptedException e) {
+										e.printStackTrace();
+									}
+								}
+								pausetime += System.currentTimeMillis() - pausestart;
+							} else {
+								// display and update time
+								updateTimeLbl();
+								time = System.currentTimeMillis() - algStarter.getStarttime() - pausetime + oldtime;
+							}
+						} else {
+							updateTime = 0;
+						}
+					}
+
+					// update progress
+					updateProgress();
+					
+
+					// output string from queue
+					if(msgQueue.size() > 0) {
+						msg = msgQueue.removeFirst();
+						if(msg.equals("_CLEAR_"))
+							taOutput.setText("");
+						else
+							taOutput.append(msg);
+					}
+
+					
+					try {
+						sleep(sleeptime);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
+	}
 	
 	public static void print(String msg, boolean append) {
 		if(append) {
@@ -289,7 +318,7 @@ public class Gui extends JFrame {
 			msgQueue.add(msg + "\n");
 		}
 	}
-	public static String getTimeStr() {
+	public String getTimeStr() {
 		long h = time/1000/60/60;
 		long m = time/1000/60%60;
 		long s = time/1000%60;
@@ -329,7 +358,7 @@ public class Gui extends JFrame {
 
 		return strh + ":" + strm + ":" + strs + "." + strms;
 	}
-	private void updateTime() {
+	private void updateTimeLbl() {
 		lblTime.setText(getTimeStr());
 	}
 	// calculate and update progress
@@ -340,49 +369,6 @@ public class Gui extends JFrame {
 		progressUpdateQueue.add(value);
 	}
 	
-	private void startTimeUpdateThread() {
-		// thread for updating progress from lblTime
-		new Thread() {
-			public void run() {
-				pausetime = 0;
-				
-				// wait while the algorithm is calculating the start constellations
-				while(algStarter.getStarttime() == 0) {
-					try {
-						sleep(sleeptime);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-				
-				while(updateTime == 1) {
-					if(algStarter.isPaused()) {
-						long pausestart = System.currentTimeMillis();
-						while(algStarter.isPaused()) {
-							try {
-								sleep(sleeptime);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-						}
-						pausetime += System.currentTimeMillis() - pausestart;
-					} else {
-						// update time and displayed time
-						updateTime();
-						time = System.currentTimeMillis() - algStarter.getStarttime() - pausetime + oldtime;
-					}
-					
-					// wait before updating again
-					try {
-						sleep(sleeptime);
-					} catch(InterruptedException ie) {
-						ie.printStackTrace();
-					}
-				}
-				updateTime = 0;
-			}
-		}.start();
-	}
 	private void startAlgThread() {
 		algThread = new Thread() {
 			public void run() {
@@ -396,11 +382,12 @@ public class Gui extends JFrame {
 				progressUpdateQueue.clear();
 				if(!load)
 					updateProgress(0);
-
+				
 				// start time
 				time = 0;
 				updateTime = 1;
 
+				// start the calculation
 				algStarter.startAlgorithm();
 				
 				// stop time
@@ -413,10 +400,12 @@ public class Gui extends JFrame {
 						e.printStackTrace();
 					}
 				}
+				// calculate full time needed for the calculation and show it at the label
 				time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
-				updateTime();
-				// reset oldtime
+				updateTimeLbl();
+				// reset oldtime and pausetime
 				oldtime = 0;
+				pausetime = 0;
 				
 				updateProgress(100);
 				print("============================\n" + algStarter.getSolvecounter() + " Lösungen gefunden für N = " + algStarter.getN() + "\n============================", true);
@@ -571,7 +560,6 @@ public class Gui extends JFrame {
 						SwingUtilities.invokeLater(new Runnable() {
 							public void run() {
 								startAlgThread();
-								startTimeUpdateThread();
 							}
 						});
 					}
