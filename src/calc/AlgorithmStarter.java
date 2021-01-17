@@ -94,13 +94,13 @@ public class AlgorithmStarter {
 			
 			// calculate starting constellations for no Queens in corners
 			// look above for if missing explanation
-			for(int i = 1; i < halfN; i++) {						// gothrough first row	
-				for(int j = i+1; j < N-1; j++) {					// go through last row
-					for(int k = i+1; k < N-1; k++) {				// go through first col
-						if(k == N-1-j)								// skip if occupied
+			for(int k = 1; k < halfN; k++) {						// gothrough first row	
+				for(int l = k+1; l < N-1; l++) {					// go through last row
+					for(int i = k+1; i < N-1; i++) {				// go through first col
+						if(i == N-1-l)								// skip if occupied
 							continue;
-						for(int l = N-i-2; l > 0; l--) {			// go through last col
-							if(l==k || l == j)
+						for(int j = N-k-2; j > 0; j--) {			// go through last col
+							if(j==i || l == j)
 								continue;
 							
 							if(!checkRotations(i, j, k, l)) {		// if no rotation-symmetric starting constellation already found
