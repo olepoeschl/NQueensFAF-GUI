@@ -42,7 +42,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 		// calculate free squares for this line and bit is the rightmost free square (Queen will be placed at bit)
 		int nextfree;
 		int bit;
-		int ldnew, rdnew;
 		// while there are free squares in this row
 		while(free > 0) {
 			// set a Queen at bit
@@ -50,13 +49,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 			free -= bit;
 			
 			// calculate free squares for the next line
-			ldnew = ((ld|bit)<<1);
-			rdnew = ((rd|bit)>>1);
-			nextfree = ~(ldnew | rdnew | (col|bit)) & boardIntegers[idx+1];
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
 			
 			// if there are free spots on the nxt line, go to the next row and occupy diagonals and column)
 			if(nextfree > 0)
-				SetQueen1(ldnew, rdnew, col|bit, idx+1, nextfree);
+				SetQueen1((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
@@ -64,17 +61,14 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private void SetQueen21(int ld, int rd, int col, int idx, int free) {
 		int bit;
 		int nextfree;
-		int ldnew, rdnew;
 		if(idx > mark1) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-
-				ldnew = ((ld|bit)<<hop1);
-				rdnew = ((rd|bit)>>hop1);
-				nextfree = ~(ldnew | rdnew | col|bit) & boardIntegers[idx+1];
+				
+				nextfree = ~(((ld|bit)<<hop1) | ((rd|bit)>>hop1) | (col|bit)) & boardIntegers[idx+1];
 				if(nextfree > 0)
-					SetQueen22(ldnew, rdnew, col|bit, idx+1, nextfree);
+					SetQueen22((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -82,11 +76,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			bit = free & (-free);
 			free -= bit;
 			
-			ldnew = ((ld|bit)<<1);
-			rdnew = ((rd|bit)>>1);
-			nextfree = ~(ldnew | rdnew | col|bit) & boardIntegers[idx+1];
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
 			if(nextfree > 0)
-				SetQueen21(ldnew, rdnew, col|bit, idx+1, nextfree);
+				SetQueen21((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
@@ -101,6 +93,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
+			
 			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
 			if(nextfree > 0)
 				SetQueen22((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
@@ -111,46 +104,38 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private void SetQueen31(int ld, int rd, int col, int idx, int free) {
 		int bit;
 		int nextfree;
-		int ldnew, rdnew;
 		if(idx > mark1) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
 				
-				ldnew = ((ld|bit)<<hop1);
-				rdnew = ((rd|bit)>>hop1);
-				nextfree = ~(ldnew | rdnew | col|bit) & boardIntegers[idx+1];
+				nextfree = ~(((ld|bit)<<hop1) | ((rd|bit)>>hop1) | (col|bit)) & boardIntegers[idx+1];
 				if(nextfree > 0)
-					SetQueen32(ldnew, rdnew, col|bit, idx+1, nextfree);
+					SetQueen32((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-
-			ldnew = ((ld|bit)<<1);
-			rdnew = ((rd|bit)>>1);
-			nextfree = ~(ldnew | rdnew | col|bit) & boardIntegers[idx+1];
+			
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | col|bit) & boardIntegers[idx+1];
 			if(nextfree > 0)
-				SetQueen31(ldnew, rdnew, col|bit, idx+1, nextfree);
+				SetQueen31((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
 	private void SetQueen32(int ld, int rd, int col, int idx, int free) {
 		int bit;
 		int nextfree;
-		int ldnew, rdnew;
 		if(idx > mark2) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
 				
-				ldnew = ((ld|bit)<<hop2);
-				rdnew = ((rd|bit)>>hop2);
-				nextfree = ~(ldnew | rdnew | col|bit) & boardIntegers[idx+1];
+				nextfree = ~(((ld|bit)<<hop2) | ((rd|bit)>>hop2) | col|bit) & boardIntegers[idx+1];
 				if(nextfree > 0)
-					SetQueen33(ldnew, rdnew, col|bit, idx+1, nextfree);
+					SetQueen33((ld|bit)<<hop2, (rd|bit)>>hop2, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -158,11 +143,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			bit = free & (-free);
 			free -= bit;
 
-			ldnew = ((ld|bit)<<1);
-			rdnew = ((rd|bit)>>1);
-			nextfree = ~(ldnew | rdnew | col|bit) & boardIntegers[idx+1];
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
 			if(nextfree > 0)
-				SetQueen32(ldnew, rdnew, col|bit, idx+1, nextfree);
+				SetQueen21((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 		
@@ -177,6 +160,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
+			
 			nextfree = ~( ((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
 			if(nextfree > 0)
 				SetQueen33((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
