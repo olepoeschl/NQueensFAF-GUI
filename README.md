@@ -1,5 +1,4 @@
 # NQueensFAF
-
 Gui-Program for calculating the number of solutions of the N-Queens Problem.
 
 Download the .jar :     https://www.student.hs-mittweida.de/~opoeschl/NQueensFaf.jar
@@ -13,9 +12,10 @@ Mail: olepoeschl.developing@gmail.com
 
 
 # General
-
 This solution is based on those two methods:
+
       - using bits to represent the occupancy of the board; based on the implementation of Jeff Somers (http://users.rcn.com/liusomers/nqueen_demo/nqueens.html)
+      
       - calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the implementation of the TU Dresden (https://tu-dresden.de/)
 
 # Version 1: 
