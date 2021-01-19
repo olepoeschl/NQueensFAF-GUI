@@ -1,7 +1,7 @@
 # NQueensFAF
 Gui-Program for calculating the number of solutions of the N-Queens Problem.
 
-Download the .jar :     https://www.student.hs-mittweida.de/~opoeschl/NQueensFaf.jar
+Download the .jar :     <a href="https://www.student.hs-mittweida.de/~opoeschl/NQueensFaf.jar"> NQueensFaf.jar </a>
 (if you don't already have Java, download it <a href="https://www.java.com/en/download/manual.jsp">here</a>)
 
 It's an eclipse project, so you can clone it, import it into eclipse and run it
@@ -15,9 +15,9 @@ Mail: olepoeschl.developing@gmail.com
 # General
 This solution is based on two methods:
 
-- using bits to represent the occupancy of the board; based on the implementation of Jeff Somers (http://users.rcn.com/liusomers/nqueen_demo/nqueens.html)
+- using bits to represent the occupancy of the board; based on the <a href="http://users.rcn.com/liusomers/nqueen_demo/nqueens.html">implementation of Jeff Somers </a>
       
-- calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the implementation of the TU Dresden (https://tu-dresden.de/)
+- calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://tu-dresden.de">implementation of the TU Dresden</a>
 
 # Version 1: 
       - board as NxN-boolean
