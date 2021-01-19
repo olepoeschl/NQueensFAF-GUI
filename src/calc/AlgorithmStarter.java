@@ -23,7 +23,7 @@ public class AlgorithmStarter {
 	private int cpu;						// number of threads	
 	private long old_solvecounter = 0;		// if we load an old calculation, get the old solvecounter
 	private int symmetry = 8;				// look at boardProperties							
-	int[] currentRows;						// look boardIntegers in boardProperties						
+	int[] currentRows, hopmarker, hopsize;						// look boardIntegers in boardProperties						
 	private ArrayDeque<BoardProperties> boardPropertiesList;	// save starting constellations in this Array
 
 	Set<Integer> startConstellations = new HashSet<Integer>();		// make sure there are no symmetric equivalent starting constellations in boardPropertiesList			
@@ -56,36 +56,48 @@ public class AlgorithmStarter {
 		// if we don't load an old calculation
 		if(!load) {		
 			// column, left and right diag, idx of row, mask marks the board, halfN half of N rounded up
-			int col, ld, rd, row, mask = (1 << N) - 1, halfN = (N + (N % 2)) / 2;
+			int col, ld, rd, row, mask = (1 << N) - 1, halfN = (N + (N % 2)) / 2, diff;
 			
 			// calculating start constellations with the first Queen on square (0,0)
 			for(int j = 1; j < N-2; j++) {						// j is idx of Queen in last row				
 				for(int l = j+1; l < N-1; l++) {				// l is idx of Queen in last col
 					
-					currentRows = new int[N-2];					
+					currentRows = new int[N-3];		
+					hopmarker = new int[2];
+					hopsize = new int[2];
 					row = 1;
 					ld = 0;
 					rd = (1 << (N-1)) | (1 << l);
 					col = (1 << (N-1)) | 1 | (1 << (N-1-j));
+					diff = 0;
 
-					// calculate the occupancy resulting from the starting constellation (1 is free)
-					while(row<N-1) {
+					// calculate the occupancy resulting from the starting constellation (bit 1 is free)
+					while(row < N-1) {
 						ld = (ld<<1) & mask;
 						rd >>= 1;
-						if(row == l)
+						if(row == l) {
+							if(row == N-1-j)
+								rd |= (1<<(N-1));
 							ld |= 1;
+							row++;
+							diff++;
+							continue;
+						}
 						if(row == j)
 							ld |= 1;
 						if(row == N-1-j)
 							rd |= (1<<(N-1));
-						currentRows[row-1] = ~(ld | rd | col) & mask;
+						currentRows[row-1-diff] = ~(ld | rd | col) & mask;
 						row++;
 					}
-
-					currentRows[l-1] = 1;	// if Queen already placed in this row, only her square is free
+					
+					if(l < N-2) {
+						hopmarker[0] = l-3;
+						hopsize[0] = 2;
+					}
 
 					// add starting constellation to list
-					boardPropertiesList.add(new BoardProperties(currentRows, 8, 0, l));	
+					boardPropertiesList.add(new BoardProperties(currentRows, hopmarker, hopsize, 8, N-5));	
 					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
 				}
 			}
@@ -94,12 +106,12 @@ public class AlgorithmStarter {
 			
 			// calculate starting constellations for no Queens in corners
 			// look above for if missing explanation
-			for(int k = 1; k < halfN; k++) {						// gothrough first row	
-				for(int l = k+1; l < N-1; l++) {					// go through last row
-					for(int i = k+1; i < N-1; i++) {				// go through first col
+			for(int k = 1; k < halfN; k++) {						// gothrough first col
+				for(int l = k+1; l < N-1; l++) {					// go through last col
+					for(int i = k+1; i < N-1; i++) {				// go through first row
 						if(i == N-1-l)								// skip if occupied
 							continue;
-						for(int j = N-k-2; j > 0; j--) {			// go through last col
+						for(int j = N-k-2; j > 0; j--) {			// go through last row
 							if(j==i || l == j)
 								continue;
 							
@@ -113,32 +125,63 @@ public class AlgorithmStarter {
 								else
 									symmetry = 8;					// none of the above?
 
-								currentRows = new int[N-2];			
+								currentRows = new int[N-3];	
+								hopmarker = new int[2];
+								hopsize = new int[2];
 								row = 1;
 								ld = (1 << (N-1-i)) | (1 << (N-1-k));
 								rd = (1 << (N-1-i)) | (1 << l);
 								col = (1 << (N-1)) | (1) | (1 << (N-1-i)) | (1 << (N-1-j));
+								diff = 0;
 								
-								while(row<N-1) {
+								while(row < N-1) {
 									ld = (ld<<1) & mask;
 									rd >>= 1;
-									if(row == k)
+									if(row == k) {
+										if(row == j)
+											ld |= 1;
 										rd |= (1 << (N-1));
-									if(row == l)
+										row++;
+										diff++;
+										continue;
+									}
+									if(row == l) {
+										if(row == N-1-j)
+											rd |= (1<<(N-1));
 										ld |= 1;
+										row++;
+										diff++;
+										continue;
+									}
 									if(row == j)
 										ld |= 1;
 									if(row == N-1-j)
 										rd |= (1<<(N-1));
-									currentRows[row-1] = ~(ld | rd | col) & mask;
+									currentRows[row-1-diff] = ~(ld | rd | col) & mask;
 									row++;
 								}
 								
-								currentRows[k-1] = 1 << (N-1);				
-								currentRows[l-1] = 1;
+								if(k == 1) {
+									if(l > 2 && l < N-2) {
+										hopmarker[0] = l-4;
+										hopsize[0] = 2;
+									}
+								}
+								else {
+									hopmarker[0] = k-3;
+									hopsize[0] = 2;
+									if(l == k+1) {
+										hopsize[0]++;
+									}
+									else {
+										hopmarker[1] = l-4;
+										hopsize[1] = 2;
+									}
+									
+								}
 
-								boardPropertiesList.add(new BoardProperties(currentRows, symmetry, k, l));	
-								startConstellations.add((i<<24) + (j<<16) + (k<<8) + l);						
+								boardPropertiesList.add(new BoardProperties(currentRows, hopmarker, hopsize, symmetry, N-6));	
+								startConstellations.add((i<<24) + (j<<16) + (k<<8) + l);
 							}
 						}
 					}
