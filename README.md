@@ -22,7 +22,7 @@ This solution is based on two methods:
 
 # Version 8 (yet to come):
       - definitely N=16 in < 1 sec (single)
-# Version 7:
+# Version 7 (Latest):
       - many minor changes to reduce memory and cache misses
       
       - ability to save progress and continue later
