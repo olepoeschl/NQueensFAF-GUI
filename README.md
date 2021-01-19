@@ -37,7 +37,7 @@ This solution is based on two methods:
       
       - use newest java jdk 15
       
-      - N= 16 in ~2.5 sec (single-threaded) 
+      - N = 16 in ~2.5 sec (single-threaded) 
 # Version 6:
       - bit representation of integers for modelling the board
       
@@ -53,7 +53,7 @@ This solution is based on two methods:
       
       - multithreading by distributing the starting positions to the threads
       
-      - N=16 in ~ 1 min (single-threaded)      
+      - N = 16 in ~ 1 min (single-threaded)      
 # Version 4:
       - multithreading by setting Queen in the first row on different places
 # Version 3:
@@ -71,7 +71,7 @@ This solution is based on two methods:
       
       - single threading only
       
-      - N=16 in ~ 10 minutes
+      - N = 16 in ~ 10 minutes
       
       
       
