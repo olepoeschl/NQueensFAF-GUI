@@ -57,11 +57,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 	}
 	
 	// if rows are grouped in to pieces
-	private void SetQueen21(int ld, int rd, int col, int idx) {
-		int free = ~(ld | rd | col) & boardIntegers[idx];
+	private void SetQueen21(int ld, int rd, int col, int idx, int free) {
 		int bit;
+		int nextfree;
 		if(idx > mark1) {
-			int nextfree;
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
@@ -74,7 +73,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			SetQueen21((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+			
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen21((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
@@ -96,11 +98,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 	}
 	
 	// if rows are grouped in 3 pieces
-	private void SetQueen31(int ld, int rd, int col, int idx) {
-		int free = ~(ld | rd | col) & boardIntegers[idx];
+	private void SetQueen31(int ld, int rd, int col, int idx, int free) {
 		int bit;
+		int nextfree;
 		if(idx > mark1) {
-			int nextfree;
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
@@ -114,7 +115,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			bit = free & (-free);
 			free -= bit;
 
-			SetQueen31((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+			nextfree = ~( ((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen31((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
@@ -301,10 +304,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 					if(hop1 == 0) 
 						SetQueen1(0, 0, 0, 0, boardIntegers[0]);
 					else 
-						SetQueen21(0, 0, 0, 0);
+						SetQueen21(0, 0, 0, 0, boardIntegers[0]);
 				}
 				else
-					SetQueen31(0, 0, 0, 0);
+					SetQueen31(0, 0, 0, 0, boardIntegers[0]);
 					
 			}
 			else {

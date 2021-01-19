@@ -61,6 +61,7 @@ public class AlgorithmStarter {
 			// calculating start constellations with the first Queen on square (0,0)
 			for(int j = 1; j < N-2; j++) {						// j is idx of Queen in last row				
 				for(int l = j+1; l < N-1; l++) {				// l is idx of Queen in last col
+					
 					currentRows = new int[N-3];		
 					hopmarker = new int[2];
 					hopsize = new int[2];
