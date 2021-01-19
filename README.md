@@ -47,7 +47,7 @@ This solution is based on two methods:
       
       - N = 16 in ~ 4 sec (single-threaded)
 # Version 5:
-      - bether use of symmetry of solutions by using starting constelaions
+      - bether use of symmetry of solutions by using starting constellations
       
       - set Queens on the outer rows and cols
       
