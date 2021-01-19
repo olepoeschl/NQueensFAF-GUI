@@ -37,6 +37,8 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 
 import java.awt.Color;
+import java.awt.Dimension;
+
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 
@@ -80,6 +82,8 @@ public class Gui extends JFrame {
 		eventListener = new EventListener();
 		initGui();
 		this.pack();
+		Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
+		this.setLocation((int) (screensize.getWidth()/2 - this.getWidth()/2), (int) (screensize.getHeight()/2 - this.getHeight()/2));
 		
 		filefilter = new FileFilter() {
 			@Override
