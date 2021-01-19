@@ -20,9 +20,17 @@ This solution is based on two methods:
 - calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://tu-dresden.de">implementation by the TU Dresden</a>
 
 
-# Version 8 (yet to come):
-      - definitely N=16 in < 1 sec (single)
-# Version 7 (Latest):
+# Version 9 (yet to come):
+      - definitely N = 16 in < 1 sec (single)
+# Version 8 (Latest):
+      - better handling of the different start constellation cases
+      
+      - optimization of the recursion functions
+      
+      - many further optimizations
+
+      - N = 16 in ~2.1 sec (single) 
+# Version 7:
       - many minor changes to reduce memory and cache misses
       
       - ability to save progress and continue later
