@@ -5,7 +5,6 @@ Download the .jar :     <a href="https://www.student.hs-mittweida.de/~opoeschl/N
 (if you don't already have Java, download it <a href="https://www.java.com/en/download/manual.jsp">here</a>)
 
 It's an eclipse project, so you can clone it, import it into eclipse and run it.
-
 For lower Java JDK versions than 15, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
 # Contact
