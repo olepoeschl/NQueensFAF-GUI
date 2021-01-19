@@ -8,7 +8,7 @@ It's an eclipse project, so you can clone it, import it into eclipse and run it.
 For lower Java JDK versions than 15, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
 # Contact
-We're happy about every comment, question, idea or whatever - if you have such a thought or need help running the program, you can use use the issue templates, the discussion section or reach out to us directly!
+We're happy about every comment, question, idea or whatever - if you have such a thought or need help running the program, you can use the issue templates, the discussion section or reach out to us directly!
 Mail: olepoeschl.developing@gmail.com
 
 
