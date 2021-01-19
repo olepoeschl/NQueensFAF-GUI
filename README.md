@@ -11,6 +11,13 @@ For lower Java version than Java15, you have to edit the build path and the comp
 We're happy about every comment, question, idea or whatever - if you have such a thought or need help running the program, you can use use the issue templates, the discussion section or reach out to us directly!
 Mail: olepoeschl.developing@gmail.com
 
+
+# General
+
+This solution is based on those two methods:
+      - using bits to represent the occupancy of the board; based on the implementation of Jeff Somers (http://users.rcn.com/liusomers/nqueen_demo/nqueens.html)
+      - calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the implementation of the TU Dresden (https://tu-dresden.de/)
+
 # Version 1: 
       - board as NxN-boolean
       
