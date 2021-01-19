@@ -40,37 +40,38 @@ import java.awt.Color;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 
+// an awesome gui
+
 public class Gui extends JFrame {
 	
 	private static final long serialVersionUID = 1L;
 	
+	// time that the helper-threads sleep after 1 iteration
 	private final int sleeptime = 128;
 	
-	//Gui-Komponenten
+	// gui-components
 	private JTextField tfN, tfThreadcount;
 	private JSlider sliderN, sliderThreadcount;
 	private JButton btnSave, btnLoad, btnStart, btnCancel;
-	private static JLabel lblTime;
-	private JTextArea taOutput;
-	private static JProgressBar progressBar;
+	private JLabel lblTime;
+	private JTextArea taOutput; 
+	private JProgressBar progressBar;
 	
 	private EventListener eventListener;
 	
-	//AlgorithmStarter-Objekt
-	private static AlgorithmStarter algStarter;
+	// AlgorithmStarter-object
+	private AlgorithmStarter algStarter;
 	private Thread algThread;
-	private static long time = 0;
-	private long pausetime = 0, oldtime = 0;
+	private long time = 0, pausetime = 0, oldtime = 0;
 	private boolean load = false;
 	private int updateTime = 0;
 	
-	//FileFilter-Objekt
+	// FileFilter-object
 	private FileFilter filefilter;
 	
-	//Stack-Objekt für print-Methode
+	// stack-object for print-method
 	private static ArrayDeque<String> msgQueue;
 	public static ArrayDeque<Float> progressUpdateQueue;
-	public static ArrayDeque<Long> timeQueue;
 	
 	
 	public Gui() {
@@ -93,75 +94,18 @@ public class Gui extends JFrame {
 			}
 		};
 		
-		//Queue fürs printen in taOutput
+		
+		// Queue for printing in taOutput
 		msgQueue = new ArrayDeque<String>();
-		//Queue fürs Speichern von auszugebenden Zeiten
-		timeQueue = new ArrayDeque<Long>();
-		//Queue fürs Anzeigen des Fortschritts
+		// Queue displaying the progress
 		progressUpdateQueue = new ArrayDeque<Float>();
-		//Thread zum updaten der Gui mittels der beiden Queues
-		new Thread() {
+		// start the thread that updates the Gui's components
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
-				float value;
-				int valuecount = 5;
-				String msg;
-				
-				while(true) {
-					if(progressUpdateQueue.size() > 0 && algStarter.isReady()) {
-						value = progressUpdateQueue.removeFirst();
-						if(value == 128f) {
-							value = algStarter.getProgress()*100;
-						}
-						
-						//aktualisiere progressBar und ihre Text-Anzeige
-						if((int)value == 100 || value == 0) {
-							progressBar.setValue((int)value);
-							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (int)value + "%");
-							progressBar.repaint();
-						} else {
-							progressBar.setValue((int)value);
-							((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
-							progressBar.repaint();
-						}
-						//Fortschritts-Ausgabe
-						if((int)value >= valuecount && (int)value != 100 && (int)value != 0) {
-							print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + Gui.getTimeStr() + " ]", true);
-							valuecount += 5;
-						}
-					} 
-					else if( algStarter != null && algStarter.isFinished() ) {
-						valuecount = 5;
-					}
-						
-					//Ausgabe von msg aus msgQueue
-					if(msgQueue.size() > 0) {
-						msg = msgQueue.removeFirst();
-						if(msg.equals("_CLEAR_")) {
-							taOutput.setText("");
-						}
-						else if(msg.startsWith("_TIME_")) {
-							if(timeQueue.size() > 0) {
-								long temp = time;
-								time = timeQueue.removeFirst();
-								msg = msg.substring("_TIME_".length()) + getTimeStr();
-								time = temp;
-								taOutput.append(msg);
-							}
-						}
-						else {
-							taOutput.append(msg);
-						}
-					}
-					
-					//Warte sleeptime
-					try {
-						sleep(sleeptime);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
+				startGuiUpdateThread();
 			}
-		}.start();
+		});
 	}
 	
 	private void initGui() {
@@ -184,7 +128,7 @@ public class Gui extends JFrame {
 		pnlTop.setLayout(new BorderLayout(0, 0));
 		
 		JPanel pnlN = new JPanel();
-		pnlN.setBorder(new TitledBorder(null, "Brettgr\u00F6\u00DFe N", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		pnlN.setBorder(new TitledBorder(null, "Board size N", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		pnlTop.add(pnlN, BorderLayout.NORTH);
 		
 		sliderN = new JSlider();
@@ -202,7 +146,7 @@ public class Gui extends JFrame {
 		pnlN.add(tfN);
 		
 		JPanel pnlThreadcount = new JPanel();
-		pnlThreadcount.setBorder(new TitledBorder(null, "Anzahl an Threads", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		pnlThreadcount.setBorder(new TitledBorder(null, "Number of threads", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		pnlTop.add(pnlThreadcount, BorderLayout.SOUTH);
 		
 		sliderThreadcount = new JSlider();
@@ -224,12 +168,12 @@ public class Gui extends JFrame {
 		pnlInput.add(pnlControls, BorderLayout.CENTER);
 		pnlControls.setLayout(new BorderLayout(0, 0));
 		
-		btnSave = new JButton("Speichern");
+		btnSave = new JButton("Save");
 		btnSave.addActionListener(eventListener);
 		btnSave.setEnabled(false);
 		pnlControls.add(btnSave, BorderLayout.NORTH);
 		
-		btnLoad = new JButton("Lade aus Datei...");
+		btnLoad = new JButton("Load from file...");
 		btnLoad.addActionListener(eventListener);
 		pnlControls.add(btnLoad, BorderLayout.SOUTH);
 		
@@ -237,13 +181,13 @@ public class Gui extends JFrame {
 		btnStart.addActionListener(eventListener);
 		pnlControls.add(btnStart, BorderLayout.CENTER);
 		
-		btnCancel = new JButton("Abbruch");
+		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(eventListener);
 		btnCancel.setEnabled(false);
 		pnlControls.add(btnCancel, BorderLayout.WEST);
 		
 		JPanel pnlTime = new JPanel();
-		pnlTime.setBorder(new TitledBorder(null, "Zeit", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		pnlTime.setBorder(new TitledBorder(null, "Time", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		pnlInput.add(pnlTime, BorderLayout.SOUTH);
 		
 		lblTime = new JLabel("00:00:00.000");
@@ -261,13 +205,14 @@ public class Gui extends JFrame {
 		taOutput.setRows(15);
 		taOutput.setBackground(Color.BLACK);
 		taOutput.setEditable(false);
-		taOutput.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Konsole", TitledBorder.LEADING, TitledBorder.TOP, null, Color.LIGHT_GRAY));
 		pnlOutput.add(taOutput, BorderLayout.NORTH);
 		
 		JScrollPane scrollPane = new JScrollPane(taOutput);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setWheelScrollingEnabled(true);
+		scrollPane.setBackground(Color.BLACK);
+		scrollPane.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Console", TitledBorder.LEADING, TitledBorder.TOP, null, Color.LIGHT_GRAY));
 		pnlOutput.add(scrollPane);
 
 		DefaultCaret caret = (DefaultCaret)taOutput.getCaret();
@@ -283,6 +228,87 @@ public class Gui extends JFrame {
 		progressBar.setBorder(border);
 		pnlOutput.add(progressBar, BorderLayout.SOUTH);
 	}
+	private void startGuiUpdateThread() {
+		new Thread() {
+			public void run() {
+				float value;
+				int tempvalue = 0;
+				String msg;
+				
+				while(true) {
+					// Updating the progress (progressBar, text, percentage in console[taOutput])
+					if(algStarter != null) {
+						if(progressUpdateQueue.size() > 0) {
+							value = progressUpdateQueue.removeFirst();
+							if(value == 128f) {
+								value = algStarter.getProgress()*100;
+							}
+							
+							// update progressBar, text and the Windows-Taskbar-Icon-Progressbar
+							if((int) value == 100 || value == 0) {
+								progressBar.setValue((int)value);
+								((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + value + "%");
+								progressBar.repaint();
+							} else {
+								progressBar.setValue((int)value);
+								((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " of " + algStarter.getStartConstCount() + " ]");
+								progressBar.repaint();
+						        
+								// output
+								if((int)value >= tempvalue + 5 || (int) value < tempvalue) {
+									print((int)value + "% calculated      \t[ " + algStarter.getCalculatedStartConstCount() + " of " + algStarter.getStartConstCount() + " in " + getTimeStr() + " ]", true);
+									tempvalue = (int) value;
+								}
+							}
+							
+						}
+						
+						
+						// update time and check if the user paused the application
+						if(updateTime == 1) {
+							if(algStarter.isPaused()) {
+								long pausestart = System.currentTimeMillis();
+								while(algStarter.isPaused()) {
+									try {
+										sleep(sleeptime);
+									} catch (InterruptedException e) {
+										e.printStackTrace();
+									}
+								}
+								pausetime += System.currentTimeMillis() - pausestart;
+							} else {
+								// display and update time
+								updateTimeLbl();
+								time = System.currentTimeMillis() - algStarter.getStarttime() - pausetime + oldtime;
+							}
+						} else {
+							updateTime = 0;
+						}
+					}
+
+					// update progress
+					updateProgress();
+					
+
+					// output string from queue
+					if(msgQueue.size() > 0) {
+						msg = msgQueue.removeFirst();
+						if(msg.equals("_CLEAR_"))
+							taOutput.setText("");
+						else
+							taOutput.append(msg);
+					}
+
+					
+					try {
+						sleep(sleeptime);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
+	}
 	
 	public static void print(String msg, boolean append) {
 		if(append) {
@@ -292,25 +318,14 @@ public class Gui extends JFrame {
 			msgQueue.add(msg + "\n");
 		}
 	}
-	public static void print(String msg, boolean append, long newtime) {
-		if(append) {
-			timeQueue.add(newtime);
-			msgQueue.add("_TIME_" + msg);
-			msgQueue.add("\n");
-		} else {
-			msgQueue.add("_CLEAR_");
-			msgQueue.add(msg + "\n");
-		}
-	}
-	
-	public static String getTimeStr() {
+	public String getTimeStr() {
 		long h = time/1000/60/60;
 		long m = time/1000/60%60;
 		long s = time/1000%60;
 		long ms = time%1000;
 		
 		String strh, strm, strs, strms;
-		//Stunden-Anzeige
+		// hours
 		if(h == 0) {
 			strh = "00";
 		} else if((h+"").toString().length() == 3) {
@@ -320,19 +335,19 @@ public class Gui extends JFrame {
 		} else {
 			strh = "00" + h;
 		}
-		//Minuten-Anzeige
+		// minutes
 		if((m+"").toString().length() == 2) {
 			strm = "" + m;
 		}  else {
 			strm = "0" + m;
 		}
-		//Sekunden-Anzeige
+		// seconds
 		if((s+"").toString().length() == 2) {
 			strs = "" + s;
 		} else {
 			strs = "0" + s;
 		}
-		//Millisekunden-Anzeige
+		// milliseconds
 		if((ms+"").toString().length() == 3) {
 			strms = "" + ms;
 		} else if((ms+"").toString().length() == 2) {
@@ -346,101 +361,63 @@ public class Gui extends JFrame {
 	private void updateTimeLbl() {
 		lblTime.setText(getTimeStr());
 	}
-	//Berechne und aktualisiere Progress
+	// calculate and update progress
+	public static void updateProgress() {
+		progressUpdateQueue.add(128f);
+	}
 	private static void updateProgress(float value) {
 		progressUpdateQueue.add(value);
 	}
 	
-	private void startTimeUpdateThread() {
-		//Thread zum updaten von lblTime
-		new Thread() {
-			public void run() {
-				pausetime = 0;
-				
-				//Warte, solange der Algorithmus noch die Startkonstellationen berechnet
-				while(algStarter.getStarttime() == 0) {
-					try {
-						sleep(sleeptime);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-				
-				while(updateTime == 1) {
-					if(algStarter.isPaused()) {
-						long pausestart = System.currentTimeMillis();
-						while(algStarter.isPaused()) {
-							try {
-								sleep(sleeptime);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-						}
-						pausetime += System.currentTimeMillis() - pausestart;
-					} else {
-						//aktualisiere Zeit und Zeit-Anzeige
-						updateTimeLbl();
-						time = System.currentTimeMillis() - algStarter.getStarttime() - pausetime + oldtime;
-						
-						//Warte x Millisekunden
-						try {
-							sleep(sleeptime);
-						} catch(InterruptedException ie) {
-							ie.printStackTrace();
-						}
-					}
-				}
-				updateTime = 0;
-			}
-		}.start();
-	}
 	private void startAlgThread() {
 		algThread = new Thread() {
 			public void run() {
-				//Mach taOutput wieder clean
-				print("Starte Thread(s)...", false);
+				// clean up taOutput
+				print("Starting thread(s)...", false);
 				
-				//Btn zum abbrechen aktivieren
+				// activate btn for canceling
 				btnCancel.setEnabled(true);
 				
-				//Setze progressBar zurück
+				// reset progressBar
 				progressUpdateQueue.clear();
 				if(!load)
 					updateProgress(0);
-
-				//Zeit starten
+				
+				// start time
 				time = 0;
 				updateTime = 1;
 
+				// start the calculation
 				algStarter.startAlgorithm();
 				
-				//Zeit stoppen
+				// stop time
 				updateTime = 2;
 				while(updateTime == 2) {
-					//warte solange
+					// wait before cheking again
 					try {
 						sleep(sleeptime);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
-				if(algStarter.getEndtime() != 0)
-					time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
+				// calculate full time needed for the calculation and show it at the label
+				time = algStarter.getEndtime() - algStarter.getStarttime() - pausetime + oldtime;
 				updateTimeLbl();
-				//oldtime zurücksetzen
+				// reset oldtime and pausetime
 				oldtime = 0;
+				pausetime = 0;
 				
 				updateProgress(100);
-				print("============================\n" + algStarter.getSolvecounter() + " Lösungen gefunden für N = " + algStarter.getN() + "\n============================", true);
+				print("============================\n" + algStarter.getSolvecounter() + " solutions found for N = " + algStarter.getN() + "\n============================", true);
 				
-				//Buttons zurücksetzen
+				// reset buttons
 				btnStart.setText("GO");
 				btnStart.setEnabled(true);
 				btnCancel.setEnabled(false);
 				btnSave.setEnabled(false);
 				btnLoad.setEnabled(true);
 				
-				//boolean load zurücksetzen
+				// reset boolean for load
 				load = false;
 			}
 		};
@@ -480,7 +457,7 @@ public class Gui extends JFrame {
 						try {
 							tfN.setText(tfN.getText().substring(0, tfN.getText().length()-1));
 						} catch (StringIndexOutOfBoundsException sioofe) {
-							//tue nichts
+							// do nothing
 						}
 					}
 				} else {
@@ -491,7 +468,7 @@ public class Gui extends JFrame {
 							if(tfN.getText().length() < 3)
 								break;
 						} catch(NumberFormatException nfe) {
-							//tue nichts
+							// do nothing
 						}
 					}
 				}
@@ -505,7 +482,7 @@ public class Gui extends JFrame {
 						try {
 							tfThreadcount.setText(tfThreadcount.getText().substring(0, tfThreadcount.getText().length()-1));
 						} catch (StringIndexOutOfBoundsException sioofe) {
-							//tue nichts
+							// do nothing
 						}
 					}
 				} else {
@@ -516,14 +493,14 @@ public class Gui extends JFrame {
 							if(tfThreadcount.getText().length() < 3)
 								break;
 						} catch(NumberFormatException nfe) {
-							//tue nichts
+							// do nothing
 						}
 					}
 				}
 			}
 		}
 
-		//Focus-Listener der TextFelder
+		//Focus-Listener of the text fields
 		@Override
 		public void focusGained(FocusEvent e) {}
 
@@ -531,18 +508,18 @@ public class Gui extends JFrame {
 		public void focusLost(FocusEvent e) {
 			if(e.getSource() == tfN) {
 				try {
-					//wenn tfN Integer enthält, tue nichts
+					//if tfN contains Integer, do nothing
 					Integer.parseInt(tfN.getText());
 				} catch(NumberFormatException nfe) {
-					//wenn nicht, setze Slider-Wert ein
+					// if not, insert the slider value
 					tfN.setText(sliderN.getValue() + "");
 				}
 			} else if(e.getSource() == tfThreadcount) {
 				try {
-					//wenn tfN Integer enthält, tue nichts
+					//if tfN contains Integer, do nothing
 					Integer.parseInt(tfThreadcount.getText());
 				} catch(NumberFormatException nfe) {
-					//wenn nicht, setze Slider-Wert ein
+					// if not, insert the slider value
 					tfThreadcount.setText(sliderThreadcount.getValue() + "");
 				}
 			}
@@ -553,37 +530,36 @@ public class Gui extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			if (e.getSource() == btnStart) {
 				if(btnStart.getText().equals("Pause")) {
-					//Pause
+					// pause
 					algStarter.pause();
-					btnStart.setText("Weiter");
+					btnStart.setText("Continue");
 					btnSave.setEnabled(true);
 				} else {
 					if(algThread != null && algThread.isAlive()) {
-						//Wenn pausiert, dann lass ihn weiterlaufen
+						// if paused, continue
 						algStarter.go();
 						btnStart.setText("Pause");
 						btnSave.setEnabled(false);
 					} else {
-						//wenn Algorithmus noch nicht läuft, starte ihn und die anderen Threads
+						// start the algorithm and its threads, if they're not already running
 						btnStart.setText("Pause");
 						btnLoad.setEnabled(false);
 												
-						//Wenn keine Datei geladen wurde:
-						//Inputdaten von den GUI-Komponenten holen und AlgorithmStarter initialisieren
+						// if no file was loaded
+						// get inputs from the gui and initialize AlgorithmStarter
 						int threadcount = Integer.parseInt(tfThreadcount.getText());
 						if(!load) {
 							int N = Integer.parseInt(tfN.getText());
 							
-							//initialisiere neues AlgorithmStarter-Objekt
+							// initialize new AlgorithmStarter object
 							algStarter = new AlgorithmStarter(N, threadcount);
 						}
 						
 						
-						//Starte alle Threads
+						// start all threads
 						SwingUtilities.invokeLater(new Runnable() {
 							public void run() {
 								startAlgThread();
-								startTimeUpdateThread();
 							}
 						});
 					}
@@ -593,12 +569,12 @@ public class Gui extends JFrame {
 				algStarter.cancel();
 				if(algStarter.isPaused())
 					algStarter.go();
-				print("##### Abgebrochen #####", true);
+				print("##### Canceled #####", true);
 			}
 			else if(e.getSource() == btnSave){
 				new Thread() {
 					public void run() {
-						//Dateipfad auswählen
+						// choose file path
 						String filepath = "", filename = "";
 						JFileChooser filechooser = new JFileChooser();
 						filechooser.setMultiSelectionEnabled(false);
@@ -615,7 +591,7 @@ public class Gui extends JFrame {
 							}
 						}
 						
-						//Speichere fafprocessdata in Dateipfad filename
+						// store fafprocessdata in path filename
 						FAFProcessData fafprocessdata = new FAFProcessData();
 						fafprocessdata.addAll(algStarter.getUncalculatedStartConstellations());
 						fafprocessdata.N = algStarter.getN();
@@ -625,12 +601,12 @@ public class Gui extends JFrame {
 						fafprocessdata.time = time;
 						fafprocessdata.save(filepath);
 						
-						print("/- Aktueller Prozess wurde erfolgreich in Datei " + filename + " gespeichert. \\-", true);
+						print("/- Current process was successfully saved in file " + filename + ". -\\", true);
 					}
 				}.start();
 			}
 			else if(e.getSource() == btnLoad) {
-				//Dateipfad auswählen
+				// choose filepath
 				String filepath = "";
 				JFileChooser filechooser = new JFileChooser();
 				filechooser.setMultiSelectionEnabled(false);
@@ -641,28 +617,28 @@ public class Gui extends JFrame {
 				if(filechooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					filepath = filechooser.getSelectedFile().getAbsolutePath();
 					
-					//Lade FAFProcessData us Dateipfad filename
+					// load FAFProcessData from filepath filename
 					FAFProcessData fafprocessdata = FAFProcessData.load(filepath);
 					
-					//initialisiere AlgorithmStarter mit den geladenen Daten
+					// initialize AlgorithmStarter with the loaded data
 					int threadcount = Integer.parseInt(tfThreadcount.getText());
 					algStarter = new AlgorithmStarter(fafprocessdata.N, threadcount);
 					algStarter.load(fafprocessdata);
 					
-					//aktualisiere Gui mit den geladenen Werten
+					// update gui to the loaded values
 					sliderN.setValue(fafprocessdata.N);
 					tfN.setText(fafprocessdata.N + "");
 					updateProgress(0);
 					
 					oldtime = fafprocessdata.time;
 					
-					//Datei geladen
+					// file loaded
 					load = true;
 					
-					print("/- Alter Prozess wurde erfolgreich aus Datei " + filechooser.getSelectedFile().getName().toString() + " geladen. \\-", false);
-					print("/- Zum Starten GO drücken \\-", true);
+					print("/- Old process was successfully loaded from File " + filechooser.getSelectedFile().getName().toString() + ". \\-", false);
+					print("/- Press GO to continue it \\-", true);
 				} else {
-					print("/- Laden abgebrochen \\-", true);
+					print("/- Loading file was canceled \\-", true);
 				}
 			}
 		}

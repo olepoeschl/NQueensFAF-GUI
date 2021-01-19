@@ -3,169 +3,172 @@ package calc;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 
-import gui.Gui;
+// this is the solver
+// we use recursive functions for Backtracking
 
 public class AlgorithmThread extends Thread implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+
+	private int N;											// boardsize
+	private long tempcounter = 0, solvecounter = 0;			// tempcounter is #(unique solutions) of current start constellation, solvecounter is #(all solutions)
+	private int startConstIndex = 0;						// #(done start constellations)
 	
+	private int[] boardIntegers;		// occupancy of squares for rows 1,...,N-2 from starting constellation; hop rows and hop sizes
+	private int max, mark1, mark2, hop1, hop2;
 	
-	//Brettgröße, Lösungszähler, Symmetrie-Faktor, Bitmaske
-	private int N;
-	private long tempcounter = 0, solvecounter = 0;	
-	private int startConstIndex = 0;
-	private int mask;
-	private int row1, row2;
-	//Array, enthält die zur Angabe besetzter Felder von AlgorithmStarter berechneten Integers
-	private int[] boardIntegers;
-	//Liste der von AlgorithmStarter berechneten Start-Konstellationen
-	private ArrayDeque<BoardProperties> boardPropertiesList, uncalculatedStartConstList;
+	// list of uncalculated starting positions, their indices
+	private ArrayDeque<BoardProperties> boardPropertiesList;
 	
-	//Sachen fürs Pausieren und Speichern
+	// for canceling and pausing 
 	private boolean pause = false, cancel = false;
 	
-
+	
 	public AlgorithmThread(int N, ArrayDeque<BoardProperties> boardPropertiesList) {
-		
 		this.N = N;
-		this.boardPropertiesList = boardPropertiesList;
-		uncalculatedStartConstList = boardPropertiesList;
-		mask = (1 << N) - 1;						//Setze jedes Bit von mask auf 1
-		boardIntegers = new int[N];
+		this.boardPropertiesList = boardPropertiesList;		
+		boardIntegers = new int[N-3];
 	}
 	
-	//Rekursive Funktionen zum Setzen der Damen
-	// SetQueen1, SetQueen2 und SetQueen 3 werden für das füllen eines Bretts benötigt
-	
-	// Setze Damen, bis man die erste Zeile erreicht, wo schon eine Dame steht
-	// dann geht man einfach noch eine zeile weiter und ruft SetQueen2 auf
-	private void SetQueen1(int ld, int rd, int col, int row) {
-		
-		if(row == row1) {
-			SetQueen2(ld<<1, rd>>1, col, row+1);
-			return;
-		}
-		
-		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col) & boardIntegers[row-1];
-		int bit;
-		
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
-		while(free > 0) {
-			//setze Dame an Stelle bit
-			bit = free & (-free);
-			free -= bit;
-			
-			//gehe zu nächster Zeile
-			SetQueen1((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
-		}
-	}
-	
-	// Setze Damen, bis man die zweite Zeile erreicht, wo schon eine Dame steht
-	// dann geht man einfach noch eine zeile weiter und ruft SetQueen3 auf
-	// man beginnt bei SetQueen2, wenn die Dame der ersten Zeile in der Ecke steht
-	private void SetQueen2(int ld, int rd, int col, int row) {
-		
-		if(row == row2) {
-			SetQueen3(ld<<1, rd>>1, col, row+1);
-			return;
-		}
-		
-		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col) & boardIntegers[row-1];
-		int bit;
-		
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
-		while(free > 0) {
-			//setze Dame an Stelle bit
-			bit = free & (-free);
-			free -= bit;
-			
-			//gehe zu nächster Zeile
-			SetQueen2((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
-		}
-	}
-	
-	// läuft bis zum Ende (theoretisch N-2, aber es kann ausnahmen geben, daher "if(row > N-3)"
-	private void SetQueen3(int ld, int rd, int col, int row) {
-		
-		if(row > N-3) {
-			if(row == N-2) {
-				if((~(ld | rd | col) & boardIntegers[row-1])>0)
-					tempcounter++;
-			}
-			else
+	// Recursive functions for Placing the Queens
+	// this is if all are there as one piece
+	private void SetQueen1(int ld, int rd, int col, int idx, int free) {
+		if(idx > max) {
+			if(free > 0)
 				tempcounter++;
 			return;
 		}
 		
-	
-		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col) & boardIntegers[row-1];
+		// calculate free squares for this line and bit is the rightmost free square (Queen will be placed at bit)
+		int nextfree;
 		int bit;
 		
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
+		// while there are free squares in this row
 		while(free > 0) {
-			//setze Dame an Stelle bit
+			// set a Queen at bit
 			bit = free & (-free);
 			free -= bit;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
 			
-			//gehe zu nächster Zeile
-			SetQueen3((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+			// go to the next row and occupy diagonals and column)
+			if(nextfree > 0)
+				SetQueen1((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
-	// gleiche Funktionsweise wie beit den oberen 3 Methoden
-	// aber mit der Möglichkeit beim finden einer lösung abzubrechen
-	private void SetQueen1Big(int ld, int rd, int col, int row) {
-		
-		if(row == row1) {
-			SetQueen2Big(ld<<1, rd>>1, col, row+1);
+	// if rows are grouped in to pieces
+	private void SetQueen21(int ld, int rd, int col, int idx, int free) {
+		int bit;
+		int nextfree;
+		if(idx > mark1) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				nextfree = ~(((ld|bit)<<hop1) | ((rd|bit)>>hop1) | (col|bit)) & boardIntegers[idx+1];
+				if(nextfree > 0)
+					SetQueen22((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1, nextfree);
+			}
 			return;
 		}
-		
-		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col) & boardIntegers[row-1];
-		int bit;
-		
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
 		while(free > 0) {
-			//setze Dame an Stelle bit
 			bit = free & (-free);
 			free -= bit;
 			
-			//gehe zu nächster Zeile
-			SetQueen1Big((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen21((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
-	private void SetQueen2Big(int ld, int rd, int col, int row) {
-		
-		if(row == row2) {
-			SetQueen3Big(ld<<1, rd>>1, col, row+1);
+	private void SetQueen22(int ld, int rd, int col, int idx, int free) {
+		if(idx > max) {
+			if(free > 0)
+				tempcounter++;
 			return;
 		}
-		
-		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col) & boardIntegers[row-1];
 		int bit;
-		
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
+		int nextfree;
 		while(free > 0) {
-			//setze Dame an Stelle bit
 			bit = free & (-free);
 			free -= bit;
-			
-			//gehe zu nächster Zeile
-			SetQueen2Big((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen22((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
+	
+	// if rows are grouped in 3 pieces
+	private void SetQueen31(int ld, int rd, int col, int idx, int free) {
+		int bit;
+		int nextfree;
+		if(idx > mark1) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				nextfree = ~(((ld|bit)<<hop1) | ((rd|bit)>>hop1) | (col|bit)) & boardIntegers[idx+1];
+				if(nextfree > 0)
+					SetQueen32((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1, nextfree);
+			}
+			return;
+		}
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+
+			nextfree = ~( ((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen31((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
+	
+	private void SetQueen32(int ld, int rd, int col, int idx, int free) {
+		int bit;
+		int nextfree;
+		if(idx > mark2) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				nextfree = ~(((ld|bit)<<hop2) | ((rd|bit)>>hop2) | (col|bit)) & boardIntegers[idx+1];
+				if(nextfree > 0)
+					SetQueen33((ld|bit)<<hop2, (rd|bit)>>hop2, col|bit, idx+1, nextfree);
+			}
+			return;
+		}
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+
+			nextfree = ~( ((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen32((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
+		
+	private void SetQueen33(int ld, int rd, int col, int idx, int free) {
+		if(idx > max) {
+			if(free > 0)
+				tempcounter++;
+			return;
+		}
+		int bit;
+		int nextfree;
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			nextfree = ~( ((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen33((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
 	
-	private void SetQueen3Big(int ld, int rd, int col, int row) {
-		
-		if(row > N-3) {
-			//prüfe, ob Benutzer pausieren oder abbrechen will
+	// same stuff with the possibility to stop when a solution is found
+	// this is slightly slower, but good for large N where a starting position might take several minutes or even longer
+	private void SetQueen1Big(int ld, int rd, int col, int idx) {
+		if(idx > max) {
+			if((~(ld | rd | col) & boardIntegers[idx]) > 0)
+				tempcounter++;
+			// check, if the user wants to pause or interrupt and wait until he wants to continue
 			if(pause) {
 				while(pause) {
 					if(cancel)
@@ -177,103 +180,157 @@ public class AlgorithmThread extends Thread implements Serializable {
 						e.printStackTrace();
 					}
 				}
-			} else if(cancel) {
-				return;
-			}
-			
-			if(row == N-2) {
-				if((~(ld | rd | col) & boardIntegers[row-1])>0)
-					tempcounter++;
-			}
-			else
-				tempcounter++;
+			} else if(cancel) 
+				return;	
 			return;
 		}
-		
-		
-		//Berechnungen		//		//
-		//jedes gesetzte Bit in free entspricht einem freien Feld
-		int free = ~(ld | rd | col | boardIntegers[row]) & mask;
-
-		if(row == N-2) {
-			if(free > 0)
-				tempcounter++;
-			return;
-		}
-
+		int free = ~(ld | rd | col) & boardIntegers[idx];
 		int bit;
-
-		//Solange es in der aktuellen Zeile freie Positionen gibt...
 		while(free > 0) {
-			//setze Dame an Stelle bit
 			bit = free & (-free);
 			free -= bit;
-
-			//gehe zu nächster Zeile
-			SetQueen3Big((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1);
+			SetQueen1Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
 		}
 	}
 	
+	private void SetQueen21Big(int ld, int rd, int col, int idx) {
+		int free = ~(ld | rd | col) & boardIntegers[idx];
+		int bit;
+		if(idx > mark1) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				SetQueen22Big((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1);
+			}
+			return;
+		}
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			SetQueen21Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+		}
+	}
+	
+	private void SetQueen22Big(int ld, int rd, int col, int idx) {
+		if(idx > max) {
+			if((~(ld | rd | col) & boardIntegers[idx]) > 0)
+				tempcounter++;
+			return;
+		}
+		int free = ~(ld | rd | col) & boardIntegers[idx];
+		int bit;
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			SetQueen22Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+		}
+	}
+	
+	private void SetQueen31Big(int ld, int rd, int col, int idx) {
+		int free = ~(ld | rd | col) & boardIntegers[idx];
+		int bit;
+		if(idx > mark1) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				SetQueen32Big((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1);
+			}
+			return;
+		}
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			SetQueen31Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+		}
+	}
+	
+	private void SetQueen32Big(int ld, int rd, int col, int idx) {
+		int free = ~(ld | rd | col) & boardIntegers[idx];
+		int bit;
+		if(idx > mark2) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				SetQueen33Big((ld|bit)<<hop2, (rd|bit)>>hop2, col|bit, idx+1);
+			}
+			return;
+		}
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			SetQueen32Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+		}
+	}
+	
+	private void SetQueen33Big(int ld, int rd, int col, int idx) {
+		if(idx > max) {
+			if((~(ld | rd | col) & boardIntegers[idx]) > 0)
+				tempcounter++;
+			return;
+		}
+		int free = ~(ld | rd | col) & boardIntegers[idx];
+		int bit;
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			SetQueen33Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+		}
+	}
 
+	
 	@Override
 	public void run() {
-		int const_delay_index;
-		
-		// passe Aktualisierungsrate an N an
-		if(N < 16)
-			const_delay_index = 1 << 12;
-		else if(N < 18)
-			const_delay_index = 200;
-		else if(N == 18)
-			const_delay_index = 50;
-		else if(N == 19)
-			const_delay_index = 10;
-		else if(N == 20)
-			const_delay_index = 3;
-		else
-			const_delay_index = 1;
+		int listsize = boardPropertiesList.size();
+		BoardProperties bp;
 		
 		loop:
-		for(BoardProperties boardProperties : boardPropertiesList) {
-			//übernimm Parameter von boardProperties
-			boardIntegers = boardProperties.boardIntegers;
-			tempcounter = 0;
-			// row1 ist die kleinere
-			if(boardProperties.k > boardProperties.l) {
-				row1 = boardProperties.l;
-				row2 = boardProperties.k;
+		for(int i = 0; i < listsize; i++) {
+			//initalize bp for this iteration
+			bp = boardPropertiesList.getFirst();
+			
+			// get occupancy of the board for each starting constellation and the hops and max from board Properties
+			boardIntegers = bp.boardIntegers;
+			mark1 = bp.mark1;
+			mark2 = bp.mark2;
+			hop1= bp.hop1;
+			hop2 = bp.hop2;
+			max = bp.max;
+			tempcounter = 0;								// set counter of solutions for this starting constellation to 0
+			
+			// use SetQueenBig - methods for large N
+			// skip SetQueen1 (or SetQueen1Big) if k = 0
+			if(N < 25) {
+				if(hop2 == 0) {
+					if(hop1 == 0) 
+						SetQueen1(0, 0, 0, 0, boardIntegers[0]);
+					else 
+						SetQueen21(0, 0, 0, 0, boardIntegers[0]);
+				}
+				else
+					SetQueen31(0, 0, 0, 0, boardIntegers[0]);
+					
 			}
 			else {
-				row1 = boardProperties.k;
-				row2 = boardProperties.l;
-			}
-			
-			// Überspringe SetQueen1 ggf.
-			// wenn N groß, dann erlaube immer beim finden einer lösung dass abgebrochen wird (Big-Methoden)
-			if(N < 25) {
-				if(row1 > 0)
-					SetQueen1(0, 0, 0, 1);
+				if(hop2 == 0) {
+					if(hop1 == 0) 
+						SetQueen1Big(0, 0, 0, 0);
+					else 
+						SetQueen21Big(0, 0, 0, 0);
+				}
 				else
-					SetQueen2(0, 0, 0, 1);
-			} else {
-				if(row1 > 0)
-					SetQueen1Big(0, 0, 0, 1);
-				else
-					SetQueen2Big(0, 0, 0, 1);
+					SetQueen31Big(0, 0, 0, 0);
 			}
-			
-			//wieder eine Startpos. geschafft
+
+			// one start constellation is done
 			startConstIndex++;
-			if(startConstIndex % (const_delay_index) == 0)
-				Gui.progressUpdateQueue.add(128f);
 			
-			//aktualisiere solvecounter
-			solvecounter += tempcounter * boardProperties.symmetry;
+			// sum up solutions
+			solvecounter += tempcounter * bp.symmetry;
 			
-			//für Speicher- und Ladefunktion
-			uncalculatedStartConstList.remove(boardProperties);
+			// for saving and loading progress remove the finished starting constellation
+			boardPropertiesList.removeFirst();
 			
-			//prüfe, ob Benutzer pausieren oder abbrechen will
+			// check if the user wants to pause or break
 			if(pause) {
 				while(pause) {
 					if(cancel)
@@ -291,6 +348,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		}
 	}
 	
+	// for pause and continue
 	public void pause() {
 		pause = true;
 	}
@@ -300,16 +358,15 @@ public class AlgorithmThread extends Thread implements Serializable {
 	public void cancel() {
 		cancel = true;
 	}
-	
 
+	// for progress
 	public int getStartConstIndex() {
 		return startConstIndex;
 	}
 	public long getSolvecounter() {
 		return solvecounter;
 	}
-	
 	public ArrayDeque<BoardProperties> getUncalculatedStartConstellations(){
-		return uncalculatedStartConstList;
+		return boardPropertiesList;
 	}
 }
