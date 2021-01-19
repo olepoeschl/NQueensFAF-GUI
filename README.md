@@ -21,7 +21,7 @@ This solution is based on two methods:
 
 
 # Version 9 (yet to come):
-      - definitely N = 16 in < 1 sec (single)
+      - definitely N = 16 in < 1 sec (single-threaded)
 # Version 8 (Latest):
       - better handling of the different start constellation cases
       
@@ -29,7 +29,7 @@ This solution is based on two methods:
       
       - many further little optimizations
 
-      - N = 16 in ~2.1 sec (single) 
+      - N = 16 in ~2.1 sec (single-threaded) 
 # Version 7:
       - many minor changes to reduce memory and cache misses
       
@@ -37,7 +37,7 @@ This solution is based on two methods:
       
       - use newest java jdk 15
       
-      - N= 16 in ~2.5 sec (single) 
+      - N= 16 in ~2.5 sec (single-threaded) 
 # Version 6:
       - bit representation of integers for modelling the board
       
@@ -45,7 +45,7 @@ This solution is based on two methods:
       
       - has a gui now
       
-      - N = 16 in ~ 4 sec (single)
+      - N = 16 in ~ 4 sec (single-threaded)
 # Version 5:
       - bether use of symmetry of solutions by using starting constelaions
       
@@ -53,7 +53,7 @@ This solution is based on two methods:
       
       - multithreading by distributing the starting positions to the threads
       
-      - N=16 in ~ 1 min (single)      
+      - N=16 in ~ 1 min (single-threaded)      
 # Version 4:
       - multithreading by setting Queen in the first row on different places
 # Version 3:
