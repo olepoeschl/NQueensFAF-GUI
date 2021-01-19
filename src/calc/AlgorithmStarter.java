@@ -191,7 +191,7 @@ public class AlgorithmStarter {
 			// save number of found starting constellations
 			startConstCount = boardPropertiesList.size();
 			// print in gui console
-			Gui.print(startConstCount + " Start-Konstellationen gefunden, davon " + startConstCountBad + " nervig", true);
+			Gui.print(startConstCount + " start constellations found, " + startConstCountBad + " of these are annoying", true);
 		}
 		
 		// split starting constellations in cpu many lists (splitting the work for the threads)

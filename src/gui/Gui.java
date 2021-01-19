@@ -128,7 +128,7 @@ public class Gui extends JFrame {
 		pnlTop.setLayout(new BorderLayout(0, 0));
 		
 		JPanel pnlN = new JPanel();
-		pnlN.setBorder(new TitledBorder(null, "Brettgr\u00F6\u00DFe N", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		pnlN.setBorder(new TitledBorder(null, "Board size N", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		pnlTop.add(pnlN, BorderLayout.NORTH);
 		
 		sliderN = new JSlider();
@@ -146,7 +146,7 @@ public class Gui extends JFrame {
 		pnlN.add(tfN);
 		
 		JPanel pnlThreadcount = new JPanel();
-		pnlThreadcount.setBorder(new TitledBorder(null, "Anzahl an Threads", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		pnlThreadcount.setBorder(new TitledBorder(null, "Number of threads", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		pnlTop.add(pnlThreadcount, BorderLayout.SOUTH);
 		
 		sliderThreadcount = new JSlider();
@@ -168,12 +168,12 @@ public class Gui extends JFrame {
 		pnlInput.add(pnlControls, BorderLayout.CENTER);
 		pnlControls.setLayout(new BorderLayout(0, 0));
 		
-		btnSave = new JButton("Speichern");
+		btnSave = new JButton("Save");
 		btnSave.addActionListener(eventListener);
 		btnSave.setEnabled(false);
 		pnlControls.add(btnSave, BorderLayout.NORTH);
 		
-		btnLoad = new JButton("Lade aus Datei...");
+		btnLoad = new JButton("Load from file...");
 		btnLoad.addActionListener(eventListener);
 		pnlControls.add(btnLoad, BorderLayout.SOUTH);
 		
@@ -181,13 +181,13 @@ public class Gui extends JFrame {
 		btnStart.addActionListener(eventListener);
 		pnlControls.add(btnStart, BorderLayout.CENTER);
 		
-		btnCancel = new JButton("Abbruch");
+		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(eventListener);
 		btnCancel.setEnabled(false);
 		pnlControls.add(btnCancel, BorderLayout.WEST);
 		
 		JPanel pnlTime = new JPanel();
-		pnlTime.setBorder(new TitledBorder(null, "Zeit", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		pnlTime.setBorder(new TitledBorder(null, "Time", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		pnlInput.add(pnlTime, BorderLayout.SOUTH);
 		
 		lblTime = new JLabel("00:00:00.000");
@@ -212,7 +212,7 @@ public class Gui extends JFrame {
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setWheelScrollingEnabled(true);
 		scrollPane.setBackground(Color.BLACK);
-		scrollPane.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Konsole", TitledBorder.LEADING, TitledBorder.TOP, null, Color.LIGHT_GRAY));
+		scrollPane.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Console", TitledBorder.LEADING, TitledBorder.TOP, null, Color.LIGHT_GRAY));
 		pnlOutput.add(scrollPane);
 
 		DefaultCaret caret = (DefaultCaret)taOutput.getCaret();
@@ -247,16 +247,16 @@ public class Gui extends JFrame {
 							// update progressBar, text and the Windows-Taskbar-Icon-Progressbar
 							if((int) value == 100 || value == 0) {
 								progressBar.setValue((int)value);
-								((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + value + "%");
+								((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + value + "%");
 								progressBar.repaint();
 							} else {
 								progressBar.setValue((int)value);
-								((TitledBorder)progressBar.getBorder()).setTitle("Fortschritt: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " ]");
+								((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " of " + algStarter.getStartConstCount() + " ]");
 								progressBar.repaint();
 						        
 								// output
 								if((int)value >= tempvalue + 5 || (int) value < tempvalue) {
-									print((int)value + "% berechnet      \t[ " + algStarter.getCalculatedStartConstCount() + " von " + algStarter.getStartConstCount() + " in " + getTimeStr() + " ]", true);
+									print((int)value + "% calculated      \t[ " + algStarter.getCalculatedStartConstCount() + " of " + algStarter.getStartConstCount() + " in " + getTimeStr() + " ]", true);
 									tempvalue = (int) value;
 								}
 							}
@@ -373,7 +373,7 @@ public class Gui extends JFrame {
 		algThread = new Thread() {
 			public void run() {
 				// clean up taOutput
-				print("Starte Thread(s)...", false);
+				print("Starting thread(s)...", false);
 				
 				// activate btn for canceling
 				btnCancel.setEnabled(true);
@@ -408,7 +408,7 @@ public class Gui extends JFrame {
 				pausetime = 0;
 				
 				updateProgress(100);
-				print("============================\n" + algStarter.getSolvecounter() + " Lösungen gefunden für N = " + algStarter.getN() + "\n============================", true);
+				print("============================\n" + algStarter.getSolvecounter() + " solutions found for N = " + algStarter.getN() + "\n============================", true);
 				
 				// reset buttons
 				btnStart.setText("GO");
@@ -532,7 +532,7 @@ public class Gui extends JFrame {
 				if(btnStart.getText().equals("Pause")) {
 					// pause
 					algStarter.pause();
-					btnStart.setText("Weiter");
+					btnStart.setText("Continue");
 					btnSave.setEnabled(true);
 				} else {
 					if(algThread != null && algThread.isAlive()) {
@@ -569,7 +569,7 @@ public class Gui extends JFrame {
 				algStarter.cancel();
 				if(algStarter.isPaused())
 					algStarter.go();
-				print("##### Abgebrochen #####", true);
+				print("##### Canceled #####", true);
 			}
 			else if(e.getSource() == btnSave){
 				new Thread() {
@@ -601,7 +601,7 @@ public class Gui extends JFrame {
 						fafprocessdata.time = time;
 						fafprocessdata.save(filepath);
 						
-						print("/- Aktueller Prozess wurde erfolgreich in Datei " + filename + " gespeichert. \\-", true);
+						print("/- Current process was successfully saved in file " + filename + ". -\\", true);
 					}
 				}.start();
 			}
@@ -635,10 +635,10 @@ public class Gui extends JFrame {
 					// file loaded
 					load = true;
 					
-					print("/- Alter Prozess wurde erfolgreich aus Datei " + filechooser.getSelectedFile().getName().toString() + " geladen. \\-", false);
-					print("/- Zum Starten GO drücken \\-", true);
+					print("/- Old process was successfully loaded from File " + filechooser.getSelectedFile().getName().toString() + ". \\-", false);
+					print("/- Press GO to continue it \\-", true);
 				} else {
-					print("/- Laden abgebrochen \\-", true);
+					print("/- Loading file was canceled \\-", true);
 				}
 			}
 		}
