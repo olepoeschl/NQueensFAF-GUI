@@ -27,7 +27,7 @@ This solution is based on two methods:
       
       - optimization of the recursion functions
       
-      - many further optimizations
+      - many further little optimizations
 
       - N = 16 in ~2.1 sec (single) 
 # Version 7:
