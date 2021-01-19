@@ -12,7 +12,7 @@ Mail: olepoeschl.developing@gmail.com
 
 
 # General
-This solution is based on those two methods:
+This solution is based on two methods:
 
 - using bits to represent the occupancy of the board; based on the implementation of Jeff Somers (http://users.rcn.com/liusomers/nqueen_demo/nqueens.html)
       
