@@ -2,9 +2,10 @@
 Gui-Program for calculating the number of solutions of the N-Queens Problem.
 
 Download the .jar :     https://www.student.hs-mittweida.de/~opoeschl/NQueensFaf.jar
+(if you don't already have Java, download it <a href="https://www.java.com/en/download/manual.jsp">here</a>)
 
 It's an eclipse project, so you can clone it, import it into eclipse and run it
-For lower Java version than Java15, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
+For lower Java JDK versions than 15, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
 # Contact
 We're happy about every comment, question, idea or whatever - if you have such a thought or need help running the program, you can use use the issue templates, the discussion section or reach out to us directly!
