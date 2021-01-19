@@ -84,7 +84,7 @@ public class Gui extends JFrame {
 		filefilter = new FileFilter() {
 			@Override
 			public String getDescription() {
-				return "Fast as fuck - Dateien (.faf)";
+				return "Fast as fuck - Files (.faf)";
 			}
 			@Override
 			public boolean accept(File f) {
@@ -422,11 +422,6 @@ public class Gui extends JFrame {
 			}
 		};
 		algThread.start();
-	}
-	
-	public static void main(String[] args) {
-		Gui gui = new Gui();
-		gui.setVisible(true);
 	}
 	
 	private class EventListener implements ChangeListener, KeyListener, FocusListener, ActionListener {
