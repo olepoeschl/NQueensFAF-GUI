@@ -15,9 +15,9 @@ Mail: olepoeschl.developing@gmail.com
 # General
 This solution is based on two methods:
 
-- using bits to represent the occupancy of the board; based on the <a href="http://users.rcn.com/liusomers/nqueen_demo/nqueens.html">implementation of Jeff Somers </a>
+- using bits to represent the occupancy of the board; based on the <a href="http://users.rcn.com/liusomers/nqueen_demo/nqueens.html">implementation by Jeff Somers </a>
       
-- calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://tu-dresden.de">implementation of the TU Dresden</a>
+- calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://tu-dresden.de">implementation by the TU Dresden</a>
 
 # Version 1: 
       - board as NxN-boolean
