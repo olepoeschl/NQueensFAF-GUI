@@ -32,15 +32,15 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	// Recursive functions for Placing the Queens
 	// this is if all are there as one piece
-	private void SetQueen1(int ld, int rd, int col, int idx) {
+	private void SetQueen1(int ld, int rd, int col, int idx, int free) {
 		if(idx > max) {
-			if((~(ld | rd | col) & boardIntegers[idx]) > 0)
+			if(free > 0)
 				tempcounter++;
 			return;
 		}
 		
 		// calculate free squares for this line and bit is the rightmost free square (Queen will be placed at bit)
-		int free = ~(ld | rd | col) & boardIntegers[idx];
+		int nextfree;
 		int bit;
 		
 		// while there are free squares in this row
@@ -48,10 +48,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 			// set a Queen at bit
 			bit = free & (-free);
 			free -= bit;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
 			
 			// go to the next row and occupy diagonals and column)
-			if( (~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1]) > 0 )
-				SetQueen1((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+			if(nextfree > 0)
+				SetQueen1((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
@@ -60,11 +61,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 		int free = ~(ld | rd | col) & boardIntegers[idx];
 		int bit;
 		if(idx > mark1) {
+			int nextfree;
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-
-				int nextfree = ~(((ld|bit)<<hop1) | ((rd|bit)>>hop1) | (col|bit)) & boardIntegers[idx+1];
+				nextfree = ~(((ld|bit)<<hop1) | ((rd|bit)>>hop1) | (col|bit)) & boardIntegers[idx+1];
 				if(nextfree > 0)
 					SetQueen22((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1, nextfree);
 			}
@@ -73,7 +74,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			
 			SetQueen21((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
 		}
 	}
@@ -85,11 +85,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 			return;
 		}
 		int bit;
+		int nextfree;
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			
-			int nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
 			if(nextfree > 0)
 				SetQueen22((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -100,11 +100,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 		int free = ~(ld | rd | col) & boardIntegers[idx];
 		int bit;
 		if(idx > mark1) {
+			int nextfree;
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				
-				int nextfree = ~(((ld|bit)<<hop1) | ((rd|bit)>>hop1) | (col|bit)) & boardIntegers[idx+1];
+				nextfree = ~(((ld|bit)<<hop1) | ((rd|bit)>>hop1) | (col|bit)) & boardIntegers[idx+1];
 				if(nextfree > 0)
 					SetQueen32((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1, nextfree);
 			}
@@ -125,7 +125,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-
 				nextfree = ~(((ld|bit)<<hop2) | ((rd|bit)>>hop2) | (col|bit)) & boardIntegers[idx+1];
 				if(nextfree > 0)
 					SetQueen33((ld|bit)<<hop2, (rd|bit)>>hop2, col|bit, idx+1, nextfree);
@@ -149,11 +148,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 			return;
 		}
 		int bit;
+		int nextfree;
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-
-			int nextfree = ~( ((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			nextfree = ~( ((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
 			if(nextfree > 0)
 				SetQueen33((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -300,7 +299,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			if(N < 25) {
 				if(hop2 == 0) {
 					if(hop1 == 0) 
-						SetQueen1(0, 0, 0, 0);
+						SetQueen1(0, 0, 0, 0, boardIntegers[0]);
 					else 
 						SetQueen21(0, 0, 0, 0);
 				}
