@@ -5,7 +5,7 @@ It's an eclipse project, you can clone it, import it into eclipse and run it wit
 For lower Java versions, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
 # Contact
-We're happy about every comment, question, idea or whatever - use the issue templates for bug reporting and feature suggesting or reach out to us directly!
+We're happy about every comment, question, idea, need help running the code or whatever - use the issue templates for bug reporting and feature suggesting or reach out to us directly!
 Mail: olepoeschl.developing@gmail.com
 
 # Version 1: 
