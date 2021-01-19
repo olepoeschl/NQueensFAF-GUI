@@ -1,13 +1,11 @@
 # NQueensFAF
 
-Gui-Program for calculating the number of solutions of the N-Queens Problem
+Gui-Program for calculating the number of solutions of the N-Queens Problem.
+It's an eclipse project, you can clone it, import it into eclipse and run it with Java 15.
+For lower Java versions, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
---- DISCLAIMER  ---
-      !!!!
-  FAST AS FUCK
-      !!!!
--------------------
-
+# Contact
+For comments or questions, pls write 
 
 # Version 1: 
       - board as NxN-boolean
