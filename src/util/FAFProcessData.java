@@ -18,7 +18,8 @@ public class FAFProcessData extends ArrayDeque<BoardProperties> implements Seria
 	private static final long serialVersionUID = 1L;
 	
 	public int N;
-	public long solvecounter, startConstCount, calculatedStartConstCount, time;
+	public long solvecounter, time;
+	public int startConstCount, calculatedStartConstCount;
 	
 	public void save(String filename) {
 		try {
