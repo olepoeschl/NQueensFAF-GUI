@@ -34,8 +34,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	// this is if all are there as one piece
 	private void SetQueen1(int ld, int rd, int col, int idx, int free) {
 		if(idx > max) {
-			if(free > 0)
-				tempcounter++;
+			tempcounter++;
 			return;
 		}
 		
@@ -64,6 +63,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
+				
 				nextfree = ~(((ld|bit)<<hop1) | ((rd|bit)>>hop1) | (col|bit)) & boardIntegers[idx+1];
 				if(nextfree > 0)
 					SetQueen22((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1, nextfree);
@@ -82,8 +82,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	private void SetQueen22(int ld, int rd, int col, int idx, int free) {
 		if(idx > max) {
-			if(free > 0)
-				tempcounter++;
+			tempcounter++;
 			return;
 		}
 		int bit;
@@ -91,6 +90,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
+			
 			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
 			if(nextfree > 0)
 				SetQueen22((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
@@ -146,8 +146,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		
 	private void SetQueen33(int ld, int rd, int col, int idx, int free) {
 		if(idx > max) {
-			if(free > 0)
-				tempcounter++;
+			tempcounter++;
 			return;
 		}
 		int bit;
