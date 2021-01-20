@@ -31,7 +31,7 @@ public class AlgorithmStarter {
 	
 	// for loading and saving and progress
 	private boolean load = false;
-	private long startConstCount = 0, calculatedStartConstCount = 0, startConstCountBad = 0;
+	private int startConstCount = 0, calculatedStartConstCount = 0, startConstCountBad = 0;
 
 	// for pausing and canceling
 	private long start = 0, end = 0;
@@ -292,15 +292,18 @@ public class AlgorithmStarter {
 	}
 	
 	// progress measurement
-	public long getStartConstCount() {
+	public int getStartConstCount() {
 		return startConstCount;
 	}
-	public long getCalculatedStartConstCount() {
-		long counter = 0;
+	public int getCalculatedStartConstCount() {
+		int counter = 0;
 		for(AlgorithmThread algThread : threadlist) {
 			counter += algThread.getStartConstIndex();
 		}
 		return calculatedStartConstCount + counter;
+	}
+	public int getUncalculatedStartConstCount() {
+		return getUncalculatedStartConstellations().size();
 	}
 	
 	// loading 
@@ -310,9 +313,6 @@ public class AlgorithmStarter {
 			uncalcbplist.addAll(algThread.getUncalculatedStartConstellations());
 		}
 		return uncalcbplist;
-	}
-	public long getUncalculatedStartConstCount() {
-		return getUncalculatedStartConstellations().size();
 	}
 	
 	public float getProgress() {
