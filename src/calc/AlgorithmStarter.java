@@ -187,9 +187,9 @@ public class AlgorithmStarter {
 					}
 				}
 			}
-
 			// save number of found starting constellations
 			startConstCount = boardPropertiesList.size();
+			
 			// print in gui console
 			Gui.print(startConstCount + " Start-Konstellationen gefunden, davon " + startConstCountBad + " nervig", true);
 		}
