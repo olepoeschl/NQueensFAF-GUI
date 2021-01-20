@@ -31,7 +31,7 @@ public class AlgorithmStarter {
 	
 	// for loading and saving and progress
 	private boolean load = false;
-	private int startConstCount = 0, calculatedStartConstCount = 0, startConstCountBad = 0;
+	private long startConstCount = 0, calculatedStartConstCount = 0, startConstCountBad = 0;
 
 	// for pausing and canceling
 	private long start = 0, end = 0;
@@ -187,32 +187,9 @@ public class AlgorithmStarter {
 					}
 				}
 			}
+
 			// save number of found starting constellations
 			startConstCount = boardPropertiesList.size();
-			
-			long a = System.currentTimeMillis();
-			// sort the boardPropertiesList, so that the used setQueen-Method changes as rarerly as possible
-			ArrayDeque<BoardProperties> list_hops0 = new ArrayDeque<BoardProperties>(startConstCount);
-			ArrayDeque<BoardProperties> list_hops1 = new ArrayDeque<BoardProperties>(startConstCount);
-			ArrayDeque<BoardProperties> list_hops2 = new ArrayDeque<BoardProperties>(startConstCount);
-			for(BoardProperties bp : boardPropertiesList) {
-				if(bp.hop2 == 0) {
-					if(bp.hop1 == 0) 
-						list_hops0.add(bp);
-					else 
-						list_hops1.add(bp);
-				}
-				else
-					list_hops2.add(bp);
-			}
-			boardPropertiesList.clear();
-			boardPropertiesList.addAll(list_hops0);
-			boardPropertiesList.addAll(list_hops1);
-			boardPropertiesList.addAll(list_hops2);
-			long b = System.currentTimeMillis();
-			System.out.println("sortiert in zeit: " + (b-a));
-			
-			
 			// print in gui console
 			Gui.print(startConstCount + " Start-Konstellationen gefunden, davon " + startConstCountBad + " nervig", true);
 		}
@@ -315,18 +292,15 @@ public class AlgorithmStarter {
 	}
 	
 	// progress measurement
-	public int getStartConstCount() {
+	public long getStartConstCount() {
 		return startConstCount;
 	}
-	public int getCalculatedStartConstCount() {
-		int counter = 0;
+	public long getCalculatedStartConstCount() {
+		long counter = 0;
 		for(AlgorithmThread algThread : threadlist) {
 			counter += algThread.getStartConstIndex();
 		}
 		return calculatedStartConstCount + counter;
-	}
-	public int getUncalculatedStartConstCount() {
-		return getUncalculatedStartConstellations().size();
 	}
 	
 	// loading 
@@ -336,6 +310,9 @@ public class AlgorithmStarter {
 			uncalcbplist.addAll(algThread.getUncalculatedStartConstellations());
 		}
 		return uncalcbplist;
+	}
+	public long getUncalculatedStartConstCount() {
+		return getUncalculatedStartConstellations().size();
 	}
 	
 	public float getProgress() {

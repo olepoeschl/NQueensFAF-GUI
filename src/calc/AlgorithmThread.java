@@ -292,7 +292,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			boardIntegers = bp.boardIntegers;
 			mark1 = bp.mark1;
 			mark2 = bp.mark2;
-			hop1= bp.hop1;
+			hop1 = bp.hop1;
 			hop2 = bp.hop2;
 			max = bp.max;
 			tempcounter = 0;								// set counter of solutions for this starting constellation to 0
