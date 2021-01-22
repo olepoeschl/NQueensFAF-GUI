@@ -1,11 +1,14 @@
 package calc;
 
+import java.io.Serializable;
 import java.util.ArrayDeque;
 
 // this is the solver
 // we use recursive functions for Backtracking
 
-public class AlgorithmThread extends Thread {
+public class AlgorithmThread extends Thread implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	private int N;											// boardsize
 	private long tempcounter = 0, solvecounter = 0;			// tempcounter is #(unique solutions) of current start constellation, solvecounter is #(all solutions)

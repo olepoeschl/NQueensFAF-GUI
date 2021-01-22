@@ -6,13 +6,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayDeque;
 
 import calc.BoardProperties;
 
 // for saving and loading only
 
-public class FAFProcessData extends ArrayDeque<BoardProperties>{
+public class FAFProcessData extends ArrayDeque<BoardProperties> implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 	
 	public int N;
 	public long solvecounter, time;

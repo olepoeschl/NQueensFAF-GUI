@@ -75,6 +75,9 @@ public class Gui extends JFrame {
 	private static ArrayDeque<String> msgQueue;
 	public static ArrayDeque<Float> progressUpdateQueue;
 	
+	// other
+	private StringBuilder strbuilder;
+	
 	
 	public Gui() {
 		super("NQueens Algorithm FAF");
@@ -253,9 +256,11 @@ public class Gui extends JFrame {
 								progressBar.setValue((int)value);
 								((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + value + "%");
 								progressBar.repaint();
+								
+								tempvalue = 0;
 							} else {
 								progressBar.setValue((int)value);
-								((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " of " + algStarter.getStartConstCount() + " ]");
+								((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + (((int)(value*10000)) / 10000f) + "%    [ " + algStarter.getCalculatedStartConstCount() + " of " + algStarter.getStartConstCount() + " ]        [ solutions: " + getSolvecounterStr(algStarter.getSolvecounter()) + " ]");
 								progressBar.repaint();
 						        
 								// output
@@ -305,7 +310,8 @@ public class Gui extends JFrame {
 
 					
 					try {
-						sleep(sleeptime);
+						Thread.yield();
+						Thread.sleep(sleeptime);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -361,6 +367,14 @@ public class Gui extends JFrame {
 		}
 
 		return strh + ":" + strm + ":" + strs + "." + strms;
+	}
+	public String getSolvecounterStr(long solvecounter) {
+		strbuilder = new StringBuilder( Long.toString(solvecounter) );
+		int len = strbuilder.length();
+		for(int i = len-3; i > 0; i -= 3) {
+			strbuilder.insert(i, ".");
+		}
+		return strbuilder.toString();
 	}
 	private void updateTimeLbl() {
 		lblTime.setText(getTimeStr());
@@ -573,72 +587,72 @@ public class Gui extends JFrame {
 			else if(e.getSource() == btnSave){
 				new Thread() {
 					public void run() {
-//						// choose file path
-//						String filepath = "", filename = "";
-//						JFileChooser filechooser = new JFileChooser();
-//						filechooser.setMultiSelectionEnabled(false);
-//						filechooser.setCurrentDirectory(null);
-//						filechooser.setAcceptAllFileFilterUsed(false);
-//						filechooser.addChoosableFileFilter(filefilter);
-//						filechooser.setFileFilter(filefilter);
-//						if(filechooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-//							filepath = filechooser.getSelectedFile().getAbsolutePath();
-//							filename = filechooser.getSelectedFile().getName().toString();
-//							if( ! filepath.endsWith(".faf") ) {
-//								filepath = filepath + ".faf";
-//								filename = filename + ".faf";
-//							}
-//						}
-//						
-//						// store fafprocessdata in path filename
-//						FAFProcessData fafprocessdata = new FAFProcessData();
-//						fafprocessdata.addAll(algStarter.getUncalculatedStartConstellations());
-//						fafprocessdata.N = algStarter.getN();
-//						fafprocessdata.solvecounter = algStarter.getSolvecounter();
-//						fafprocessdata.startConstCount = algStarter.getStartConstCount();
-//						fafprocessdata.calculatedStartConstCount = algStarter.getCalculatedStartConstCount();
-//						fafprocessdata.time = time;
-//						fafprocessdata.save(filepath);
-//						
-//						print("/- Current process was successfully saved in file " + filename + ". -\\", true);
+						// choose file path
+						String filepath = "", filename = "";
+						JFileChooser filechooser = new JFileChooser();
+						filechooser.setMultiSelectionEnabled(false);
+						filechooser.setCurrentDirectory(null);
+						filechooser.setAcceptAllFileFilterUsed(false);
+						filechooser.addChoosableFileFilter(filefilter);
+						filechooser.setFileFilter(filefilter);
+						if(filechooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+							filepath = filechooser.getSelectedFile().getAbsolutePath();
+							filename = filechooser.getSelectedFile().getName().toString();
+							if( ! filepath.endsWith(".faf") ) {
+								filepath = filepath + ".faf";
+								filename = filename + ".faf";
+							}
+						}
+						
+						// store fafprocessdata in path filename
+						FAFProcessData fafprocessdata = new FAFProcessData();
+						fafprocessdata.addAll(algStarter.getUncalculatedStartConstellations());
+						fafprocessdata.N = algStarter.getN();
+						fafprocessdata.solvecounter = algStarter.getSolvecounter();
+						fafprocessdata.startConstCount = algStarter.getStartConstCount();
+						fafprocessdata.calculatedStartConstCount = algStarter.getCalculatedStartConstCount();
+						fafprocessdata.time = time;
+						fafprocessdata.save(filepath);
+						
+						print("/- Current process was successfully saved in file " + filename + ". -\\", true);
 					}
 				}.start();
 			}
 			else if(e.getSource() == btnLoad) {
-//				// choose filepath
-//				String filepath = "";
-//				JFileChooser filechooser = new JFileChooser();
-//				filechooser.setMultiSelectionEnabled(false);
-//				filechooser.setCurrentDirectory(null);
-//				filechooser.setAcceptAllFileFilterUsed(false);
-//				filechooser.addChoosableFileFilter(filefilter);
-//				filechooser.setFileFilter(filefilter);
-//				if(filechooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-//					filepath = filechooser.getSelectedFile().getAbsolutePath();
-//					
-//					// load FAFProcessData from filepath filename
-//					FAFProcessData fafprocessdata = FAFProcessData.load(filepath);
-//					
-//					// initialize AlgorithmStarter with the loaded data
-//					int threadcount = Integer.parseInt(tfThreadcount.getText());
-//					algStarter = new AlgorithmStarter(fafprocessdata.N, threadcount);
-////					algStarter.load(fafprocessdata);
-//					
-//					// update gui to the loaded values
-//					sliderN.setValue(fafprocessdata.N);
-//					tfN.setText(fafprocessdata.N + "");
-//					updateProgress(0);
-//					
-//					oldtime = fafprocessdata.time;
-//					
-//					// file loaded
-//					load = true;
-//					
-//					print("/- Old process was successfully loaded from File " + filechooser.getSelectedFile().getName().toString() + ". \\-", false);
-//					print("/- Press GO to continue it \\-", true);
-//				} else {
-//					print("/- Loading file was canceled \\-", true);
-//				}
+				// choose filepath
+				String filepath = "";
+				JFileChooser filechooser = new JFileChooser();
+				filechooser.setMultiSelectionEnabled(false);
+				filechooser.setCurrentDirectory(null);
+				filechooser.setAcceptAllFileFilterUsed(false);
+				filechooser.addChoosableFileFilter(filefilter);
+				filechooser.setFileFilter(filefilter);
+				if(filechooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+					filepath = filechooser.getSelectedFile().getAbsolutePath();
+					
+					// load FAFProcessData from filepath filename
+					FAFProcessData fafprocessdata = FAFProcessData.load(filepath);
+					
+					// initialize AlgorithmStarter with the loaded data
+					int threadcount = Integer.parseInt(tfThreadcount.getText());
+					algStarter = new AlgorithmStarter(fafprocessdata.N, threadcount);
+					algStarter.load(fafprocessdata);
+					
+					// update gui to the loaded values
+					sliderN.setValue(fafprocessdata.N);
+					tfN.setText(fafprocessdata.N + "");
+					updateProgress(0);
+					
+					oldtime = fafprocessdata.time;
+					
+					// file loaded
+					load = true;
+					
+					print("/- Old process was successfully loaded from File " + filechooser.getSelectedFile().getName().toString() + ". \\-", false);
+					print("/- Press GO to continue it \\-", true);
+				} else {
+					print("/- Loading file was canceled \\-", true);
+				}
 			}
 		}
 	}

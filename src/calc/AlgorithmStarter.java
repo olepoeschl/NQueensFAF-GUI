@@ -5,12 +5,13 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-//import util.FAFProcessData;
+
+import gui.Gui;
+import util.FAFProcessData;
 
 // sets 3 to 4 Queens on the NxN - board and calculates corresponding occupancy
 // Queens are only placed on the first and last row and col
@@ -190,7 +191,7 @@ public class AlgorithmStarter {
 			startConstCount = boardPropertiesList.size();
 			
 			// print in gui console
-//			Gui.print(startConstCount + " Start-Konstellationen gefunden, davon " + startConstCountBad + " nervig", true);
+			Gui.print(startConstCount + " start-constellations were found, " + startConstCountBad + " of these suck", true);
 		}
 		
 		// split starting constellations in cpu many lists (splitting the work for the threads)
@@ -231,7 +232,6 @@ public class AlgorithmStarter {
 		
 		// endtime
 		end = System.currentTimeMillis();
-		System.out.println(end-start);
 	}
 
 	// true, if starting constellation rotated by any angle has already been found
@@ -335,28 +335,13 @@ public class AlgorithmStarter {
 		return solvecounter + old_solvecounter;
 	}
 	
-	public static void main(String[] args) {
-		int N, threads;
-		do {
-			Scanner sc = new Scanner(System.in);    //System.in is a standard input stream  
-			System.out.print("Brettgröße (0 zum beenden): ");  
-			N = sc.nextInt();  
-			if(N == 0)
-				break;
-			System.out.print("Threads: ");  
-			threads = sc.nextInt();  
-			AlgorithmStarter algstart = new AlgorithmStarter(N, threads);
-			algstart.startAlgorithm();
-		}while(N > 0);
-	}
-	
 	//load progress of old calculation
-//	public void load(FAFProcessData fafprocessdata) {
-//		load = true;
-////		N = fafprocessdata.N;
-//		boardPropertiesList.addAll(fafprocessdata);
-//		old_solvecounter = fafprocessdata.solvecounter;
-//		startConstCount = fafprocessdata.startConstCount;
-//		calculatedStartConstCount = fafprocessdata.calculatedStartConstCount;
-//	}
+	public void load(FAFProcessData fafprocessdata) {
+		load = true;
+//		N = fafprocessdata.N;
+		boardPropertiesList.addAll(fafprocessdata);
+		old_solvecounter = fafprocessdata.solvecounter;
+		startConstCount = fafprocessdata.startConstCount;
+		calculatedStartConstCount = fafprocessdata.calculatedStartConstCount;
+	}
 }

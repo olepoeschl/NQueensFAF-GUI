@@ -1,5 +1,7 @@
 package calc;
 
+import java.io.Serializable;
+
 // passes the information about each starting constellation to AlgorithmThread
 
 // boardIntegers are N-2 Integers for the row 1,...,N-2
@@ -13,7 +15,9 @@ package calc;
 // k is idx of the line where the Queen is on the first column
 // l is the idx where the Queen is in thelast column
 
-public class BoardProperties {
+public class BoardProperties implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
 	
 	
 	public int[] boardIntegers;			// N Integer representing the occupancy for each row 1,...,N-2 (in bit representation)
