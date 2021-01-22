@@ -75,6 +75,9 @@ public class Gui extends JFrame {
 	private static ArrayDeque<String> msgQueue;
 	public static ArrayDeque<Float> progressUpdateQueue;
 	
+	// other
+	private StringBuilder strbuilder;
+	
 	
 	public Gui() {
 		super("NQueens Algorithm FAF");
@@ -253,9 +256,11 @@ public class Gui extends JFrame {
 								progressBar.setValue((int)value);
 								((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + value + "%");
 								progressBar.repaint();
+								
+								tempvalue = 0;
 							} else {
 								progressBar.setValue((int)value);
-								((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + (((int)(value*10000)) / 10000f) + "% \t[ " + algStarter.getCalculatedStartConstCount() + " of " + algStarter.getStartConstCount() + " ]");
+								((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + (((int)(value*10000)) / 10000f) + "%    [ " + algStarter.getCalculatedStartConstCount() + " of " + algStarter.getStartConstCount() + " ]        [ solutions: " + getSolvecounterStr(algStarter.getSolvecounter()) + " ]");
 								progressBar.repaint();
 						        
 								// output
@@ -305,7 +310,8 @@ public class Gui extends JFrame {
 
 					
 					try {
-						sleep(sleeptime);
+						Thread.yield();
+						Thread.sleep(sleeptime);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -361,6 +367,14 @@ public class Gui extends JFrame {
 		}
 
 		return strh + ":" + strm + ":" + strs + "." + strms;
+	}
+	public String getSolvecounterStr(long solvecounter) {
+		strbuilder = new StringBuilder( Long.toString(solvecounter) );
+		int len = strbuilder.length();
+		for(int i = len-3; i > 0; i -= 3) {
+			strbuilder.insert(i, ".");
+		}
+		return strbuilder.toString();
 	}
 	private void updateTimeLbl() {
 		lblTime.setText(getTimeStr());
