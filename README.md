@@ -74,6 +74,10 @@ This solution is based on two methods:
       - N = 16 in ~ 10 minutes
       
       
+(times are referring to i5-9300h @4GHz undervolted)
+ 
+      
+      
       
       
       
