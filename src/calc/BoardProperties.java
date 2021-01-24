@@ -26,14 +26,14 @@ public class BoardProperties implements Serializable {
 	public int symmetry;				// solution counts as 8, 4 or 2 depending on symmetry
 	public int max;						// max idx, N-4 or N-5 if queen in corner or not
 	
-	public BoardProperties(int[] boardIntegers, int[] hopmarker, int[] hopsize, int[] sym_max) {
+	public BoardProperties(int[] boardIntegers, int[] hopmarker, int[] hopsize, int symmetry, int max) {
 		this.boardIntegers = boardIntegers;
 		this.mark1 = hopmarker[0];
 		this.mark2 = hopmarker[1];
 		this.hop1 = hopsize[0];
 		this.hop2 = hopsize[1];
-		this.symmetry = sym_max[0];
-		this.max = sym_max[1];
+		this.symmetry = symmetry;
+		this.max = max;
 	}
 	
 }

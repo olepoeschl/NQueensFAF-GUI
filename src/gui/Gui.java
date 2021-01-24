@@ -606,7 +606,7 @@ public class Gui extends JFrame {
 						
 						// store fafprocessdata in path filename
 						FAFProcessData fafprocessdata = new FAFProcessData();
-//						fafprocessdata.addAll(algStarter.getUncalculatedStartConstellations());
+						fafprocessdata.addAll(algStarter.getUncalculatedStartConstellations());
 						fafprocessdata.N = algStarter.getN();
 						fafprocessdata.solvecounter = algStarter.getSolvecounter();
 						fafprocessdata.startConstCount = algStarter.getStartConstCount();

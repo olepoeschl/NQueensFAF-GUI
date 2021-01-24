@@ -21,9 +21,11 @@ public class AlgorithmStarter {
 
 	private int N;							// size of board						
 	private int cpu;						// number of threads	
-	private long old_solvecounter = 0;		// if we load an old calculation, get the old solvecounter			
-	private ArrayDeque<int[][]> dataArrays;
-	
+	private long old_solvecounter = 0;		// if we load an old calculation, get the old solvecounter
+	private int symmetry = 8;				// look at boardProperties							
+	int[] currentRows, hopmarker, hopsize;						// look boardIntegers in boardProperties						
+	private ArrayDeque<BoardProperties> boardPropertiesList;	// save starting constellations in this Array
+
 	Set<Integer> startConstellations = new HashSet<Integer>();		// make sure there are no symmetric equivalent starting constellations in boardPropertiesList			
 	ArrayList<AlgorithmThread> threadlist;							// list of starting constellations for each thread
 	
@@ -41,7 +43,8 @@ public class AlgorithmStarter {
 		this.cpu = cpu;
 
 		startConstellations = new HashSet<Integer>();
-		dataArrays = new ArrayDeque<int[][]>();
+
+		boardPropertiesList = new ArrayDeque<BoardProperties>();
 	}
 
 	public void startAlgorithm() {
@@ -53,7 +56,6 @@ public class AlgorithmStarter {
 		// if we don't load an old calculation
 		if(!load) {		
 			// column, left and right diag, idx of row, mask marks the board, halfN half of N rounded up
-			int[] currentRows, hopmarker, hopsize, sym_max;						// look boardIntegers in boardProperties	
 			int col, ld, rd, row, mask = (1 << N) - 1, halfN = (N + (N % 2)) / 2, diff;
 			
 			// calculating start constellations with the first Queen on square (0,0)
@@ -63,7 +65,6 @@ public class AlgorithmStarter {
 					currentRows = new int[N-3];		
 					hopmarker = new int[2];
 					hopsize = new int[2];
-					sym_max = new int[2];
 					row = 1;
 					ld = 0;
 					rd = (1 << (N-1)) | (1 << l);
@@ -95,16 +96,13 @@ public class AlgorithmStarter {
 						hopsize[0] = 2;
 					}
 
-					sym_max[0] = 8;
-					sym_max[1] = N-5;
-					
 					// add starting constellation to list
-					dataArrays.add(new int[][]{currentRows, hopmarker, hopsize, sym_max});
+					boardPropertiesList.add(new BoardProperties(currentRows, hopmarker, hopsize, 8, N-5));	
 					startConstellations.add((1<<24) + (j<<16) + (1<<8) + l);
 				}
 			}
 			
-			startConstCountBad = dataArrays.size();
+			startConstCountBad = boardPropertiesList.size();
 			
 			// calculate starting constellations for no Queens in corners
 			// look above for if missing explanation
@@ -118,11 +116,18 @@ public class AlgorithmStarter {
 								continue;
 							
 							if(!checkRotations(i, j, k, l)) {		// if no rotation-symmetric starting constellation already found
+								
+								if(i == N-1-j && k == N-1-l)		// starting constellation symmetric by rot180?
+									if(symmetry90(i, j, k, l))		// even by rot90?
+										symmetry = 2;
+									else
+										symmetry = 4;
+								else
+									symmetry = 8;					// none of the above?
 
 								currentRows = new int[N-3];	
 								hopmarker = new int[2];
 								hopsize = new int[2];
-								sym_max = new int[2];
 								row = 1;
 								ld = (1 << (N-1-i)) | (1 << (N-1-k));
 								rd = (1 << (N-1-i)) | (1 << l);
@@ -172,20 +177,10 @@ public class AlgorithmStarter {
 										hopmarker[1] = l-4;
 										hopsize[1] = 2;
 									}
+									
 								}
-								
-								if(i == N-1-j && k == N-1-l)		// starting constellation symmetric by rot180?
-									if(symmetry90(i, j, k, l))		// even by rot90?
-										sym_max[0] = 2;
-									else
-										sym_max[0] = 4;
-								else
-									sym_max[0] = 8;					// none of the above?
-								
-								sym_max[1] = N-6;
-								
 
-								dataArrays.add(new int[][]{currentRows, hopmarker, hopsize, sym_max});
+								boardPropertiesList.add(new BoardProperties(currentRows, hopmarker, hopsize, symmetry, N-6));	
 								startConstellations.add((i<<24) + (j<<16) + (k<<8) + l);
 							}
 						}
@@ -193,18 +188,18 @@ public class AlgorithmStarter {
 				}
 			}
 			// save number of found starting constellations
-			startConstCount = dataArrays.size();
+			startConstCount = boardPropertiesList.size();
 			
 			// print in gui console
 			Gui.print(startConstCount + " start-constellations were found, " + startConstCountBad + " of these suck", true);
 		}
 		
 		// split starting constellations in cpu many lists (splitting the work for the threads)
-		ArrayList< ArrayDeque<int[][]> > threadConstellations = new ArrayList< ArrayDeque<int[][]>>(cpu);
+		ArrayList< ArrayDeque<BoardProperties> > threadConstellations = new ArrayList< ArrayDeque<BoardProperties>>(cpu);
 		for(int i = 0; i < cpu; i++) {
-			threadConstellations.add(new ArrayDeque<int[][]>());
+			threadConstellations.add(new ArrayDeque<BoardProperties>());
 		}
-		Iterator<int[][]> iterator = dataArrays.iterator();
+		Iterator<BoardProperties> iterator = boardPropertiesList.iterator();
 		int i = 0;
 		while(iterator.hasNext()) {
 			threadConstellations.get((i++) % cpu).add(iterator.next());
@@ -213,7 +208,7 @@ public class AlgorithmStarter {
 	// start the threads and wait until they are all finished
 		ExecutorService executor = Executors.newFixedThreadPool(cpu);
 		threadlist = new ArrayList<AlgorithmThread>();
-		for(ArrayDeque<int[][]> constellations : threadConstellations) {
+		for(ArrayDeque<BoardProperties> constellations : threadConstellations) {
 			AlgorithmThread algThread = new AlgorithmThread(N, constellations);
 			threadlist.add(algThread);
 			executor.submit(algThread);
@@ -312,11 +307,11 @@ public class AlgorithmStarter {
 	}
 	
 	// loading 
-	public ArrayDeque<int[][]> getUncalculatedStartConstellations() {
-		ArrayDeque<int[][]> uncalcbplist = new ArrayDeque<int[][]>();
-//		for(AlgorithmThread algThread : threadlist) {
-////			uncalcbplist.addAll(algThread.getUncalculatedStartConstellations());
-//		}
+	public ArrayDeque<BoardProperties> getUncalculatedStartConstellations() {
+		ArrayDeque<BoardProperties> uncalcbplist = new ArrayDeque<BoardProperties>();
+		for(AlgorithmThread algThread : threadlist) {
+			uncalcbplist.addAll(algThread.getUncalculatedStartConstellations());
+		}
 		return uncalcbplist;
 	}
 	
@@ -344,7 +339,7 @@ public class AlgorithmStarter {
 	public void load(FAFProcessData fafprocessdata) {
 		load = true;
 //		N = fafprocessdata.N;
-//		boardPropertiesList.addAll(fafprocessdata);
+		boardPropertiesList.addAll(fafprocessdata);
 		old_solvecounter = fafprocessdata.solvecounter;
 		startConstCount = fafprocessdata.startConstCount;
 		calculatedStartConstCount = fafprocessdata.calculatedStartConstCount;

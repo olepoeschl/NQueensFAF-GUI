@@ -1,11 +1,14 @@
 package calc;
 
+import java.io.Serializable;
 import java.util.ArrayDeque;
 
 // this is the solver
 // we use recursive functions for Backtracking
 
-public class AlgorithmThread extends Thread {
+public class AlgorithmThread extends Thread implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	private int N;											// boardsize
 	private long tempcounter = 0, solvecounter = 0;			// tempcounter is #(unique solutions) of current start constellation, solvecounter is #(all solutions)
@@ -15,15 +18,15 @@ public class AlgorithmThread extends Thread {
 	private int max, mark1, mark2, hop1, hop2;
 	
 	// list of uncalculated starting positions, their indices
-	private ArrayDeque<int[][]> bplist;
+	private ArrayDeque<BoardProperties> boardPropertiesList;
 	
 	// for canceling and pausing 
 	private boolean pause = false, cancel = false;
 	
 	
-	public AlgorithmThread(int N, ArrayDeque<int[][]> boardPropertiesList) {
+	public AlgorithmThread(int N, ArrayDeque<BoardProperties> boardPropertiesList) {
 		this.N = N;
-		this.bplist = boardPropertiesList;
+		this.boardPropertiesList = boardPropertiesList;		
 		boardIntegers = new int[N-3];
 	}
 	
@@ -276,20 +279,21 @@ public class AlgorithmThread extends Thread {
 	
 	@Override
 	public void run() {
-		int listsize = bplist.size();
-		int[][] element;
+		int listsize = boardPropertiesList.size();
+		BoardProperties bp;
 		
 		loop:
 		for(int i = 0; i < listsize; i++) {
-			element = bplist.getFirst();
+			//initalize bp for this iteration
+			bp = boardPropertiesList.getFirst();
 			
 			// get occupancy of the board for each starting constellation and the hops and max from board Properties
-			boardIntegers = element[0];
-			mark1 = element[1][0];
-			mark2 = element[1][1];
-			hop1 = element[2][0];
-			hop2 = element[2][1];
-			max = element[3][1];
+			boardIntegers = bp.boardIntegers;
+			mark1 = bp.mark1;
+			mark2 = bp.mark2;
+			hop1 = bp.hop1;
+			hop2 = bp.hop2;
+			max = bp.max;
 			tempcounter = 0;								// set counter of solutions for this starting constellation to 0
 			
 			// use SetQueenBig - methods for large N
@@ -320,10 +324,10 @@ public class AlgorithmThread extends Thread {
 			startConstIndex++;
 			
 			// sum up solutions
-			solvecounter += tempcounter * element[3][0];
+			solvecounter += tempcounter * bp.symmetry;
 			
 			// for saving and loading progress remove the finished starting constellation
-			bplist.removeFirst();
+			boardPropertiesList.removeFirst();
 			
 			// check if the user wants to pause or break
 			if(pause) {
@@ -361,7 +365,7 @@ public class AlgorithmThread extends Thread {
 	public long getSolvecounter() {
 		return solvecounter;
 	}
-	public ArrayDeque<int[][]> getUncalculatedStartConstellations(){
-		return bplist;
+	public ArrayDeque<BoardProperties> getUncalculatedStartConstellations(){
+		return boardPropertiesList;
 	}
 }
