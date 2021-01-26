@@ -1,16 +1,14 @@
 # N-Queens Solver FAF
-<div class="container">
-  <img src="https://www.student.hs-mittweida.de/~opoeschl/queenFire_FAF.png" width="200" height="200" />
-  <div style="" >
-        Gui-Program for calculating the number of solutions of the N-Queens Problem.
+<img src="https://www.student.hs-mittweida.de/~opoeschl/queenFire_FAF.png" width="200" height="200" style="position:fixed; right:0px; bottom:0px; width:50px; height:50px; border:none;" />
+
+Gui-Program for calculating the number of solutions of the N-Queens Problem.
 
 Download the .jar :     <a href="https://www.student.hs-mittweida.de/~opoeschl/NQueensFaf.jar"> NQueensFaf.jar </a>
 (if you don't already have Java, download it <a href="https://www.java.com/en/download/manual.jsp">here</a>)
 
 It's an eclipse project, so you can clone it, import it into eclipse and run it.
 For lower Java JDK versions than 15, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
-</div>
-</div> 
+
 
 
 # Contact
