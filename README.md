@@ -1,4 +1,4 @@
-# N-Queens Solver FAF 
+# N-Queens Solver FAF                                                              ![icon](https://www.student.hs-mittweida.de/~opoeschl/queenFire_FAF.png)
 Gui-Program for calculating the number of solutions of the N-Queens Problem.
 
 Download the .jar :     <a href="https://www.student.hs-mittweida.de/~opoeschl/NQueensFaf.jar"> NQueensFaf.jar </a>
