@@ -77,8 +77,8 @@ This solution is based on two methods:
 (times are referring to i5-9300h @4GHz undervolted)
  
       
-      
-      
+# Credits
+Icon by Jojo
       
       
       
