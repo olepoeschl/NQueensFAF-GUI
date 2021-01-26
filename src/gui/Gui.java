@@ -16,6 +16,7 @@ import javax.swing.text.DefaultCaret;
 import calc.AlgorithmStarter;
 import util.FAFProcessData;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 
@@ -123,6 +124,7 @@ public class Gui extends JFrame {
 	
 	private void initGui() {
 		this.setIconImage(iconImg);
+		this.setIconImage( Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/queenFire_FAF_beschnitten.png")) );
 		this.setResizable(false);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
