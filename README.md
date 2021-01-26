@@ -1,5 +1,5 @@
 # N-Queens Solver FAF
-<img src="https://www.student.hs-mittweida.de/~opoeschl/queenFire_FAF.png" style="position:fixed; right:0px; bottom:0px; width:50px; height:50px; border:none;" />
+<img src="https://www.student.hs-mittweida.de/~opoeschl/queenFire_FAF.png" width="100" height="100" />
 
 Gui-Program for calculating the number of solutions of the N-Queens Problem.
 
