@@ -31,6 +31,7 @@ import java.util.ArrayDeque;
 
 import javax.swing.JLabel;
 import java.awt.Font;
+import java.awt.Image;
 
 import javax.swing.JTextArea;
 import javax.swing.JProgressBar;
@@ -52,6 +53,7 @@ public class Gui extends JFrame {
 	private final int sleeptime = 128;
 	
 	// gui-components
+	private Image iconImg;
 	private JTextField tfN, tfThreadcount;
 	private JSlider sliderN, sliderThreadcount;
 	private JButton btnSave, btnLoad, btnStart, btnCancel;
@@ -82,12 +84,17 @@ public class Gui extends JFrame {
 	public Gui() {
 		super("NQueens Algorithm FAF");
 		
+		// initialize things that are needed for the initialization of the gui
 		eventListener = new EventListener();
+		iconImg = Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/queenFire_FAF_beschnitten.png"));
+		
+		// initialize Gui
 		initGui();
 		this.pack();
 		Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setLocation((int) (screensize.getWidth()/2 - this.getWidth()/2), (int) (screensize.getHeight()/2 - this.getHeight()/2));
-		
+	    
+		// filefilter for the JFileChooser
 		filefilter = new FileFilter() {
 			@Override
 			public String getDescription() {
@@ -100,7 +107,6 @@ public class Gui extends JFrame {
 				return false;
 			}
 		};
-		
 		
 		// Queue for printing in taOutput
 		msgQueue = new ArrayDeque<String>();
@@ -116,7 +122,7 @@ public class Gui extends JFrame {
 	}
 	
 	private void initGui() {
-		this.setIconImage(Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/faf.jpg")));
+		this.setIconImage(iconImg);
 		this.setResizable(false);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
