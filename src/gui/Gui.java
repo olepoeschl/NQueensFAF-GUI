@@ -588,6 +588,7 @@ public class Gui extends JFrame {
 							algStarter.dontCancel();
 						break;
 					} else if( input.equals(options[1]) ) {
+						// save and back
 						save();
 						if(code == 0)
 							algStarter.go();
@@ -640,9 +641,11 @@ public class Gui extends JFrame {
 					print("##### Algorithm canceled #####", true);
 
 				// make buttons pressable again
-				for(Component c : pnlControls.getComponents()) {
-					if(c != btnLoad)
-						c.setEnabled(true);
+				if(algStarter.getEndtime() == 0) {
+					for(Component c : pnlControls.getComponents()) {
+						if(c != btnLoad)
+							c.setEnabled(true);
+					}
 				}
 			}
 		}.start();
