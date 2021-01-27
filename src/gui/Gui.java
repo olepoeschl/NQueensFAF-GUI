@@ -81,7 +81,7 @@ public class Gui extends JFrame {
 	private AlgorithmStarter algStarter;
 	private Thread algThread;
 	private long time = 0, pausetime = 0, oldtime = 0;
-	private boolean load = false;
+	private boolean paused = false, load = false;
 	private int updateTime = 0;
 	
 	// FileFilter-object
@@ -309,9 +309,9 @@ public class Gui extends JFrame {
 						
 						// update time and check if the user paused the application
 						if(updateTime == 1) {
-							if(algStarter.isPaused()) {
+							if(paused) {
 								long pausestart = System.currentTimeMillis();
-								while(algStarter.isPaused()) {
+								while(paused) {
 									try {
 										sleep(sleeptime);
 									} catch (InterruptedException e) {
@@ -604,11 +604,15 @@ public class Gui extends JFrame {
 					}
 					
 					// if the algorithm responds, close the waiting-dialog
-					if(algStarter.responds() || input != JOptionPane.UNINITIALIZED_VALUE) {
-						if( ! algStarter.responds())
-							if(code == 0)
-								btnStart.setText("Continue");
-						
+					if(algStarter.responds()) {
+						if(code == 0) {
+							paused = true;
+							btnStart.setText("Continue");
+						}
+						dialog.dispose();
+						break;
+					}
+					if(input != JOptionPane.UNINITIALIZED_VALUE) {
 						dialog.dispose();
 						break;
 					}
@@ -761,8 +765,9 @@ public class Gui extends JFrame {
 					// show dialog for pause-option
 					showWaitingDialog(0);
 				} else {
-					if(algThread != null && algThread.isAlive()) {
+					if(paused) {
 						// if paused, continue
+						paused = false;
 						algStarter.go();
 						btnStart.setText("Pause");
 					} else {
