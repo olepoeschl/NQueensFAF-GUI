@@ -276,11 +276,25 @@ public class AlgorithmStarter {
 			algThread.cancel();
 		}
 	}
+	public void dontCancel() {
+		for(AlgorithmThread algThread : threadlist) {
+			algThread.dontCancel();
+		}
+	}
 	public boolean isPaused() {
 		return pause;
 	}
 	public boolean isReady() {
 		return ready;
+	}
+	
+	public boolean responds() {
+		boolean responds = true;
+		for(AlgorithmThread algThread : threadlist) {
+			if( ! algThread.responds())
+				responds = false;
+		}
+		return responds;
 	}
 
 	// time measurement
