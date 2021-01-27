@@ -647,6 +647,9 @@ public class Gui extends JFrame {
 							c.setEnabled(true);
 					}
 				}
+				
+				// reset the respond-variables of each AlgorithmThread
+				algStarter.resetRespond();
 			}
 		}.start();
 	}

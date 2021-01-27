@@ -296,6 +296,11 @@ public class AlgorithmStarter {
 		}
 		return responds;
 	}
+	public void resetRespond() {
+		for(AlgorithmThread algThread : threadlist) {
+			algThread.resetRespond();
+		}
+	}
 
 	// time measurement
 	public long getStarttime() {

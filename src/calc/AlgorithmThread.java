@@ -401,10 +401,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 	}
 	
 	public boolean responds() {
-		if( ! respond)
-			return false;
-		
+		return respond;
+	}
+	public void resetRespond() {
 		respond = false;
-		return true;
 	}
 }
