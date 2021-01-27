@@ -9,11 +9,9 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 
-import calc.BoardProperties;
-
 // for saving and loading only
 
-public class FAFProcessData extends ArrayDeque<BoardProperties> implements Serializable {
+public class FAFProcessData extends ArrayDeque<Integer> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
