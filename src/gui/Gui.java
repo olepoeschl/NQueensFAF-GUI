@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.ArrayDeque;
 
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 
 import java.awt.Font;
@@ -108,7 +109,7 @@ public class Gui extends JFrame {
 		this.pack();
 		Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setLocation((int) (screensize.getWidth()/2 - this.getWidth()/2), (int) (screensize.getHeight()/2 - this.getHeight()/2));
-	    
+		
 		// filefilter for the JFileChooser
 		filefilter = new FileFilter() {
 			@Override
@@ -141,12 +142,11 @@ public class Gui extends JFrame {
 		this.setIconImage( Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/queenFire_FAF_beschnitten.png")) );
 		this.setResizable(false);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
-		getContentPane().setLayout(new BorderLayout(0, 0));
+		this.getContentPane().setLayout(new BorderLayout());	
 		
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setEnabled(false);
-		getContentPane().add(splitPane, BorderLayout.CENTER);
+		this.getContentPane().add(splitPane, BorderLayout.CENTER, JLayeredPane.DEFAULT_LAYER);
 		
 		JPanel pnlInput = new JPanel();
 		splitPane.setLeftComponent(pnlInput);
@@ -266,7 +266,7 @@ public class Gui extends JFrame {
 		optionPane.setOptionType(JOptionPane.YES_NO_CANCEL_OPTION);
 		optionPane.setValue(JOptionPane.YES_OPTION);
 		
-		waitlbl = new JLabel("");
+		waitlbl = new JLabel();
 		optionPane.add(waitlbl);
 	}
 	private void startGuiUpdateThread() {
@@ -560,10 +560,12 @@ public class Gui extends JFrame {
 					c.setEnabled(false);
 				}
 				
-				dialog = optionPane.createDialog(null, "Waiting for the Algorithm to respond...");
+				dialog = optionPane.createDialog(null, "Waiting for the Algorithm to finish current start-constellation...");
 				dialog.setLocation(context.getX() + context.getWidth()/2 - dialog.getWidth()/2, context.getY() + context.getHeight()/2 - dialog.getHeight()/2);
 				input = JOptionPane.UNINITIALIZED_VALUE;
-				int counter = 0;
+				
+				// for hte loading animation
+				int counter = 0, countertemp = 0;
 				
 				new Thread() {
 					public void run() {
@@ -619,18 +621,24 @@ public class Gui extends JFrame {
 					
 					// waiting animation on the waitLbl
 					waitlbl.setText("");
-					for(int i = 0; i < 5; i++) {
-						if(i == counter) {
-							waitlbl.setText(waitlbl.getText() + "o");
+					countertemp = counter % 24;
+					for(int i = 0; i < 20; i++) {
+						if(i == countertemp) {
+							waitlbl.setText(waitlbl.getText() + ") ");
+						} else if(i == countertemp-1) {
+							waitlbl.setText(waitlbl.getText() + "︺ ");
+						} else if(i == countertemp-2) {
+							waitlbl.setText(waitlbl.getText() + "︹ ");
+						} else if(i == countertemp-3) {
+							waitlbl.setText(waitlbl.getText() + "︶ ");
+						} else if(i == countertemp-4) {
+							waitlbl.setText(waitlbl.getText() + "( ");
 						} else {
-							waitlbl.setText(waitlbl.getText() + "_");
+							waitlbl.setText(waitlbl.getText() + "_ ");
 						}
 					}
-					if(counter > 4) {
-						counter = 0;
-					} else {
-						counter++;
-					}
+					counter++;
+					
 					
 					
 					try {
