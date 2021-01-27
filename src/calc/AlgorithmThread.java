@@ -310,7 +310,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 				
 				if(k == 1) {
 					ld = 1 << (N-i);
-					rd = (1 << (N-4)) | (1 << (N-3)) | (1 << (N-4-i));
+					rd = (1 << (N-4)) | (1 << (N-3)) | (L >> (i+3));
 					col = (1 << (N-2-i));
 					free = (~(ld|rd|col)) & smallmask;
 					symmetry = 8;
@@ -320,7 +320,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 				
 				else {
 					ld = (1 << (N-i-1)) | (L >> k);
-					rd = (1 << (N-3)) | (1 << (N-3-i));
+					rd = (1 << (N-3)) | (L >> (i+2));
 					col = (1 << (N-2-i));
 					free = (~(ld|rd|col)) & smallmask;
 					symmetry = 8;
