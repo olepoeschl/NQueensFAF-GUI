@@ -21,7 +21,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private ArrayDeque<BoardProperties> boardPropertiesList;
 	
 	// for canceling and pausing 
-	private boolean pause = false, cancel = false;
+	private boolean pause = false, cancel = false, respond = false;
 	
 	
 	public AlgorithmThread(int N, ArrayDeque<BoardProperties> boardPropertiesList) {
@@ -163,116 +163,142 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	// same stuff with the possibility to stop when a solution is found
 	// this is slightly slower, but good for large N where a starting position might take several minutes or even longer
-	private void SetQueen1Big(int ld, int rd, int col, int idx) {
+	private void SetQueen1Big(int ld, int rd, int col, int idx, int free) {
 		if(idx > max) {
-			if((~(ld | rd | col) & boardIntegers[idx]) > 0)
-				tempcounter++;
+			tempcounter++;
+			return;
+		}
+		
+		int bit;
+		int nextfree;
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen1Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
+	
+	private void SetQueen21Big(int ld, int rd, int col, int idx, int free) {
+		int bit;
+		int nextfree;
+		if(idx > mark1) {
 			// check, if the user wants to pause or interrupt and wait until he wants to continue
 			if(pause) {
+				respond = true;
 				while(pause) {
 					if(cancel)
 						return;
-					
+
 					try {
 						sleep(50);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
-			} else if(cancel) 
-				return;	
-			return;
-		}
-		int free = ~(ld | rd | col) & boardIntegers[idx];
-		int bit;
-		while(free > 0) {
-			bit = free & (-free);
-			free -= bit;
-			SetQueen1Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
-		}
-	}
-	
-	private void SetQueen21Big(int ld, int rd, int col, int idx) {
-		int free = ~(ld | rd | col) & boardIntegers[idx];
-		int bit;
-		if(idx > mark1) {
+			} else if(cancel) {
+				respond = true;
+				return;
+			}
+			
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				SetQueen22Big((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1);
+				
+				nextfree = ~(((ld|bit)<<hop1) | ((rd|bit)>>hop1) | (col|bit)) & boardIntegers[idx+1];
+				if(nextfree > 0)
+					SetQueen22Big((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			SetQueen21Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+			
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen21Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
-	private void SetQueen22Big(int ld, int rd, int col, int idx) {
+	private void SetQueen22Big(int ld, int rd, int col, int idx, int free) {
 		if(idx > max) {
-			if((~(ld | rd | col) & boardIntegers[idx]) > 0)
-				tempcounter++;
+			tempcounter++;
 			return;
 		}
-		int free = ~(ld | rd | col) & boardIntegers[idx];
 		int bit;
+		int nextfree;
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			SetQueen22Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+			
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen22Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
-	private void SetQueen31Big(int ld, int rd, int col, int idx) {
-		int free = ~(ld | rd | col) & boardIntegers[idx];
+	private void SetQueen31Big(int ld, int rd, int col, int idx, int free) {
 		int bit;
+		int nextfree;
 		if(idx > mark1) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				SetQueen32Big((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1);
+				nextfree = ~(((ld|bit)<<hop1) | ((rd|bit)>>hop1) | (col|bit)) & boardIntegers[idx+1];
+				if(nextfree > 0)
+					SetQueen32Big((ld|bit)<<hop1, (rd|bit)>>hop1, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			SetQueen31Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+
+			nextfree = ~( ((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen31Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
-	private void SetQueen32Big(int ld, int rd, int col, int idx) {
-		int free = ~(ld | rd | col) & boardIntegers[idx];
+	private void SetQueen32Big(int ld, int rd, int col, int idx, int free) {
 		int bit;
+		int nextfree;
 		if(idx > mark2) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				SetQueen33Big((ld|bit)<<hop2, (rd|bit)>>hop2, col|bit, idx+1);
+				nextfree = ~(((ld|bit)<<hop2) | ((rd|bit)>>hop2) | (col|bit)) & boardIntegers[idx+1];
+				if(nextfree > 0)
+					SetQueen33Big((ld|bit)<<hop2, (rd|bit)>>hop2, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			SetQueen32Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+
+			nextfree = ~( ((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen32Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 	
-	private void SetQueen33Big(int ld, int rd, int col, int idx) {
+	private void SetQueen33Big(int ld, int rd, int col, int idx, int free) {
 		if(idx > max) {
-			if((~(ld | rd | col) & boardIntegers[idx]) > 0)
-				tempcounter++;
+			tempcounter++;
 			return;
 		}
-		int free = ~(ld | rd | col) & boardIntegers[idx];
 		int bit;
+		int nextfree;
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			SetQueen33Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1);
+			nextfree = ~( ((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & boardIntegers[idx+1];
+			if(nextfree > 0)
+				SetQueen33Big((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
 	}
 
@@ -298,7 +324,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			
 			// use SetQueenBig - methods for large N
 			// skip SetQueen1 (or SetQueen1Big) if k = 0
-			if(N < 25) {
+			if(N < 24) {
 				if(hop2 == 0) {
 					if(hop1 == 0) 
 						SetQueen1(0, 0, 0, 0, boardIntegers[0]);
@@ -312,12 +338,12 @@ public class AlgorithmThread extends Thread implements Serializable {
 			else {
 				if(hop2 == 0) {
 					if(hop1 == 0) 
-						SetQueen1Big(0, 0, 0, 0);
+						SetQueen1Big(0, 0, 0, 0, boardIntegers[0]);
 					else 
-						SetQueen21Big(0, 0, 0, 0);
+						SetQueen21Big(0, 0, 0, 0, boardIntegers[0]);
 				}
 				else
-					SetQueen31Big(0, 0, 0, 0);
+					SetQueen31Big(0, 0, 0, 0, boardIntegers[0]);
 			}
 
 			// one start constellation is done
@@ -331,6 +357,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			
 			// check if the user wants to pause or break
 			if(pause) {
+				respond = true;
 				while(pause) {
 					if(cancel)
 						break loop;
@@ -342,6 +369,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 					}
 				}
 			} else if(cancel) {
+				respond = true;
 				break;
 			}
 		}
@@ -357,6 +385,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 	public void cancel() {
 		cancel = true;
 	}
+	public void dontCancel() {
+		cancel = false;
+	}
 
 	// for progress
 	public int getStartConstIndex() {
@@ -367,5 +398,13 @@ public class AlgorithmThread extends Thread implements Serializable {
 	}
 	public ArrayDeque<BoardProperties> getUncalculatedStartConstellations(){
 		return boardPropertiesList;
+	}
+	
+	public boolean responds() {
+		if( ! respond)
+			return false;
+		
+		respond = false;
+		return true;
 	}
 }

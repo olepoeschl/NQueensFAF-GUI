@@ -16,8 +16,8 @@ import javax.swing.text.DefaultCaret;
 import calc.AlgorithmStarter;
 import util.FAFProcessData;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 
 import java.awt.Toolkit;
@@ -31,6 +31,8 @@ import java.io.File;
 import java.util.ArrayDeque;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.Font;
 import java.awt.Image;
 
@@ -39,6 +41,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 
 import javax.swing.border.EtchedBorder;
@@ -53,16 +56,26 @@ public class Gui extends JFrame {
 	// time that the helper-threads sleep after 1 iteration
 	private final int sleeptime = 128;
 	
+	// Event-Listener for the components
+	private EventListener eventListener;
+	
 	// gui-components
+	private JFrame context;
 	private Image iconImg;
 	private JTextField tfN, tfThreadcount;
 	private JSlider sliderN, sliderThreadcount;
+	private JPanel pnlControls;
 	private JButton btnSave, btnLoad, btnStart, btnCancel;
 	private JLabel lblTime;
 	private JTextArea taOutput; 
 	private JProgressBar progressBar;
 	
-	private EventListener eventListener;
+	// components for the dialog
+	private JOptionPane optionPane;
+	private JLabel waitlbl;
+	private String[] options = {"Back", "Save and Back", "Save and quit instead", "Only quit"};
+	private JDialog dialog;
+	private Object input;
 	
 	// AlgorithmStarter-object
 	private AlgorithmStarter algStarter;
@@ -84,6 +97,7 @@ public class Gui extends JFrame {
 	
 	public Gui() {
 		super("NQueens Algorithm FAF");
+		context = this;
 		
 		// initialize things that are needed for the initialization of the gui
 		eventListener = new EventListener();
@@ -178,7 +192,7 @@ public class Gui extends JFrame {
 		tfThreadcount.addFocusListener(eventListener);
 		pnlThreadcount.add(tfThreadcount);
 		
-		JPanel pnlControls = new JPanel();
+		pnlControls = new JPanel();
 		pnlControls.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		pnlInput.add(pnlControls, BorderLayout.CENTER);
 		pnlControls.setLayout(new BorderLayout(0, 0));
@@ -242,6 +256,18 @@ public class Gui extends JFrame {
 		border.setBorder(new LineBorder(border.getTitleColor(), 0));
 		progressBar.setBorder(border);
 		pnlOutput.add(progressBar, BorderLayout.SOUTH);
+		
+		
+		// for the dialog
+		optionPane = new JOptionPane();
+		optionPane.setMessageType(JOptionPane.PLAIN_MESSAGE);
+		optionPane.setMessage("Things you can do instead of waiting:");
+		optionPane.setOptions(options);
+		optionPane.setOptionType(JOptionPane.YES_NO_CANCEL_OPTION);
+		optionPane.setValue(JOptionPane.YES_OPTION);
+		
+		waitlbl = new JLabel("");
+		optionPane.add(waitlbl);
 	}
 	private void startGuiUpdateThread() {
 		new Thread() {
@@ -442,12 +468,187 @@ public class Gui extends JFrame {
 				btnCancel.setEnabled(false);
 				btnSave.setEnabled(false);
 				btnLoad.setEnabled(true);
-				
+
 				// reset boolean for load
 				load = false;
 			}
 		};
 		algThread.start();
+	}
+
+
+	// save state of running algorithm instance
+	private void save() {
+		// choose file path
+		String filepath = "", filename = "";
+		JFileChooser filechooser = new JFileChooser();
+		filechooser.setMultiSelectionEnabled(false);
+		filechooser.setCurrentDirectory(null);
+		filechooser.setAcceptAllFileFilterUsed(false);
+		filechooser.addChoosableFileFilter(filefilter);
+		filechooser.setFileFilter(filefilter);
+		if(filechooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+			filepath = filechooser.getSelectedFile().getAbsolutePath();
+			filename = filechooser.getSelectedFile().getName().toString();
+			if( ! filepath.endsWith(".faf") ) {
+				filepath = filepath + ".faf";
+				filename = filename + ".faf";
+			}
+		}
+		
+		// store fafprocessdata in path filename
+		if( ! filepath.equals("")) {
+			FAFProcessData fafprocessdata = new FAFProcessData();
+			fafprocessdata.addAll(algStarter.getUncalculatedStartConstellations());
+			fafprocessdata.N = algStarter.getN();
+			fafprocessdata.solvecounter = algStarter.getSolvecounter();
+			fafprocessdata.startConstCount = algStarter.getStartConstCount();
+			fafprocessdata.calculatedStartConstCount = algStarter.getCalculatedStartConstCount();
+			fafprocessdata.time = time;
+			fafprocessdata.save(filepath);
+			
+			print("/- Current process was successfully saved in file " + filename + ". -\\", true);
+		}
+	}
+	
+	// load state of old algorithm instance
+	private void load() {
+		// choose filepath
+		String filepath = "";
+		JFileChooser filechooser = new JFileChooser();
+		filechooser.setMultiSelectionEnabled(false);
+		filechooser.setCurrentDirectory(null);
+		filechooser.setAcceptAllFileFilterUsed(false);
+		filechooser.addChoosableFileFilter(filefilter);
+		filechooser.setFileFilter(filefilter);
+		if(filechooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+			filepath = filechooser.getSelectedFile().getAbsolutePath();
+			
+			// load FAFProcessData from filepath filename
+			FAFProcessData fafprocessdata = FAFProcessData.load(filepath);
+			
+			// initialize AlgorithmStarter with the loaded data
+			int threadcount = Integer.parseInt(tfThreadcount.getText());
+			algStarter = new AlgorithmStarter(fafprocessdata.N, threadcount);
+			algStarter.load(fafprocessdata);
+			
+			// update gui to the loaded values
+			sliderN.setValue(fafprocessdata.N);
+			tfN.setText(fafprocessdata.N + "");
+			updateProgress(0);
+			
+			oldtime = fafprocessdata.time;
+			
+			// file loaded
+			load = true;
+			
+			print("/- Old process was successfully loaded from File " + filechooser.getSelectedFile().getName().toString() + ". \\-", false);
+			print("/- Press GO to continue it \\-", true);
+		} else {
+			print("/- Loading file was canceled \\-", true);
+		}
+	}
+	
+	private void showWaitingDialog(int code) {
+		// code = 0  := pausing
+		// code = 1  := canceling
+		// show Dialog
+		new Thread() {
+			public void run() {
+				// make buttons not pressable
+				for(Component c : pnlControls.getComponents()) {
+					c.setEnabled(false);
+				}
+				
+				dialog = optionPane.createDialog(null, "Waiting for the Algorithm to respond...");
+				dialog.setLocation(context.getX() + context.getWidth()/2 - dialog.getWidth()/2, context.getY() + context.getHeight()/2 - dialog.getHeight()/2);
+				input = JOptionPane.UNINITIALIZED_VALUE;
+				int counter = 0;
+				
+				new Thread() {
+					public void run() {
+						dialog.setVisible(true);
+						input = optionPane.getValue();
+					}
+				}.start();
+				
+				while(true) {
+					if(input == null) {
+						// back to main gui
+						if(code == 0)
+							algStarter.go();
+						else
+							algStarter.dontCancel();
+						break;
+					} else if ( input.equals(options[0]) ) {
+						// back to main gui
+						if(code == 0)
+							algStarter.go();
+						else
+							algStarter.dontCancel();
+						break;
+					} else if( input.equals(options[1]) ) {
+						// save and back
+						save();
+						if(code == 0)
+							algStarter.go();
+						else
+							algStarter.dontCancel();
+					} else if( input.equals(options[2]) ) {
+						// save and quit
+						save();
+						System.exit(0);
+					} else if( input.equals(options[3]) ) {
+						// only quit
+						System.exit(0);
+					}
+					
+					// if the algorithm responds, close the waiting-dialog
+					if(algStarter.responds() || input != JOptionPane.UNINITIALIZED_VALUE) {
+						if( ! algStarter.responds())
+							if(code == 0)
+								btnStart.setText("Continue");
+						
+						dialog.dispose();
+						break;
+					}
+					
+					// waiting animation on the waitLbl
+					waitlbl.setText("");
+					for(int i = 0; i < 5; i++) {
+						if(i == counter) {
+							waitlbl.setText(waitlbl.getText() + "o");
+						} else {
+							waitlbl.setText(waitlbl.getText() + "_");
+						}
+					}
+					if(counter > 4) {
+						counter = 0;
+					} else {
+						counter++;
+					}
+					
+					
+					try {
+						Thread.sleep(sleeptime);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				
+				// print message
+				if(code == 1 && input != null && !input.equals(options[0]) && !input.equals(options[1]))
+					print("##### Algorithm canceled #####", true);
+
+				// make buttons pressable again
+				if(algStarter.getEndtime() == 0) {
+					for(Component c : pnlControls.getComponents()) {
+						if(c != btnLoad)
+							c.setEnabled(true);
+					}
+				}
+			}
+		}.start();
 	}
 	
 	private class EventListener implements ChangeListener, KeyListener, FocusListener, ActionListener {
@@ -553,18 +754,19 @@ public class Gui extends JFrame {
 				if(btnStart.getText().equals("Pause")) {
 					// pause
 					algStarter.pause();
-					btnStart.setText("Continue");
-					btnSave.setEnabled(true);
+					
+					// show dialog for pause-option
+					showWaitingDialog(0);
 				} else {
 					if(algThread != null && algThread.isAlive()) {
 						// if paused, continue
 						algStarter.go();
 						btnStart.setText("Pause");
-						btnSave.setEnabled(false);
 					} else {
 						// start the algorithm and its threads, if they're not already running
 						btnStart.setText("Pause");
 						btnLoad.setEnabled(false);
+						btnSave.setEnabled(true);
 												
 						// if no file was loaded
 						// get inputs from the gui and initialize AlgorithmStarter
@@ -590,77 +792,19 @@ public class Gui extends JFrame {
 				algStarter.cancel();
 				if(algStarter.isPaused())
 					algStarter.go();
-				print("##### Canceled #####", true);
+				
+				// show dialog for cancel-option
+				showWaitingDialog(1);
 			}
 			else if(e.getSource() == btnSave){
 				new Thread() {
 					public void run() {
-						// choose file path
-						String filepath = "", filename = "";
-						JFileChooser filechooser = new JFileChooser();
-						filechooser.setMultiSelectionEnabled(false);
-						filechooser.setCurrentDirectory(null);
-						filechooser.setAcceptAllFileFilterUsed(false);
-						filechooser.addChoosableFileFilter(filefilter);
-						filechooser.setFileFilter(filefilter);
-						if(filechooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-							filepath = filechooser.getSelectedFile().getAbsolutePath();
-							filename = filechooser.getSelectedFile().getName().toString();
-							if( ! filepath.endsWith(".faf") ) {
-								filepath = filepath + ".faf";
-								filename = filename + ".faf";
-							}
-						}
-						
-						// store fafprocessdata in path filename
-						FAFProcessData fafprocessdata = new FAFProcessData();
-						fafprocessdata.addAll(algStarter.getUncalculatedStartConstellations());
-						fafprocessdata.N = algStarter.getN();
-						fafprocessdata.solvecounter = algStarter.getSolvecounter();
-						fafprocessdata.startConstCount = algStarter.getStartConstCount();
-						fafprocessdata.calculatedStartConstCount = algStarter.getCalculatedStartConstCount();
-						fafprocessdata.time = time;
-						fafprocessdata.save(filepath);
-						
-						print("/- Current process was successfully saved in file " + filename + ". -\\", true);
+						save();
 					}
 				}.start();
 			}
 			else if(e.getSource() == btnLoad) {
-				// choose filepath
-				String filepath = "";
-				JFileChooser filechooser = new JFileChooser();
-				filechooser.setMultiSelectionEnabled(false);
-				filechooser.setCurrentDirectory(null);
-				filechooser.setAcceptAllFileFilterUsed(false);
-				filechooser.addChoosableFileFilter(filefilter);
-				filechooser.setFileFilter(filefilter);
-				if(filechooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-					filepath = filechooser.getSelectedFile().getAbsolutePath();
-					
-					// load FAFProcessData from filepath filename
-					FAFProcessData fafprocessdata = FAFProcessData.load(filepath);
-					
-					// initialize AlgorithmStarter with the loaded data
-					int threadcount = Integer.parseInt(tfThreadcount.getText());
-					algStarter = new AlgorithmStarter(fafprocessdata.N, threadcount);
-					algStarter.load(fafprocessdata);
-					
-					// update gui to the loaded values
-					sliderN.setValue(fafprocessdata.N);
-					tfN.setText(fafprocessdata.N + "");
-					updateProgress(0);
-					
-					oldtime = fafprocessdata.time;
-					
-					// file loaded
-					load = true;
-					
-					print("/- Old process was successfully loaded from File " + filechooser.getSelectedFile().getName().toString() + ". \\-", false);
-					print("/- Press GO to continue it \\-", true);
-				} else {
-					print("/- Loading file was canceled \\-", true);
-				}
+				load();
 			}
 		}
 	}
