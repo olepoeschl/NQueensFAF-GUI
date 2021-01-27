@@ -3,7 +3,8 @@
 
 Gui-Program for calculating the number of solutions of the N-Queens Problem.
 
-Download the .jar :     <a href="https://www.student.hs-mittweida.de/~opoeschl/NQueensFaf.jar"> NQueensFaf.jar </a>
+Download the .jar :     <a href="https://www.student.hs-mittweida.de/~opoeschl/NQueensFaf.jar"> NQueensFaf.jar (Java 15) </a>
+                        <a href="https://www.student.hs-mittweida.de/~opoeschl/NQueensFaf_Java8.jar"> NQueensFaf.jar (Java 8) </a>
 (if you don't already have Java, download it <a href="https://www.java.com/en/download/manual.jsp">here</a>)
 
 It's an eclipse project, so you can clone it, import it into eclipse and run it.
