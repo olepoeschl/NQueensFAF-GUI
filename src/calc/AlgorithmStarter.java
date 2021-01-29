@@ -19,6 +19,8 @@ import util.FAFProcessData;
 
 public class AlgorithmStarter {
 
+	public static final int small_n_limit = 11;
+	
 	private int N, mask, solvecounter = 0;							// size of board						
 	private int cpu;						// number of threads	
 	private long old_solvecounter = 0;		// if we load an old calculation, get the old solvecounter											
@@ -48,7 +50,7 @@ public class AlgorithmStarter {
 		// starting time
 		start = System.currentTimeMillis();
 		
-		if(N <= 8) {
+		if(N <= small_n_limit) {
 			mask = (1 << N) - 1;
 			nq(0, 0, 0, 0, mask);
 		}
@@ -278,7 +280,7 @@ public class AlgorithmStarter {
 		return N;
 	}
 	public long getSolvecounter() {
-		if(N <= 8) {
+		if(N <= small_n_limit) {
 			return this.solvecounter;
 		}
 		
