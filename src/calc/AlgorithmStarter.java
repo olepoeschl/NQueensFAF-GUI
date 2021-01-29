@@ -300,7 +300,6 @@ public class AlgorithmStarter {
 	}
 	
 	
-	
 	// for small N
 	private void nq(int ld, int rd, int col, int row, int free) {
 		if(row == N-1) {
