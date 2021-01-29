@@ -19,7 +19,7 @@ import util.FAFProcessData;
 
 public class AlgorithmStarter {
 
-	private int N;							// size of board						
+	private int N, mask, solvecounter = 0;							// size of board						
 	private int cpu;						// number of threads	
 	private long old_solvecounter = 0;		// if we load an old calculation, get the old solvecounter											
 
@@ -48,79 +48,85 @@ public class AlgorithmStarter {
 		// starting time
 		start = System.currentTimeMillis();
 		
-		// if we don't load an old calculation
-		if(!load) {		
-			// column, left and right diag, idx of row, mask marks the board, halfN half of N rounded up
-			int halfN = (N + (N % 2)) / 2;
-			
-			// calculating start constellations with the first Queen on square (0,0)
-			for(int j = 1; j < N-2; j++) {						// j is idx of Queen in last row				
-				for(int l = j+1; l < N-1; l++) {				// l is idx of Queen in last col
-					startConstellations.add(toijkl(0, j, 0, l));
+		if(N <= 8) {
+			mask = (1 << N) - 1;
+			nq(0, 0, 0, 0, mask);
+		}
+		else {
+			// if we don't load an old calculation
+			if(!load) {		
+				// column, left and right diag, idx of row, mask marks the board, halfN half of N rounded up
+				int halfN = (N + (N % 2)) / 2;
+				
+				// calculating start constellations with the first Queen on square (0,0)
+				for(int j = 1; j < N-2; j++) {						// j is idx of Queen in last row				
+					for(int l = j+1; l < N-1; l++) {				// l is idx of Queen in last col
+						startConstellations.add(toijkl(0, j, 0, l));
+					}
 				}
-			}
-			
-			startConstCountBad = startConstellations.size();
-			
-			// calculate starting constellations for no Queens in corners
-			// look above for if missing explanation
-			for(int k = 1; k < halfN; k++) {						// gothrough first col
-				for(int l = k+1; l < N-1; l++) {					// go through last col
-					for(int i = k+1; i < N-1; i++) {				// go through first row
-						if(i == N-1-l)								// skip if occupied
-							continue;
-						for(int j = N-k-2; j > 0; j--) {			// go through last row
-							if(j==i || l == j)
+				
+				startConstCountBad = startConstellations.size();
+				
+				// calculate starting constellations for no Queens in corners
+				// look above for if missing explanation
+				for(int k = 1; k < halfN; k++) {						// gothrough first col
+					for(int l = k+1; l < N-1; l++) {					// go through last col
+						for(int i = k+1; i < N-1; i++) {				// go through first row
+							if(i == N-1-l)								// skip if occupied
 								continue;
-							
-							if(!checkRotations(i, j, k, l)) {		// if no rotation-symmetric starting constellation already found
-								startConstellations.add(toijkl(i, j, k, l));
+							for(int j = N-k-2; j > 0; j--) {			// go through last row
+								if(j==i || l == j)
+									continue;
+								
+								if(!checkRotations(i, j, k, l)) {		// if no rotation-symmetric starting constellation already found
+									startConstellations.add(toijkl(i, j, k, l));
+								}
 							}
 						}
 					}
 				}
+				// save number of found starting constellations
+				startConstCount = startConstellations.size();
+				
+				// print in gui console
+				Gui.print(startConstCount + " start-constellations were found, " + startConstCountBad + " of these suck", true);
 			}
-			// save number of found starting constellations
-			startConstCount = startConstellations.size();
 			
-			// print in gui console
-			Gui.print(startConstCount + " start-constellations were found, " + startConstCountBad + " of these suck", true);
-		}
-		
-		// split starting constellations in cpu many lists (splitting the work for the threads)
-		ArrayList< ArrayDeque<Integer> > threadConstellations = new ArrayList< ArrayDeque<Integer>>(cpu);
-		for(int i = 0; i < cpu; i++) {
-			threadConstellations.add(new ArrayDeque<Integer>());
-		}
-		Iterator<Integer> iterator = startConstellations.iterator();
-		int i = 0;
-		while(iterator.hasNext()) {
-			threadConstellations.get((i++) % cpu).add(iterator.next());
-		}
-
-	// start the threads and wait until they are all finished
-		ExecutorService executor = Executors.newFixedThreadPool(cpu);
-		threadlist = new ArrayList<AlgorithmThread>();
-		for(ArrayDeque<Integer> constellations : threadConstellations) {
-			AlgorithmThread algThread = new AlgorithmThread(N, constellations);
-			threadlist.add(algThread);
-			executor.submit(algThread);
-		}
-		
-		// threadlist built, everything ready
-		ready = true;
-		
-		// wait for the executor
-		executor.shutdown();
-		try {
-			if(executor.awaitTermination(2, TimeUnit.DAYS)) {
-//				System.out.println("fertig geworden");
-			} else {
-//				System.out.println("Zeitlimit abgelaufen");
-				//Speichern
+			// split starting constellations in cpu many lists (splitting the work for the threads)
+			ArrayList< ArrayDeque<Integer> > threadConstellations = new ArrayList< ArrayDeque<Integer>>(cpu);
+			for(int i = 0; i < cpu; i++) {
+				threadConstellations.add(new ArrayDeque<Integer>());
 			}
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
+			Iterator<Integer> iterator = startConstellations.iterator();
+			int i = 0;
+			while(iterator.hasNext()) {
+				threadConstellations.get((i++) % cpu).add(iterator.next());
+			}
+
+		// start the threads and wait until they are all finished
+			ExecutorService executor = Executors.newFixedThreadPool(cpu);
+			threadlist = new ArrayList<AlgorithmThread>();
+			for(ArrayDeque<Integer> constellations : threadConstellations) {
+				AlgorithmThread algThread = new AlgorithmThread(N, constellations);
+				threadlist.add(algThread);
+				executor.submit(algThread);
+			}
+			
+			// threadlist built, everything ready
+			ready = true;
+			
+			// wait for the executor
+			executor.shutdown();
+			try {
+				if(executor.awaitTermination(2, TimeUnit.DAYS)) {
+//					System.out.println("fertig geworden");
+				} else {
+//					System.out.println("Zeitlimit abgelaufen");
+					//Speichern
+				}
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
 		}
 		
 		// endtime
@@ -272,6 +278,10 @@ public class AlgorithmStarter {
 		return N;
 	}
 	public long getSolvecounter() {
+		if(N <= 8) {
+			return this.solvecounter;
+		}
+		
 		long solvecounter = 0;
 		for(AlgorithmThread algThread : threadlist) {
 			solvecounter += algThread.getSolvecounter();
@@ -287,5 +297,26 @@ public class AlgorithmStarter {
 		old_solvecounter = fafprocessdata.solvecounter;
 		startConstCount = fafprocessdata.startConstCount;
 		calculatedStartConstCount = fafprocessdata.calculatedStartConstCount;
+	}
+	
+	
+	// for small N
+	private void nq(int ld, int rd, int col, int row, int free) {
+		if(row == N-1) {
+			solvecounter++;
+			return;
+		}
+		
+		int bit;
+		int nextfree;
+		
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			nextfree = ~((ld|bit)<<1 | (rd|bit)>>1 | col|bit) & mask;
+			
+			if(nextfree > 0)
+				nq((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1, nextfree);
+		}
 	}
 }
