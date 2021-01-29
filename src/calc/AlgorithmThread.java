@@ -35,7 +35,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	// Recursive functions for Placing the Queens
 	// this is if all are there as one piece
 	private void SetQueen1(int ld, int rd, int col, int idx, int free) {
-		if(idx > max) {
+		if(idx == max) {
 			tempcounter++;
 			return;
 		}
@@ -61,7 +61,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private void SetQueen2(int ld, int rd, int col, int idx, int free) {
 		int bit;
 		int nextfree;
-		if(idx > mark1) {
+		if(idx == mark1) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
@@ -86,7 +86,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private void SetQueen31(int ld, int rd, int col, int idx, int free) {
 		int bit;
 		int nextfree;
-		if(idx > mark1) {
+		if(idx == mark1) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
@@ -109,7 +109,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private void SetQueen32(int ld, int rd, int col, int idx, int free) {
 		int bit;
 		int nextfree;
-		if(idx > mark2) {
+		if(idx == mark2) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
@@ -247,7 +247,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	
 	private void SQk01B(int ld, int rd, int col, int idx, int free) {
-		if(idx > max) {
+		if(idx == max) {
 			tempcounter++;
 			return;
 		}
@@ -268,7 +268,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		int bit;
 		int nextfree;
 		
-		if(idx > mark1) {
+		if(idx == mark1) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
@@ -314,7 +314,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 					col = (1 << (N-2-i));
 					free = (~(ld|rd|col)) & smallmask;
 					symmetry = 8;
-					max = N-5;
+					max = N-4;
 					SQk01B(ld, rd, col, 0, free);
 				}
 				
@@ -324,9 +324,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 					col = (1 << (N-2-i));
 					free = (~(ld|rd|col)) & smallmask;
 					symmetry = 8;
-					max = N-5;
+					max = N-4;
 					hop1 = 2;
-					mark1 = k - 3;
+					mark1 = k - 2;
 					SQk02B_1(ld, rd, col, 0, free);
 				}
 			}
@@ -375,24 +375,24 @@ public class AlgorithmThread extends Thread implements Serializable {
 				
 				if(k == 1) {
 					if(l > 2 && l < N-2) {
-						mark1 = l-4;
+						mark1 = l-3;
 						hop1 = 2;
 					}
 				}
 				else {
-					mark1 = k-3;
+					mark1 = k-2;
 					hop1 = 2;
 					if(l == k+1) {
 						hop1 = 3;
 					}
 					else {
-						mark2 = l-4;
+						mark2 = l-3;
 						hop2 = 2;
 					}
 					
 				}
 				
-				max = N-6;
+				max = N-5;
 				
 				// use SetQueenBig - methods for large N
 				// skip SetQueen1 (or SetQueen1Big) if k = 0

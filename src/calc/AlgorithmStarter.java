@@ -19,7 +19,7 @@ import util.FAFProcessData;
 
 public class AlgorithmStarter {
 
-	private int N;							// size of board						
+	private int N, mask, solvecounter = 0;							// size of board						
 	private int cpu;						// number of threads	
 	private long old_solvecounter = 0;		// if we load an old calculation, get the old solvecounter											
 
@@ -287,5 +287,25 @@ public class AlgorithmStarter {
 		old_solvecounter = fafprocessdata.solvecounter;
 		startConstCount = fafprocessdata.startConstCount;
 		calculatedStartConstCount = fafprocessdata.calculatedStartConstCount;
+	}
+	
+	// for small N
+	private void nq(int ld, int rd, int col, int row, int free) {
+		if(row == N-1) {
+			solvecounter++;
+			return;
+		}
+		
+		int bit;
+		int nextfree;
+		
+		while((free)>0) {
+			bit = free & (-free);
+			free -= bit;
+			nextfree = ~((ld|bit)<<1 | (rd|bit)>>1 | col|bit) & mask;
+			
+			if(nextfree > 0)
+				nq((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1, nextfree);
+		}
 	}
 }
