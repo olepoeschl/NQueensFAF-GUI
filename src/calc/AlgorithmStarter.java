@@ -19,7 +19,7 @@ import util.FAFProcessData;
 
 public class AlgorithmStarter {
 
-	public static final int small_n_limit = 10;
+	public static final int small_n_limit = 12;
 	
 	private int N, mask, solvecounter = 0;							// size of board						
 	private int cpu;						// number of threads	
@@ -52,8 +52,7 @@ public class AlgorithmStarter {
 		
 		if(N <= small_n_limit) {
 			mask = (1 << N) - 1;
-			nq(0, 0, 0, 0, mask>>(N/2));
-			solvecounter *= 2;
+			nq(0, 0, 0, 0, mask);
 		}
 		else {
 			// if we don't load an old calculation
