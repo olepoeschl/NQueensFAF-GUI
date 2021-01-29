@@ -19,7 +19,7 @@ import util.FAFProcessData;
 
 public class AlgorithmStarter {
 
-	public static final int small_n_limit = 12;
+	public static final int small_n_limit = 11;
 	
 	private int N, mask, solvecounter = 0;							// size of board						
 	private int cpu;						// number of threads	
