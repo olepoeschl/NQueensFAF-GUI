@@ -133,7 +133,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	// same stuff with the possibility to stop when a solution is found
 	// this is slightly slower, but good for large N where a starting position might take several minutes or even longer
 	private void SetQueen1Big(int ld, int rd, int col, int idx, int free) {
-		if(idx > max) {
+		if(idx == max) {
 			// check if the user wants to pause or break
 			if(pause) {
 				respond = true;
@@ -177,7 +177,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private void SetQueen2Big(int ld, int rd, int col, int idx, int free) {
 		int bit;
 		int nextfree;
-		if(idx > mark1) {
+		if(idx == mark1) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
@@ -202,7 +202,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private void SetQueen31Big(int ld, int rd, int col, int idx, int free) {
 		int bit;
 		int nextfree;
-		if(idx > mark1) {
+		if(idx == mark1) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
@@ -225,7 +225,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private void SetQueen32Big(int ld, int rd, int col, int idx, int free) {
 		int bit;
 		int nextfree;
-		if(idx > mark2) {
+		if(idx == mark2) {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
