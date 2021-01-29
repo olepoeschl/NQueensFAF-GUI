@@ -281,7 +281,7 @@ public class Gui extends JFrame {
 					if(algStarter != null) {
 						if(progressUpdateQueue.size() > 0) {
 							value = progressUpdateQueue.removeFirst();
-							if(value == 128f && algStarter.getN() > 8) {
+							if(value == 128f && algStarter.getN() > AlgorithmStarter.small_n_limit) {
 								value = algStarter.getProgress()*100;
 							}
 							
@@ -292,7 +292,7 @@ public class Gui extends JFrame {
 								progressBar.repaint();
 								
 								tempvalue = 0;
-							} else if(algStarter.getN() > 8){
+							} else if(algStarter.getN() > AlgorithmStarter.small_n_limit){
 								progressBar.setValue((int)value);
 								((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + (((int)(value*10000)) / 10000f) + "%    [ " + algStarter.getCalculatedStartConstCount() + " of " + algStarter.getStartConstCount() + " ]        [ solutions: " + getSolvecounterStr(algStarter.getSolvecounter()) + " ]");
 								progressBar.repaint();
