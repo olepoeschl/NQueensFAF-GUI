@@ -16,6 +16,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	
 	private int[] boardIntegers;		// occupancy of squares for rows 1,...,N-2 from starting constellation; hop rows and hop sizes
 	private int max, mark1, mark2, hop1, hop2;
+	private int ld1, rd1, ld2, rd2;
 	
 	// list of uncalculated starting positions, their indices
 	private ArrayDeque<Integer> startConstellations;
@@ -288,6 +289,29 @@ public class AlgorithmThread extends Thread implements Serializable {
 		}
 	}
 	
+	private void SQk12B_1(int ld, int rd, int col, int idx, int free) {
+		int bit;
+		int nextfree;
+		
+		if(idx == mark2) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				nextfree = ~((((ld|bit)<<hop2)|ld2) | (((rd|bit|L)>>hop2)|rd2) | (col|bit)) & smallmask;
+				if(nextfree > 0)
+					SQk01B(((ld|bit)<<hop2) | ld2, ((rd|bit|L)>>hop2) | rd2, col|bit, idx+1, nextfree);
+			}
+			return;
+		}
+		
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			if(nextfree > 0)
+				SQk12B_1((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
 	
 	
 	@Override
@@ -302,10 +326,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 			i = geti(ijkl); j = getj(ijkl); k = getk(ijkl); l = getl(ijkl);
 			boardIntegers = new int[N-3];
 			hop1 = hop2 = mark1 = mark2 = 0;
-
+			
 			// if queen in corner
 			if(k == 0) {
-				ijkl = rot180(ijkl);
+				ijkl = jasmin(ijkl);
 				i = geti(ijkl); j = getj(ijkl); k = getk(ijkl); l = getl(ijkl);
 				
 				if(k == 1) {
@@ -330,8 +354,45 @@ public class AlgorithmThread extends Thread implements Serializable {
 					SQk02B_1(ld, rd, col, 0, free);
 				}
 			}
-			
 			// if queen not in corner
+//			else if( getj(jasmin(ijkl)) == N-2 && getl(jasmin(ijkl)) == getk(jasmin(ijkl))+1) {
+//				
+//				// if k < l after jasmin'ing the board
+//				if(getk(jasmin(ijkl)) < getl(jasmin(ijkl))) {
+//					
+//					// if theres no space between l and k
+////					if(getl(jasmin(ijkl)) == getk(jasmin(ijkl))+1) {
+//						// initialize i,j,k,l
+//						ijkl = jasmin(ijkl);
+//						i = geti(ijkl);
+//						j = getj(ijkl);
+//						k = getk(ijkl);
+//						l = getl(ijkl);
+//						
+//						if(i == N-1-j && k == N-1-l)		// starting constellation symmetric by rot180?
+//							if(symmetry90(i, j, k, l))		// even by rot90?
+//								symmetry = 2;
+//							else
+//								symmetry = 4;
+//						else
+//							symmetry = 8;					// none of the above?
+//						
+//						ld = (1 << (N-i-1)) | (L >> k);
+//						rd = (L >> 1) | (1 << (N-3-i)) | (1 << (l-2));
+//						col = (1 << (N-2-i)) | 1;
+//						free = (~(ld|rd|col)) & smallmask;
+//						
+//						mark2 = k - 2;
+//						hop2 = 3;
+//						ld2 = 1;
+//						rd2 = L >> 4;
+//						
+//						max = N-5;
+//						
+//						SQk12B_1(ld, rd, col, 0, free);
+////					}
+//				}
+//			}
 			else {
 				if(i == N-1-j && k == N-1-l)		// starting constellation symmetric by rot180?
 					if(symmetry90(i, j, k, l))		// even by rot90?
@@ -466,10 +527,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 	}
 	private int getl(int ijkl) {
 		return ijkl & 255;
-	}
-	
-	private int rot180(int ijkl) {
-		return ((N-1-getj(ijkl))<<24) + ((N-1-geti(ijkl))<<16) + ((N-1-getl(ijkl))<<8) + N-1-getk(ijkl);
 	}
 	
 	// true, if starting constellation is symmetric for rot90
