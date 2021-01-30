@@ -355,44 +355,44 @@ public class AlgorithmThread extends Thread implements Serializable {
 				}
 			}
 			// if queen not in corner
-//			else if( getj(jasmin(ijkl)) == N-2 && getl(jasmin(ijkl)) == getk(jasmin(ijkl))+1) {
-//				
-//				// if k < l after jasmin'ing the board
-//				if(getk(jasmin(ijkl)) < getl(jasmin(ijkl))) {
-//					
-//					// if theres no space between l and k
-////					if(getl(jasmin(ijkl)) == getk(jasmin(ijkl))+1) {
-//						// initialize i,j,k,l
-//						ijkl = jasmin(ijkl);
-//						i = geti(ijkl);
-//						j = getj(ijkl);
-//						k = getk(ijkl);
-//						l = getl(ijkl);
-//						
-//						if(i == N-1-j && k == N-1-l)		// starting constellation symmetric by rot180?
-//							if(symmetry90(i, j, k, l))		// even by rot90?
-//								symmetry = 2;
-//							else
-//								symmetry = 4;
-//						else
-//							symmetry = 8;					// none of the above?
-//						
-//						ld = (1 << (N-i-1)) | (L >> k);
-//						rd = (L >> 1) | (1 << (N-3-i)) | (1 << (l-2));
-//						col = (1 << (N-2-i)) | 1;
-//						free = (~(ld|rd|col)) & smallmask;
-//						
-//						mark2 = k - 2;
-//						hop2 = 3;
-//						ld2 = 1;
-//						rd2 = L >> 4;
-//						
-//						max = N-5;
-//						
-//						SQk12B_1(ld, rd, col, 0, free);
-////					}
-//				}
-//			}
+			else if( getj(jasmin(ijkl)) == N-2 && getl(jasmin(ijkl)) == getk(jasmin(ijkl))+1) {
+				
+				// if k < l after jasmin'ing the board
+				if(getk(jasmin(ijkl)) < getl(jasmin(ijkl))) {
+					
+					// if theres no space between l and k
+//					if(getl(jasmin(ijkl)) == getk(jasmin(ijkl))+1) {
+						// initialize i,j,k,l
+						ijkl = jasmin(ijkl);
+						i = geti(ijkl);
+						j = getj(ijkl);
+						k = getk(ijkl);
+						l = getl(ijkl);
+						
+						if(i == N-1-j && k == N-1-l)		// starting constellation symmetric by rot180?
+							if(symmetry90(i, j, k, l))		// even by rot90?
+								symmetry = 2;
+							else
+								symmetry = 4;
+						else
+							symmetry = 8;					// none of the above?
+						
+						ld = (1 << (N-i-1)) | (L >> k);
+						rd = (1 << (N-2)) | (L >> (i+2)) | (1 << (l-2));
+						col = (1 << (N-2-i)) | 1;
+						free = (~(ld|rd|col)) & smallmask;
+						
+						mark2 = k - 2;
+						hop2 = 3;
+						ld2 = 1;
+						rd2 = 1 << (N-4);
+						
+						max = N-5;
+						
+						SQk12B_1(ld, rd, col, 0, free);
+//					}
+				}
+			}
 			else {
 				if(i == N-1-j && k == N-1-l)		// starting constellation symmetric by rot180?
 					if(symmetry90(i, j, k, l))		// even by rot90?
