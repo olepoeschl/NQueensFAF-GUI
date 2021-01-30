@@ -330,6 +330,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 					SQk02B_1(ld, rd, col, 0, free);
 				}
 			}
+			
 			// if queen not in corner
 			else {
 				if(i == N-1-j && k == N-1-l)		// starting constellation symmetric by rot180?
@@ -509,5 +510,37 @@ public class AlgorithmThread extends Thread implements Serializable {
 	}
 	public void resetRespond() {
 		respond = false;
+	}
+	
+	private int jasmin(int ijkl) {
+		int min = Math.min(getj(ijkl), N-1 - getj(ijkl)), arg = 0;
+		
+		if(Math.min(geti(ijkl), N-1 - geti(ijkl)) < min)
+			arg = 2;
+		else if(Math.min(getk(ijkl), N-1 - getk(ijkl)) < min)
+			arg = 3;
+		else if(Math.min(getl(ijkl), N-1 - getl(ijkl)) < min)
+			arg = 1;
+		
+		for(int i = 0; i < arg; i++) {
+			ijkl = rot90(ijkl);
+		}
+		
+		if(getj(ijkl) < N-1 - getj(ijkl))
+			ijkl = mirvert(ijkl);
+		
+		return ijkl;
+	}
+	
+	private int mirvert(int ijkl) {
+		return toijkl(N-1-geti(ijkl), N-1-getj(ijkl), getl(ijkl), getk(ijkl));
+	}
+	
+	private int rot90(int ijkl) {
+		return ((N-1-getk(ijkl))<<24) + ((N-1-getl(ijkl))<<16) + (getj(ijkl)<<8) + geti(ijkl);
+	}
+	
+	private int toijkl(int i, int j, int k, int l) {
+		return (i<<24) + (j<<16) + (k<<8) + l;
 	}
 }
