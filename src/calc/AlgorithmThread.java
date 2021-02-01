@@ -692,7 +692,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 	public void run() {
 		int listsize = startConstellations.size();
 		int i, j, k, l, ijkl, ld, rd, col, row, symmetry = 0, diff, free, mask = (1 << N) - 1;
-		int neu = 0;
 		
 		loop:
 		for(int a = 0; a < listsize; a++) {
@@ -704,7 +703,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 			
 			// if queen in corner
 			if(k == 0) {
-				neu++;
 				ijkl = jasmin(ijkl);
 				i = geti(ijkl); j = getj(ijkl); k = getk(ijkl); l = getl(ijkl);
 				
@@ -732,7 +730,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 			}
 			// if queen not in corner
 			else if( getj(jasmin(ijkl)) == N-2 && getl(jasmin(ijkl)) == getk(jasmin(ijkl))+1) {
-				neu++;
 				
 				// if k < l after jasmin'ing the board
 				if(getk(jasmin(ijkl)) < getl(jasmin(ijkl))) {
@@ -773,7 +770,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 			
 			// all cases for N-1-j > 2
 			else if(N-1 - getj(jasmin(ijkl)) > 2) {
-				neu++;
 				ijkl = jasmin(ijkl);
 				i = geti(ijkl); j = getj(ijkl); k = getk(ijkl); l = getl(ijkl);
 				
@@ -812,7 +808,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 			
 			// cases with N-1-j = 2
 			else if(N-1 - getj(jasmin(ijkl)) == 2) {
-				neu++;
 				ijkl = jasmin(ijkl);
 				i = geti(ijkl); j = getj(ijkl); k = getk(ijkl); l = getl(ijkl);
 				
@@ -968,7 +963,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 				break;
 			}
 		}
-		System.out.println(neu);
 	}
 	
 	private int geti(int ijkl) {
