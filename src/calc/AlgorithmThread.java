@@ -523,6 +523,170 @@ public class AlgorithmThread extends Thread implements Serializable {
 		}
 	}
 	
+	// for N-1-j = 2
+	private void SQd2BlkB(int ld, int rd, int col, int idx, int free) {
+		int bit;
+		int nextfree;
+		
+		if(idx == mark2) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | (1 << N3) | 2) & smallmask;
+				if(nextfree > 0)
+					SQd2B(((ld|bit)<<3) | 2, ((rd|bit)>>3) | (1 << N3), col|bit, idx+1, nextfree);
+			}
+			return;
+		}
+		
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			if(nextfree > 0)
+				SQd2BlkB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
+	
+	private void SQd2BklB(int ld, int rd, int col, int idx, int free) {
+		int bit;
+		int nextfree;
+		
+		if(idx == mark2) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | (1 << N4) | 1) & smallmask;
+				if(nextfree > 0)
+					SQd2B(((ld|bit)<<3) | 1, ((rd|bit)>>3) | (1 << N4), col|bit, idx+1, nextfree);
+			}
+			return;
+		}
+		
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			if(nextfree > 0)
+				SQd2BklB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
+	
+	private void SQd2BlBkB(int ld, int rd, int col, int idx, int free) {
+		int bit;
+		int nextfree;
+		
+		if(idx == mark1) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1) & smallmask;
+				if(nextfree > 0)
+					SQd2BkB(((ld|bit)<<2) | 1, (rd|bit)>>2, col|bit, idx+1, nextfree);
+			}
+			return;
+		}
+		
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			if(nextfree > 0)
+				SQd2BlBkB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
+	
+	private void SQd2BkBlB(int ld, int rd, int col, int idx, int free) {
+		int bit;
+		int nextfree;
+		
+		if(idx == mark1) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | (1 << (N3))) & smallmask;
+				if(nextfree > 0)
+					SQd2BlB(((ld|bit)<<2), ((rd|bit)>>2) | (1 << (N3)), col|bit, idx+1, nextfree);
+			}
+			return;
+		}
+		
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			if(nextfree > 0)
+				SQd2BkBlB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
+	
+	private void SQd2BlB(int ld, int rd, int col, int idx, int free) {
+		int bit;
+		int nextfree;
+		
+		if(idx == mark2) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1) & smallmask;
+				if(nextfree > 0)
+					SQd2B(((ld|bit)<<2) | 1, (rd|bit)>>2, col|bit, idx+1, nextfree);
+			}
+			return;
+		}
+		
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			if(nextfree > 0)
+				SQd2BlB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
+	
+	private void SQd2BkB(int ld, int rd, int col, int idx, int free) {
+		int bit;
+		int nextfree;
+		
+		if(idx == mark2) {
+			while(free > 0) {
+				bit = free & (-free);
+				free -= bit;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | (1 << N3)) & smallmask;
+				if(nextfree > 0)
+					SQd2B(((ld|bit)<<2), ((rd|bit)>>2) | (1 << N3), col|bit, idx+1, nextfree);
+			}
+			return;
+		}
+		
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			if(nextfree > 0)
+				SQd2BkB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
+	
+	private void SQd2B(int ld, int rd, int col, int idx, int free) {
+		if(idx == N5) {
+			if((free & (~1)) > 0) 
+				tempcounter++;
+			return;
+		}
+		
+		int bit;
+		int nextfree;
+		
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			if(nextfree > 0)
+				SQd2B((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+		}
+	}
+	
 	
 	@Override
 	public void run() {
@@ -643,6 +807,43 @@ public class AlgorithmThread extends Thread implements Serializable {
 						SQBlkBjrB(ld, rd, col, 0, free);
 					else 
 						SQBlBkBjrB(ld, rd, col, 0, free);
+				}
+			}
+			
+			// cases with N-1-j = 2
+			else if(N-1 - getj(jasmin(ijkl)) == 2) {
+				neu++;
+				ijkl = jasmin(ijkl);
+				i = geti(ijkl); j = getj(ijkl); k = getk(ijkl); l = getl(ijkl);
+				
+				if(i == N-1-j && k == N-1-l)		// starting constellation symmetric by rot180?
+					if(symmetry90(i, j, k, l))		// even by rot90?
+						symmetry = 2;
+					else
+						symmetry = 4;
+				else
+					symmetry = 8;					// none of the above?
+				
+				ld = (1 << (N-i-1)) | (L >> k);
+				rd = (1 << (N-1-j+N-3)) | (L >> (i+2)) | (1 << (l-2));
+				col = (1 << (N-2-i)) | (1 << (N-2-j));
+				free = (~(ld|rd|col)) & smallmask;
+				
+				if(k < l) {
+					mark1 = k - 2;
+					mark2 = l - 3;
+					if(l == k+1) 
+						SQd2BklB(ld, rd, col, 0, free);
+					else 
+						SQd2BkBlB(ld, rd, col, 0, free);
+				}
+				else {
+					mark1 = l - 2;
+					mark2 = k - 3;
+					if(k == l+1) 
+						SQd2BlkB(ld, rd, col, 0, free);
+					else 
+						SQd2BlBkB(ld, rd, col, 0, free);
 				}
 			}
 			
@@ -767,6 +968,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 				break;
 			}
 		}
+		System.out.println(neu);
 	}
 	
 	private int geti(int ijkl) {
