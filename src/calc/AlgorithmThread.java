@@ -10,11 +10,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private final int N, smallmask, L;									// boardsize
+	private final int N, N3, N4, N5, smallmask, L;			// boardsize
 	private long tempcounter = 0, solvecounter = 0;			// tempcounter is #(unique solutions) of current start constellation, solvecounter is #(all solutions)
 	private int startConstIndex = 0;						// #(done start constellations)
 
-	private int N5, N4, N3, mark1, mark2, mark3;
+	private int mark1, mark2, mark3;
 
 	// list of uncalculated starting positions, their indices
 	private ArrayDeque<Integer> startConstellations;
