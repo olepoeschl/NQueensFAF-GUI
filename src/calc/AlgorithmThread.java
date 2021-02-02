@@ -813,13 +813,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 			}
 	}
 
-	// true, if starting constellation is symmetric for rot90
-	private boolean symmetry90(int ijkl) {
-		if(((geti(ijkl) << 24) + (getj(ijkl) << 16) + (getk(ijkl) << 8) + getl(ijkl))   ==   (((N-1-getk(ijkl))<<24) + ((N-1-getl(ijkl))<<16) + (getj(ijkl)<<8) + geti(ijkl)))
-			return true;
-		return false;
-	}
-
 	// for pause and continue
 	public void pause() {
 		pause = true;
@@ -851,6 +844,13 @@ public class AlgorithmThread extends Thread implements Serializable {
 		respond = false;
 	}
 
+	// for symmetry stuff and working with ijkl
+	// true, if starting constellation is symmetric for rot90
+	private boolean symmetry90(int ijkl) {
+		if(((geti(ijkl) << 24) + (getj(ijkl) << 16) + (getk(ijkl) << 8) + getl(ijkl)) == (((N-1-getk(ijkl))<<24) + ((N-1-getl(ijkl))<<16) + (getj(ijkl)<<8) + geti(ijkl)))
+			return true;
+		return false;
+	}
 	// how often does a found solution count for this start constellation
 	private int symmetry(int ijkl) {
 		if(geti(ijkl) == N-1-getj(ijkl) && getk(ijkl) == N-1-getl(ijkl))		// starting constellation symmetric by rot180?
@@ -861,7 +861,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 		else
 			return 8;					// none of the above?
 	}
-
 	// i, j, k, l to ijkl and functions to get specific entry
 	private int toijkl(int i, int j, int k, int l) {
 		return (i<<24) + (j<<16) + (k<<8) + l;
@@ -878,7 +877,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private int getl(int ijkl) {
 		return ijkl & 255;
 	}
-
 	// rotate and mirror board, so that the queen closest to a corner is on the right side of the last row
 	private int jasmin(int ijkl) {
 		int min = Math.min(getj(ijkl), N-1 - getj(ijkl)), arg = 0;
