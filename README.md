@@ -29,7 +29,7 @@ This solution is based on two methods:
 # Version X (yet to come):
       - definitely N = 16 in < 1 sec 
       
-# Distributet
+# Distributed
       - currently testing for 23 
       
       - if succesfull, we will approach boardsize 24
