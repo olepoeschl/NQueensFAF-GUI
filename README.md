@@ -25,19 +25,20 @@ This solution is based on two methods:
       
 - calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://tu-dresden.de">implementation by the TU Dresden</a> (a very good description of this method can be found <a href="http://www.nqueens.de/sub/SearchAlgoUseSymm.en.html">here</a>)
 
-### ! *times* are referring to *i5-9300h @4GHz undervolted, single threaded* !
+# Versions
+----> ! *times* are referring to *i5-9300h @4GHz undervolted, single threaded* !
 
-# Version X (yet to come):
+## Version X (yet to come):
       - definitely N = 16 in < 1 sec 
       
-# Distributed
+## Distributed
       - currently testing for 23 
       
       - if succesfull, we will approach boardsize 24
       
       - please contact us if you want to help and speed up the process :)
       
-# Version 9:
+## Version 9:
       - REMARKABLE IMPROVEMENT!!! (~35%)
 
       - implemented case distinction for the different start Constellations in order to get rid of arrays
@@ -47,7 +48,7 @@ This solution is based on two methods:
       - currently only works for board sizes up to N=23, this will be updated soon
       
       - N = 16 in ~1.3 sec --> broke the 2-second-Barrier!
-# Version 8:
+## Version 8:
       - better handling of the different start constellation cases
       
       - optimization of the recursion functions
@@ -55,7 +56,7 @@ This solution is based on two methods:
       - many further little optimizations
 
       - N = 16 in ~2.1 sec
-# Version 7:
+## Version 7:
       - many minor changes to reduce memory and cache misses
       
       - ability to save progress and continue later
@@ -63,7 +64,7 @@ This solution is based on two methods:
       - use newest java jdk 15
       
       - N = 16 in ~2.5 sec
-# Version 6:
+## Version 6:
       - bit representation of integers for modelling the board
       
       - rest of the program stays the same
@@ -71,7 +72,7 @@ This solution is based on two methods:
       - has a gui now
       
       - N = 16 in ~ 4 sec
-# Version 5:
+## Version 5:
       - better use of symmetry of solutions by using starting constellations
       
       - set Queens on the outer rows and cols
@@ -79,17 +80,17 @@ This solution is based on two methods:
       - multithreading by distributing the starting positions to the threads
       
       - N = 16 in ~ 1 min     
-# Version 4:
+## Version 4:
       - multithreading by setting Queen in the first row on different places
-# Version 3:
+## Version 3:
       - represent the board with diagonals and cols 
       
       - N = 16 in ~ some min
-# Version 2:
+## Version 2:
       - reduce to half by only going to the half of the first row
       
       - N = 16 in ~ 5 min
-# Version 1: 
+## Version 1: 
       - board as NxN-boolean
       
       - occupy each square individually
