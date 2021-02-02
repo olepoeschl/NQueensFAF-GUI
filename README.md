@@ -33,9 +33,9 @@ This solution is based on two methods:
 # Version 9 (in progress):
       - implement case distinction for the different start Constellations in order to get rid of arrays
       
-      - current progress: covered the cases with one queen in the corner of the board
+      - current progress: covered all cases, works for board sizes up to N=23 for now, update for higher board sizes is in work
       
-      - N = 16 in ~1.98 sec (single-threaded) --> broke the 2-second-Barrier!
+      - N = 16 in ~1.3 sec (single-threaded) --> broke the 2-second-Barrier!
 # Version 8 (Latest):
       - better handling of the different start constellation cases
       
