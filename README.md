@@ -25,7 +25,8 @@ This solution is based on two methods:
       
 - calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://tu-dresden.de">implementation by the TU Dresden</a> (a very good description of this method can be found <a href="http://www.nqueens.de/sub/SearchAlgoUseSymm.en.html">here</a>)
 
-- <i>times</i> are referring to <i>i5-9300h @4GHz undervolted, single threaded</i>
+
+<i>times</i> are referring to <i>i5-9300h @4GHz undervolted, single threaded</i>
 
 
 # Version X (yet to come):
