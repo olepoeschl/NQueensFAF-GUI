@@ -27,23 +27,33 @@ This solution is based on two methods:
 
 
 # Version X (yet to come):
-      - definitely N = 16 in < 1 sec (single-threaded)
+      - definitely N = 16 in < 1 sec 
       
+# Distributet
+      - currently testing for 23 
       
-# Version 9 (in progress):
-      - implement case distinction for the different start Constellations in order to get rid of arrays
+      - if succesfull, we will approach boardsize 24
       
-      - current progress: covered all cases, works for board sizes up to N=23 for now, update for higher board sizes is in work
+      - please contact us if you want to help and speed up the process :)
       
-      - N = 16 in ~1.3 sec (single-threaded) --> broke the 2-second-Barrier!
-# Version 8 (Latest):
+# Version 9:
+      - REMARKABLE IMPROVEMENT!!! (~35%)
+
+      - implemented case distinction for the different start Constellations in order to get rid of arrays
+      
+      - now only 0 - 3 class variables (int) per start constellation instead of int[N-3] and 5 int
+      
+      - currently only works for board sizes up to N=23, this will be updated soon
+      
+      - N = 16 in ~1.3 sec --> broke the 2-second-Barrier!
+# Version 8:
       - better handling of the different start constellation cases
       
       - optimization of the recursion functions
       
       - many further little optimizations
 
-      - N = 16 in ~2.1 sec (single-threaded) 
+      - N = 16 in ~2.1 sec
 # Version 7:
       - many minor changes to reduce memory and cache misses
       
@@ -51,7 +61,7 @@ This solution is based on two methods:
       
       - use newest java jdk 15
       
-      - N = 16 in ~2.5 sec (single-threaded) 
+      - N = 16 in ~2.5 sec
 # Version 6:
       - bit representation of integers for modelling the board
       
@@ -59,7 +69,7 @@ This solution is based on two methods:
       
       - has a gui now
       
-      - N = 16 in ~ 4 sec (single-threaded)
+      - N = 16 in ~ 4 sec
 # Version 5:
       - better use of symmetry of solutions by using starting constellations
       
@@ -67,7 +77,7 @@ This solution is based on two methods:
       
       - multithreading by distributing the starting positions to the threads
       
-      - N = 16 in ~ 1 min (single-threaded)      
+      - N = 16 in ~ 1 min     
 # Version 4:
       - multithreading by setting Queen in the first row on different places
 # Version 3:
@@ -88,7 +98,7 @@ This solution is based on two methods:
       - N = 16 in ~ 10 minutes
       
       
-(times are referring to i5-9300h @4GHz undervolted)
+(times are referring to i5-9300h @4GHz undervolted, single threaded)
  
       
 # Credits
