@@ -25,6 +25,8 @@ This solution is based on two methods:
       
 - calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://tu-dresden.de">implementation by the TU Dresden</a> (a very good description of this method can be found <a href="http://www.nqueens.de/sub/SearchAlgoUseSymm.en.html">here</a>)
 
+- times are referring to i5-9300h @4GHz undervolted, single threaded 
+
 
 # Version X (yet to come):
       - definitely N = 16 in < 1 sec 
@@ -97,8 +99,6 @@ This solution is based on two methods:
       
       - N = 16 in ~ 10 minutes
       
-      
-(times are referring to i5-9300h @4GHz undervolted, single threaded)
  
       
 # Credits
