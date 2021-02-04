@@ -139,7 +139,6 @@ public class Gui extends JFrame {
 	
 	private void initGui() {
 		this.setIconImage(iconImg);
-		this.setIconImage( Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/queenFire_FAF_beschnitten.png")) );
 		this.setResizable(false);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.getContentPane().setLayout(new BorderLayout());	
