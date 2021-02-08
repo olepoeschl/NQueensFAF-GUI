@@ -3,7 +3,7 @@
 
 Gui-Program for calculating the number of solutions of the N-Queens Problem.
 
-See the "Release" section for the latest stable .jar.
+See the "Release" section for the latest stable .jar. <br>
 Download the latest nightly .jar:     
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.student.hs-mittweida.de/~opoeschl/executables/NQueensFaf.jar"> NQueensFaf.jar (Java 15) </a>
 <br>&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.student.hs-mittweida.de/~opoeschl/executables/NQueensFaf_Java8.jar"> NQueensFaf_Java8.jar (Java 8) </a>
