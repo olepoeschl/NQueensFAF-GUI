@@ -15,7 +15,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private int startConstIndex = 0;						// #(done start constellations)
 
 	private int mark1, mark2, mark3;
-
+ 
 	// list of uncalculated starting positions, their indices
 	private ArrayDeque<Integer> startConstellations;
 
