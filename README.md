@@ -34,11 +34,14 @@ This solution is based on two methods:
       - definitely N = 16 in < 1 sec 
       
 ## Distributed
-      - currently testing for 23 
+      - test using board size 23 was successfull !
       
-      - if succesfull, we will approach boardsize 24
+      - currently: further developing of the client executable
       
-      - please contact us if you want to help and speed up the process :)
+      - once everything works fine and we got a pretty looking program, we will upload it
+        and start tests for even bigger board sizes
+        
+      - STAY TUNED !
       
 ## Version 9:
       - REMARKABLE IMPROVEMENT!!! (~35%)
