@@ -58,7 +58,7 @@ public class AlgorithmStarter {
 			// if we don't load an old calculation
 			if(!load) {		
 				// column, left and right diag, idx of row, mask marks the board, halfN half of N rounded up
-				int halfN = (N + (N % 2)) / 2;
+				final int halfN = (N + 1) / 2;
 				
 				// calculating start constellations with the first Queen on square (0,0)
 				for(int j = 1; j < N-2; j++) {						// j is idx of Queen in last row				
@@ -121,18 +121,16 @@ public class AlgorithmStarter {
 			executor.shutdown();
 			try {
 				if(executor.awaitTermination(2, TimeUnit.DAYS)) {
-//					System.out.println("fertig geworden");
+					// done 
+					// end time
+					end = System.currentTimeMillis();
 				} else {
-//					System.out.println("Zeitlimit abgelaufen");
-					//Speichern
+					// not done
 				}
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
 		}
-		
-		// endtime
-		end = System.currentTimeMillis();
 	}
 
 	// true, if starting constellation rotated by any angle has already been found
@@ -151,6 +149,9 @@ public class AlgorithmStarter {
 
 		return false;
 	}
+	private int toijkl(int i, int j, int k, int l) {
+		return (i<<24) + (j<<16) + (k<<8) + l;
+	}
 
 	// pause, cancel, continue
 	public void pause() {
@@ -159,44 +160,6 @@ public class AlgorithmStarter {
 			algThread.pause();
 		}
 	}
-	
-//	private int rot90(int ijkl) {
-//		return ((N-1-getk(ijkl))<<24) + ((N-1-getl(ijkl))<<16) + (getj(ijkl)<<8) + geti(ijkl);
-//	}
-//	private int rot180(int ijkl) {
-//		return ((N-1-getj(ijkl))<<24) + ((N-1-geti(ijkl))<<16) + ((N-1-getl(ijkl))<<8) + N-1-getk(ijkl);
-//	}
-//	private int rot270(int ijkl) {
-//		return (getl(ijkl)<<24) + (getk(ijkl)<<16) + ((N-1-geti(ijkl))<<8) + N-1-getj(ijkl);
-//	}
-//	private int mirvert(int ijkl) {
-//		return ijkl;
-//	}
-//	private int mirhorz(int ijkl) {
-//		return ijkl;
-//	}
-//	private int mirdial(int ijkl) {
-//		return ijkl;
-//	}
-//	private int mirdiar(int ijkl) {
-//		return ijkl;
-//	}
-//	private int geti(int ijkl) {
-//		return ijkl >> 24;
-//	}
-//	private int getj(int ijkl) {
-//		return (ijkl >> 16) & 255;
-//	}
-//	private int getk(int ijkl) {
-//		return (ijkl >> 8) & 255;
-//	}
-//	private int getl(int ijkl) {
-//		return ijkl & 255;
-//	}
-	private int toijkl(int i, int j, int k, int l) {
-		return (i<<24) + (j<<16) + (k<<8) + l;
-	}
-	
 	public void go() {
 		pause = false;
 		for(AlgorithmThread algThread : threadlist) {
@@ -213,6 +176,13 @@ public class AlgorithmStarter {
 			algThread.dontCancel();
 		}
 	}
+
+	public boolean isPaused() {
+		return pause;
+	}
+	public boolean isReady() {
+		return ready;
+	}
 	
 	public boolean responds() {
 		boolean responds = true;
@@ -228,13 +198,6 @@ public class AlgorithmStarter {
 		}
 	}
 	
-	public boolean isPaused() {
-		return pause;
-	}
-	public boolean isReady() {
-		return ready;
-	}
-
 	// time measurement
 	public long getStarttime() {
 		return start;
@@ -257,7 +220,6 @@ public class AlgorithmStarter {
 	public int getUncalculatedStartConstCount() {
 		return getUncalculatedStartConstellations().size();
 	}
-	
 	// loading 
 	public ArrayDeque<Integer> getUncalculatedStartConstellations() {
 		ArrayDeque<Integer> uncalcbplist = new ArrayDeque<Integer>();
@@ -266,7 +228,6 @@ public class AlgorithmStarter {
 		}
 		return uncalcbplist;
 	}
-	
 	public float getProgress() {
 		if(threadlist == null)
 			return 0;
@@ -302,7 +263,7 @@ public class AlgorithmStarter {
 	}
 	
 	
-	// for small N
+	// basic recursive backtracking solver for small N
 	private void nq(int ld, int rd, int col, int row, int free) {
 		if(row == N-1) {
 			solvecounter++;

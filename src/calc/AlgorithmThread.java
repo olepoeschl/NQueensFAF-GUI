@@ -10,12 +10,12 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private final int N, N3, N4, N5, smallmask, L;			// boardsize
+	private final int N, N3, N4, N5, L, L3, L4;			// boardsize
 	private long tempcounter = 0, solvecounter = 0;			// tempcounter is #(unique solutions) of current start constellation, solvecounter is #(all solutions)
-	private int startConstIndex = 0;						// #(done start constellations)
+	private int constellation_idx = 0;						// #(done start constellations)
 
 	private int mark1, mark2, mark3;
-
+ 
 	// list of uncalculated starting positions, their indices
 	private ArrayDeque<Integer> startConstellations;
 
@@ -28,8 +28,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 		N4 = N - 4;
 		N5 = N - 5;
 		N3 = N - 3;
+		L3 = 1 << N3;
+		L4 = 1 << N4;
 		this.L = 1 << (N-1);
-		smallmask = (1 << (N-2)) - 1;
 		this.startConstellations = startConstellations;
 	}
 
@@ -48,7 +49,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd0B((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -62,9 +63,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | (1 << N3)) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | L3);
 				if(nextfree > 0)
-					SQd0B((ld|bit)<<2, ((rd|bit)>>2) | (1 << N3), col|bit, idx+1, nextfree);
+					SQd0B((ld|bit)<<2, ((rd|bit)>>2) | L3, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -72,7 +73,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd0BkB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -87,9 +88,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | 1 | (1 << N4)) & smallmask;
+				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | 1 | L4);
 				if(nextfree > 0)
-					SQd1B(((ld|bit)<<3) | 1, ((rd|bit)>>3) | (1 << N4), col|bit, idx+1, nextfree);
+					SQd1B(((ld|bit)<<3) | 1, ((rd|bit)>>3) | L4, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -97,7 +98,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd1BklB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -115,7 +116,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd1B((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -129,9 +130,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | (1 << N3)) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | L3);
 				if(nextfree > 0)
-					SQd1BlB(((ld|bit)<<2), ((rd|bit)>>2) | (1 << N3), col|bit, idx+1, nextfree);
+					SQd1BlB(((ld|bit)<<2), ((rd|bit)>>2) | L3, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -139,7 +140,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd1BkBlB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -153,7 +154,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1);
 				if(nextfree > 0)
 					SQd1B(((ld|bit)<<2) | 1, (rd|bit)>>2, col|bit, idx+1, nextfree);
 			}
@@ -163,7 +164,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd1BlB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -177,9 +178,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | 2 | (1 << N3)) & smallmask;
+				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | 2 | L3);
 				if(nextfree > 0)
-					SQd1B(((ld|bit)<<3) | 2, ((rd|bit)>>3) | (1 << N3), col|bit, idx+1, nextfree);
+					SQd1B(((ld|bit)<<3) | 2, ((rd|bit)>>3) | L3, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -187,7 +188,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd1BlkB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -201,7 +202,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1);
 				if(nextfree > 0)
 					SQd1BkB(((ld|bit)<<2) | 1, (rd|bit)>>2, col|bit, idx+1, nextfree);
 			}
@@ -211,7 +212,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd1BlBkB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -225,9 +226,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | (1 << N3)) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | L3);
 				if(nextfree > 0)
-					SQd1B(((ld|bit)<<2), ((rd|bit)>>2) | (1 << N3), col|bit, idx+1, nextfree);
+					SQd1B(((ld|bit)<<2), ((rd|bit)>>2) | L3, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -235,7 +236,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd1BkB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -250,7 +251,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | (1 << (N3))) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | (1 << (N3)));
 				if(nextfree > 0)
 					SQBlBjrB(((ld|bit)<<2), ((rd|bit)>>2) | (1 << (N3)), col|bit, idx+1, nextfree);
 			}
@@ -260,7 +261,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQBkBlBjrB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -274,7 +275,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1);
 				if(nextfree > 0)
 					SQBjrB(((ld|bit)<<2) | 1, (rd|bit)>>2, col|bit, idx+1, nextfree);
 			}
@@ -284,7 +285,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQBlBjrB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -295,12 +296,13 @@ public class AlgorithmThread extends Thread implements Serializable {
 		int nextfree;
 
 		if(idx == mark3) {
-			free &= ~1;
+			// free &= (~1);
+			free &= 2147483646;
 			ld |= 1;
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+				nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 				if(nextfree > 0)
 					SQB(((ld|bit)<<1), (rd|bit)>>1, col|bit, idx+1, nextfree);
 			}
@@ -310,7 +312,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQBjrB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -328,7 +330,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -342,7 +344,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1);
 				if(nextfree > 0)
 					SQBkBjrB(((ld|bit)<<2) | 1, (rd|bit)>>2, col|bit, idx+1, nextfree);
 			}
@@ -352,7 +354,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQBlBkBjrB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -366,9 +368,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | (1 << N3)) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | L3);
 				if(nextfree > 0)
-					SQBjrB(((ld|bit)<<2), ((rd|bit)>>2) | (1 << N3), col|bit, idx+1, nextfree);
+					SQBjrB(((ld|bit)<<2), ((rd|bit)>>2) | L3, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -376,7 +378,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQBkBjrB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -390,9 +392,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | (1 << N4) | 1) & smallmask;
+				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | L4 | 1);
 				if(nextfree > 0)
-					SQBjrB(((ld|bit)<<3) | 1, ((rd|bit)>>3) | (1 << N4), col|bit, idx+1, nextfree);
+					SQBjrB(((ld|bit)<<3) | 1, ((rd|bit)>>3) | L4, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -400,7 +402,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQBklBjrB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -414,9 +416,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | (1 << N3) | 2) & smallmask;
+				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | L3 | 2);
 				if(nextfree > 0)
-					SQBjrB(((ld|bit)<<3) | 2, ((rd|bit)>>3) | (1 << N3), col|bit, idx+1, nextfree);
+					SQBjrB(((ld|bit)<<3) | 2, ((rd|bit)>>3) | L3, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -424,7 +426,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQBlkBjrB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -439,9 +441,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | (1 << N3) | 2) & smallmask;
+				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | L3 | 2);
 				if(nextfree > 0)
-					SQd2B(((ld|bit)<<3) | 2, ((rd|bit)>>3) | (1 << N3), col|bit, idx+1, nextfree);
+					SQd2B(((ld|bit)<<3) | 2, ((rd|bit)>>3) | L3, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -449,7 +451,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd2BlkB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -463,9 +465,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | (1 << N4) | 1) & smallmask;
+				nextfree = ~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit) | L4 | 1);
 				if(nextfree > 0)
-					SQd2B(((ld|bit)<<3) | 1, ((rd|bit)>>3) | (1 << N4), col|bit, idx+1, nextfree);
+					SQd2B(((ld|bit)<<3) | 1, ((rd|bit)>>3) | L4, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -473,7 +475,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd2BklB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -487,7 +489,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1);
 				if(nextfree > 0)
 					SQd2BkB(((ld|bit)<<2) | 1, (rd|bit)>>2, col|bit, idx+1, nextfree);
 			}
@@ -497,7 +499,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd2BlBkB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -511,7 +513,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | (1 << (N3))) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | (1 << (N3)));
 				if(nextfree > 0)
 					SQd2BlB(((ld|bit)<<2), ((rd|bit)>>2) | (1 << (N3)), col|bit, idx+1, nextfree);
 			}
@@ -521,7 +523,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd2BkBlB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -535,7 +537,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1);
 				if(nextfree > 0)
 					SQd2B(((ld|bit)<<2) | 1, (rd|bit)>>2, col|bit, idx+1, nextfree);
 			}
@@ -545,7 +547,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd2BlB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -559,9 +561,9 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | (1 << N3)) & smallmask;
+				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | L3);
 				if(nextfree > 0)
-					SQd2B(((ld|bit)<<2), ((rd|bit)>>2) | (1 << N3), col|bit, idx+1, nextfree);
+					SQd2B(((ld|bit)<<2), ((rd|bit)>>2) | L3, col|bit, idx+1, nextfree);
 			}
 			return;
 		}
@@ -569,7 +571,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd2BkB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -577,7 +579,8 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	private void SQd2B(int ld, int rd, int col, int idx, int free) {
 		if(idx == N5) {
-			if((free & (~1)) > 0) 
+			// free & (~1)
+			if((free & 2147483646) > 0) 
 				tempcounter++;
 			return;
 		}
@@ -588,7 +591,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit)) & smallmask;
+			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
 			if(nextfree > 0)
 				SQd2B((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
 		}
@@ -597,11 +600,12 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	@Override
 	public void run() {
-		int listsize = startConstellations.size();
+		final int listsize = startConstellations.size();
 		int i, j, k, l, ijkl, ld, rd, col, free;
-
+		final int smallmask = (1 << (N-2)) - 1;
+		
 		loop:
-			for(int a = 0; a < listsize; a++) {
+			for(constellation_idx = 0; constellation_idx < listsize; constellation_idx++) {
 				// apply jasmin and get i, j, k, l
 				ijkl = jasmin(startConstellations.getFirst());
 				i = geti(ijkl); j = getj(ijkl); k = getk(ijkl); l = getl(ijkl);
@@ -618,7 +622,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 							rd = (1 << (N-4)) | (1 << (N-3)) | (L >> (i+3));
 							col = (1 << (N-2-i));
 							free = (~(ld|rd|col)) & smallmask;
-							SQd0B(ld, rd, col, 0, free);
+							SQd0B(ld, rd, col | (~smallmask), 0, free);
 						}
 						// 2 Blocks
 						else {
@@ -627,7 +631,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 							col = (1 << (N-2-i));
 							free = (~(ld|rd|col)) & smallmask;
 							mark1 = k - 2;
-							SQd0BkB(ld, rd, col, 0, free);
+							SQd0BkB(ld, rd, col | (~smallmask), 0, free);
 						}
 					}
 					// d = 1
@@ -642,13 +646,13 @@ public class AlgorithmThread extends Thread implements Serializable {
 							// 2 Blocks
 							if(l == k+1) {
 								mark2 = k - 2;
-								SQd1BklB(ld, rd, col, 0, free);
+								SQd1BklB(ld, rd, col | (~smallmask), 0, free);
 							}
 							// 3 Blocks
 							else {
 								mark1 = k - 2;
 								mark2 = l - 3;
-								SQd1BkBlB(ld, rd, col, 0, free);
+								SQd1BkBlB(ld, rd, col | (~smallmask), 0, free);
 							}
 						}
 						// l < k
@@ -662,7 +666,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 								
 								// 1 Block, k and l are N-2 and N-3
 								if(l == N-3) {
-									SQd1B(ld, rd, col, 0, free);
+									SQd1B(ld, rd, col | (~smallmask), 0, free);
 								}
 								// l < N-3
 								else {
@@ -671,19 +675,19 @@ public class AlgorithmThread extends Thread implements Serializable {
 										// 2 Blocks
 										if(k == l+1) {
 											mark2 = l - 2;
-											SQd1BlkB(ld, rd, col, 0, free);
+											SQd1BlkB(ld, rd, col | (~smallmask), 0, free);
 										}
 										// 3 Blocks
 										else {
 											mark1 = l - 2;
 											mark2 = k - 3;
-											SQd1BlBkB(ld, rd, col, 0, free);
+											SQd1BlBkB(ld, rd, col | (~smallmask), 0, free);
 										}
 									}
 									// k = N-2, 2 Blocks
 									else {
 										mark2 = l - 2;
-										SQd1BlB(ld, rd, col, 0, free);
+										SQd1BlB(ld, rd, col | (~smallmask), 0, free);
 									}
 								}
 
@@ -691,7 +695,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 							// l = 1
 							else {
 								ld = (1 << (N-i)) | (L >> (k-1)) | 1;
-								rd = (1 << N3) | (L >> (i+3));
+								rd = L3 | (L >> (i+3));
 								col = (1 << (N-2-i)) | 1;
 								free = (~(ld|rd|col)) & smallmask;
 								
@@ -699,18 +703,18 @@ public class AlgorithmThread extends Thread implements Serializable {
 								if(k == 2) {
 									ld <<= 1;
 									rd >>= 1;
-									rd |= (1 << N3);
+									rd |= L3;
 									free = (~(ld|rd|col)) & smallmask;
-									SQd1B(ld, rd, col, 0, free);
+									SQd1B(ld, rd, col | (~smallmask), 0, free);
 								}
 								// k = N-2, 1 Block
 								else if(k == N - 2) {
-									SQd1B(ld, rd, col, 0, free);
+									SQd1B(ld, rd, col | (~smallmask), 0, free);
 								}
 								// k in between, 2 Blocks
 								else {
 									mark2 = k - 3;
-									SQd1BkB(ld, rd, col, 0, free);
+									SQd1BkB(ld, rd, col | (~smallmask), 0, free);
 								}
 							}
 						}
@@ -730,10 +734,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 							mark2 = l - 3;
 							// 2 Blocks
 							if(l == k+1) 
-								SQd2BklB(ld, rd, col, 0, free);
+								SQd2BklB(ld, rd, col | (~smallmask), 0, free);
 							// 3 Blocks
 							else 
-								SQd2BkBlB(ld, rd, col, 0, free);
+								SQd2BkBlB(ld, rd, col | (~smallmask), 0, free);
 						}
 						// l < k
 						else {
@@ -741,10 +745,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 							mark2 = k - 3;
 							// 2 Blocks
 							if(k == l+1) 
-								SQd2BlkB(ld, rd, col, 0, free);
+								SQd2BlkB(ld, rd, col | (~smallmask), 0, free);
 							// 3 Blocks
 							else 
-								SQd2BlBkB(ld, rd, col, 0, free);
+								SQd2BlBkB(ld, rd, col | (~smallmask), 0, free);
 						}
 					}
 					// d > 2
@@ -762,10 +766,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 							mark2 = l - 3;
 							// 2 Blocks
 							if(l == k+1) 
-								SQBklBjrB(ld, rd, col, 0, free);
+								SQBklBjrB(ld, rd, col | (~smallmask), 0, free);
 							// 3 Blocks
 							else 
-								SQBkBlBjrB(ld, rd, col, 0, free);
+								SQBkBlBjrB(ld, rd, col | (~smallmask), 0, free);
 						}
 						// l < k
 						else {
@@ -773,10 +777,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 							mark2 = k - 3;
 							// 2 Blocks
 							if(k == l+1) 
-								SQBlkBjrB(ld, rd, col, 0, free);
+								SQBlkBjrB(ld, rd, col | (~smallmask), 0, free);
 							// 3 Blocks
 							else 
-								SQBlBkBjrB(ld, rd, col, 0, free);
+								SQBlBkBjrB(ld, rd, col | (~smallmask), 0, free);
 						}
 					}
 				}
@@ -786,9 +790,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 				// get occupancy of the board for each starting constellation and the hops and max from board Properties
 				tempcounter = 0;								// set counter of solutions for this starting constellation to 0
-
-				// one start constellation is done
-				startConstIndex++;
 
 				// for saving and loading progress remove the finished starting constellation
 				startConstellations.removeFirst();
@@ -829,7 +830,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	// for progress
 	public int getStartConstIndex() {
-		return startConstIndex;
+		return constellation_idx;
 	}
 	public long getSolvecounter() {
 		return solvecounter;
