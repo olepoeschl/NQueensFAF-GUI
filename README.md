@@ -1,7 +1,7 @@
 # N-Queens Solver FAF
 <!--img src="https://www.student.hs-mittweida.de/~opoeschl/data/queenFire_FAF.png" width="200" height="200" align="right" /-->
 
-Gui-Program for calculating the number of solutions of the N-Queens Problem.
+<i> Really </i> fast Gui-Program for calculating the number of solutions of the N-Queens Problem.
 
 ### Download
 See the "Release" section for the latest stable build. <br>
