@@ -552,10 +552,6 @@ public class Gui extends JFrame {
 		// show Dialog
 		new Thread() {
 			public void run() {
-				// make buttons not pressable
-				for(Component c : pnlControls.getComponents()) {
-					c.setEnabled(false);
-				}
 				
 				dialog = optionPane.createDialog(null, "Waiting for the Algorithm to finish current start-constellation...");
 				dialog.setLocation(context.getX() + context.getWidth()/2 - dialog.getWidth()/2, context.getY() + context.getHeight()/2 - dialog.getHeight()/2);
@@ -570,6 +566,11 @@ public class Gui extends JFrame {
 						input = optionPane.getValue();
 					}
 				}.start();
+
+				// make buttons not pressable
+				for(Component c : pnlControls.getComponents()) {
+					c.setEnabled(false);
+				}
 				
 				while(true) {
 					if(input == null) {
