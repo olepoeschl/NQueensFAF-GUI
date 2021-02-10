@@ -305,7 +305,6 @@ public class Gui extends JFrame {
 							
 						}
 						
-						
 						// update time and check if the user paused the application
 						if(updateTime == 1) {
 							if(paused) {
@@ -331,7 +330,6 @@ public class Gui extends JFrame {
 					// update progress
 					updateProgress();
 					
-
 					// output string from queue
 					if(msgQueue.size() > 0) {
 						msg = msgQueue.removeFirst();
@@ -340,8 +338,8 @@ public class Gui extends JFrame {
 						else
 							taOutput.append(msg);
 					}
-
 					
+					// wait short time
 					try {
 						Thread.yield();
 						Thread.sleep(sleeptime);
@@ -541,10 +539,10 @@ public class Gui extends JFrame {
 			// file loaded
 			load = true;
 			
-			print("/- Old process was successfully loaded from File " + filechooser.getSelectedFile().getName().toString() + ". \\-", false);
-			print("/- Press GO to continue it \\-", true);
+			print("# Old process was successfully loaded from File " + filechooser.getSelectedFile().getName().toString() + ". ", false);
+			print("# Press GO to continue it ", true);
 		} else {
-			print("/- Loading file was canceled \\-", true);
+			print("# Loading file was canceled ", true);
 		}
 	}
 	
@@ -637,8 +635,6 @@ public class Gui extends JFrame {
 						}
 					}
 					counter++;
-					
-					
 					
 					try {
 						Thread.sleep(sleeptime);
