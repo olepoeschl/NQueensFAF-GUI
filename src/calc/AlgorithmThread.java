@@ -25,12 +25,12 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	public AlgorithmThread(int N, ArrayDeque<Integer> startConstellations) {
 		this.N = N;	
+		N3 = N - 3;
 		N4 = N - 4;
 		N5 = N - 5;
-		N3 = N - 3;
+		L = 1 << (N-1);
 		L3 = 1 << N3;
 		L4 = 1 << N4;
-		this.L = 1 << (N-1);
 		this.startConstellations = startConstellations;
 	}
 
