@@ -296,8 +296,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 		int nextfree;
 
 		if(idx == mark3) {
-			// free &= (~1);
-			free &= 2147483646;
+			free &= (~1);
 			ld |= 1;
 			while(free > 0) {
 				bit = free & (-free);
@@ -579,8 +578,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 	private void SQd2B(int ld, int rd, int col, int idx, int free) {
 		if(idx == N5) {
-			// free & (~1)
-			if((free & 2147483646) > 0) 
+			if((free & (~1)) > 0) 
 				tempcounter++;
 			return;
 		}
