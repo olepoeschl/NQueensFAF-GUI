@@ -1,7 +1,7 @@
 # N-Queens Solver FAF
 <!--img src="https://www.student.hs-mittweida.de/~opoeschl/data/queenFire_FAF.png" width="200" height="200" align="right" /-->
 
-Really fast Gui-Program for calculating the number of solutions of the N-Queens Problem.
+Really fast Gui-Program for calculating the number of solutions of the N-Queens Problem using CPU.
 
 ### Download
 See the "Release" section for the latest stable build. <br>
@@ -32,6 +32,8 @@ This solution is based on two methods:
 
 ## Version X (yet to come):
       - definitely N = 16 in < 1 sec 
+      
+      - maybe integrating the use of GPU
       
 ## Distributed
       - test using board size 23 was successfull !
