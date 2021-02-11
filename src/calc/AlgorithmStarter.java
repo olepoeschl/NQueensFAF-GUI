@@ -122,14 +122,15 @@ public class AlgorithmStarter {
 			try {
 				if(executor.awaitTermination(2, TimeUnit.DAYS)) {
 					// done 
-					// end time
-					end = System.currentTimeMillis();
 				} else {
 					// not done
 				}
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
+
+			// end time
+			end = System.currentTimeMillis();
 		}
 	}
 
