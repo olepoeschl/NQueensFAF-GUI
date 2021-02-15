@@ -111,7 +111,7 @@ This solution is based on two methods:
  
       
 # Credits
-<a href="https://github.com/carrotsearch/hppc">HPPC-library</a>
+<a href="https://github.com/carrotsearch/hppc">HPPC-library</a> <br>
 Icon by Jojo
       
       
