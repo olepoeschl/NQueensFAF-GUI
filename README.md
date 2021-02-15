@@ -2,6 +2,7 @@
 <!--img src="https://www.student.hs-mittweida.de/~opoeschl/data/queenFire_FAF.png" width="200" height="200" align="right" /-->
 
 Really fast Gui-Program for calculating the number of solutions of the N-Queens Problem using CPU.
+Supports multithreading.
 
 ### Download
 See the "Release" section for the latest stable build. <br>
