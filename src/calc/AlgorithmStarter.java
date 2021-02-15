@@ -102,7 +102,7 @@ public class AlgorithmStarter {
 			Iterator<Integer> iterator = startConstellations.iterator();
 			int i = 0;
 			while(iterator.hasNext()) {
-				threadConstellations.get((i++) % cpu).addLast(iterator.next());
+				threadConstellations.get((i++) % cpu).addFirst(iterator.next());
 			}
 
 			// start the threads and wait until they are all finished
@@ -226,7 +226,7 @@ public class AlgorithmStarter {
 		IntArrayDeque uncalcbplist = new IntArrayDeque();
 		for(AlgorithmThread algThread : threadlist) {
 			for(IntCursor c : algThread.getUncalculatedStartConstellations()) {
-				uncalcbplist.addLast(c.value);
+				uncalcbplist.addFirst(c.value);
 			}
 		}
 		return uncalcbplist;
