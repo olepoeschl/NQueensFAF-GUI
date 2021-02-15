@@ -52,7 +52,7 @@ This solution is based on two methods:
       
       - now only 0 - 3 class variables (int) per start constellation instead of int[N-3] and 5 int
       
-      - now using the <a href="https://github.com/carrotsearch/hppc">HPPC-library</a> for primitive type collections
+      - now using the HPPC-library for primitive type collections (link to the repository can be found below)
       
       - currently only works for board sizes up to N=23, this will be updated soon
       
@@ -111,6 +111,7 @@ This solution is based on two methods:
  
       
 # Credits
+<a href="https://github.com/carrotsearch/hppc">HPPC-library</a>
 Icon by Jojo
       
       
