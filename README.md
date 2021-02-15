@@ -52,6 +52,8 @@ This solution is based on two methods:
       
       - now only 0 - 3 class variables (int) per start constellation instead of int[N-3] and 5 int
       
+      - now using the <a href="https://github.com/carrotsearch/hppc">HPPC-library</a> for primitive type collections
+      
       - currently only works for board sizes up to N=23, this will be updated soon
       
       - N = 16 in ~1.3 sec --> broke the 2-second-Barrier!
