@@ -499,9 +499,10 @@ public class Gui extends JFrame {
 		// store fafprocessdata in path filename
 		if( ! filepath.equals("")) {
 			FAFProcessData fafprocessdata = new FAFProcessData();
-			IntArrayDeque constellations = new IntArrayDeque();
-			for(int i = 0; i < constellations.size(); i++) {
-				fafprocessdata.addFirst(constellations.removeFirst());
+			IntArrayDeque constellations = algStarter.getUncalculatedStartConstellations();
+			int len = constellations.size();
+			for(int i = 0; i < len; i++) {
+				fafprocessdata.add(constellations.removeFirst());
 			}
 			fafprocessdata.N = algStarter.getN();
 			fafprocessdata.solvecounter = algStarter.getSolvecounter();
@@ -510,7 +511,7 @@ public class Gui extends JFrame {
 			fafprocessdata.time = time;
 			fafprocessdata.save(filepath);
 			
-			print("/- Current process was successfully saved in file " + filename + ". -\\", true);
+			print("# Current process was successfully saved in file " + filename + ".", true);
 		}
 	}
 	

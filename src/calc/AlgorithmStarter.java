@@ -236,7 +236,7 @@ public class AlgorithmStarter {
 			return 0;
 
 		// calculate progress
-		float progress = getCalculatedStartConstCount() + 1;
+		float progress = getCalculatedStartConstCount();
 		return progress / getStartConstCount();
 	}
 
@@ -259,8 +259,9 @@ public class AlgorithmStarter {
 	public void load(FAFProcessData fafprocessdata) {
 		load = true;
 		//		N = fafprocessdata.N;
-		for(int i = 0; i < fafprocessdata.size(); i++) {
-			startConstellations.add(fafprocessdata.buffer[i]);
+		int len = fafprocessdata.size();
+		for(int i = 0; i < len; i++) {
+			startConstellations.add(fafprocessdata.removeFirst());
 		}
 		old_solvecounter = fafprocessdata.solvecounter;
 		startConstCount = fafprocessdata.startConstCount;

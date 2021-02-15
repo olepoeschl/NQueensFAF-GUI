@@ -606,9 +606,6 @@ public class AlgorithmThread extends Thread implements Serializable {
 		
 		loop:
 			for(int count = 0; count < listsize; count++) {
-				// update the current startconstelattion-index
-				constellation_idx = count;
-				
 				// apply jasmin and get i, j, k, l
 				ijkl = jasmin(startConstellations.getFirst());
 				i = geti(ijkl); j = getj(ijkl); k = getk(ijkl); l = getl(ijkl);
@@ -796,6 +793,8 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 				// for saving and loading progress remove the finished starting constellation
 				startConstellations.removeFirst();
+				// update the current startconstelattion-index
+				constellation_idx++;
 
 				// check if the user wants to pause or break
 				if(pause) {

@@ -7,12 +7,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-
-import com.carrotsearch.hppc.IntArrayDeque;
+import java.util.ArrayDeque;
 
 // for saving and loading only
 
-public class FAFProcessData extends IntArrayDeque implements Serializable {
+public class FAFProcessData extends ArrayDeque<Integer> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
