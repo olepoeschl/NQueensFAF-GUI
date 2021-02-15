@@ -13,6 +13,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.DefaultCaret;
 
+import com.carrotsearch.hppc.IntArrayDeque;
+
 import calc.AlgorithmStarter;
 import util.FAFProcessData;
 
@@ -328,7 +330,9 @@ public class Gui extends JFrame {
 					}
 
 					// update progress
-					updateProgress();
+					if(algStarter != null && algStarter.getEndtime() == 0) {
+						updateProgress();
+					}
 					
 					// output string from queue
 					if(msgQueue.size() > 0) {
@@ -456,7 +460,6 @@ public class Gui extends JFrame {
 				oldtime = 0;
 				pausetime = 0;
 				
-				updateProgress(100);
 				print("============================\n" + algStarter.getSolvecounter() + " solutions found for N = " + algStarter.getN() + "\n============================", true);
 				
 				// reset buttons
@@ -496,7 +499,10 @@ public class Gui extends JFrame {
 		// store fafprocessdata in path filename
 		if( ! filepath.equals("")) {
 			FAFProcessData fafprocessdata = new FAFProcessData();
-			fafprocessdata.addAll(algStarter.getUncalculatedStartConstellations());
+			IntArrayDeque constellations = new IntArrayDeque();
+			for(int i = 0; i < constellations.size(); i++) {
+				fafprocessdata.addFirst(constellations.removeFirst());
+			}
 			fafprocessdata.N = algStarter.getN();
 			fafprocessdata.solvecounter = algStarter.getSolvecounter();
 			fafprocessdata.startConstCount = algStarter.getStartConstCount();
@@ -608,6 +614,8 @@ public class Gui extends JFrame {
 						if(code == 0) {
 							paused = true;
 							btnStart.setText("Continue");
+						} else {
+							paused = false;
 						}
 						dialog.dispose();
 						break;
@@ -649,11 +657,9 @@ public class Gui extends JFrame {
 					print("##### Algorithm canceled #####", true);
 
 				// make buttons pressable again
-				if(algStarter.getEndtime() == 0) {
-					for(Component c : pnlControls.getComponents()) {
-						if(c != btnLoad)
-							c.setEnabled(true);
-					}
+				for(Component c : pnlControls.getComponents()) {
+					if(c != btnLoad)
+						c.setEnabled(true);
 				}
 				
 				// reset the respond-variables of each AlgorithmThread
