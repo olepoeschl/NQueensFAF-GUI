@@ -1,14 +1,14 @@
 package calc;
 
-import java.util.ArrayDeque;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import com.carrotsearch.hppc.IntArrayDeque;
+import com.carrotsearch.hppc.cursors.IntCursor;
 
 import gui.Gui;
 import util.FAFProcessData;
@@ -25,7 +25,7 @@ public class AlgorithmStarter {
 	private int cpu;						// number of threads	
 	private long old_solvecounter = 0;		// if we load an old calculation, get the old solvecounter											
 
-	Set<Integer> startConstellations = new HashSet<Integer>();		// make sure there are no symmetric equivalent starting constellations in boardPropertiesList			
+	HashSet<Integer> startConstellations = new HashSet<Integer>();		// make sure there are no symmetric equivalent starting constellations in boardPropertiesList			
 	ArrayList<AlgorithmThread> threadlist;							// list of starting constellations for each thread
 
 	// for loading and saving and progress
@@ -95,20 +95,20 @@ public class AlgorithmStarter {
 			}
 
 			// split starting constellations in cpu many lists (splitting the work for the threads)
-			ArrayList< ArrayDeque<Integer> > threadConstellations = new ArrayList< ArrayDeque<Integer>>(cpu);
+			ArrayList< IntArrayDeque > threadConstellations = new ArrayList< IntArrayDeque >(cpu);
 			for(int i = 0; i < cpu; i++) {
-				threadConstellations.add(new ArrayDeque<Integer>());
+				threadConstellations.add(new IntArrayDeque());
 			}
 			Iterator<Integer> iterator = startConstellations.iterator();
 			int i = 0;
 			while(iterator.hasNext()) {
-				threadConstellations.get((i++) % cpu).add(iterator.next());
+				threadConstellations.get((i++) % cpu).addFirst(iterator.next());
 			}
 
 			// start the threads and wait until they are all finished
 			ExecutorService executor = Executors.newFixedThreadPool(cpu);
 			threadlist = new ArrayList<AlgorithmThread>();
-			for(ArrayDeque<Integer> constellations : threadConstellations) {
+			for(IntArrayDeque constellations : threadConstellations) {
 				AlgorithmThread algThread = new AlgorithmThread(N, constellations);
 				threadlist.add(algThread);
 				executor.submit(algThread);
@@ -222,10 +222,12 @@ public class AlgorithmStarter {
 		return getUncalculatedStartConstellations().size();
 	}
 	// loading 
-	public ArrayDeque<Integer> getUncalculatedStartConstellations() {
-		ArrayDeque<Integer> uncalcbplist = new ArrayDeque<Integer>();
+	public IntArrayDeque getUncalculatedStartConstellations() {
+		IntArrayDeque uncalcbplist = new IntArrayDeque();
 		for(AlgorithmThread algThread : threadlist) {
-			uncalcbplist.addAll(algThread.getUncalculatedStartConstellations());
+			for(IntCursor c : algThread.getUncalculatedStartConstellations()) {
+				uncalcbplist.addFirst(c.value);
+			}
 		}
 		return uncalcbplist;
 	}
@@ -257,7 +259,10 @@ public class AlgorithmStarter {
 	public void load(FAFProcessData fafprocessdata) {
 		load = true;
 		//		N = fafprocessdata.N;
-		startConstellations.addAll(fafprocessdata);
+		int len = fafprocessdata.size();
+		for(int i = 0; i < len; i++) {
+			startConstellations.add(fafprocessdata.removeFirst());
+		}
 		old_solvecounter = fafprocessdata.solvecounter;
 		startConstCount = fafprocessdata.startConstCount;
 		calculatedStartConstCount = fafprocessdata.calculatedStartConstCount;

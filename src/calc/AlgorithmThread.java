@@ -1,7 +1,8 @@
 package calc;
 
 import java.io.Serializable;
-import java.util.ArrayDeque;
+
+import com.carrotsearch.hppc.IntArrayDeque;
 
 // this is the solver
 // we use recursive functions for Backtracking
@@ -17,13 +18,13 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private int mark1, mark2, mark3;
  
 	// list of uncalculated starting positions, their indices
-	private ArrayDeque<Integer> startConstellations;
+	private IntArrayDeque startConstellations;
 
 	// for canceling and pausing 
 	private boolean pause = false, cancel = false, respond = false;
 
 
-	public AlgorithmThread(int N, ArrayDeque<Integer> startConstellations) {
+	public AlgorithmThread(int N, IntArrayDeque startConstellations) {
 		this.N = N;	
 		N3 = N - 3;
 		N4 = N - 4;
@@ -600,10 +601,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 	public void run() {
 		final int listsize = startConstellations.size();
 		int i, j, k, l, ijkl, ld, rd, col, free;
+		final int N = this.N;
 		final int smallmask = (1 << (N-2)) - 1;
 		
 		loop:
-			for(constellation_idx = 0; constellation_idx < listsize; constellation_idx++) {
+			for(int count = 0; count < listsize; count++) {
 				// apply jasmin and get i, j, k, l
 				ijkl = jasmin(startConstellations.getFirst());
 				i = geti(ijkl); j = getj(ijkl); k = getk(ijkl); l = getl(ijkl);
@@ -612,28 +614,8 @@ public class AlgorithmThread extends Thread implements Serializable {
 				
 				// d < 2
 				if(N-1-j < 2) {
-					// d = 0
-					if(j == N-1) {	
-						// 1 Block
-						if(k == 1) {
-							ld = 1 << (N-i);
-							rd = (1 << (N-4)) | (1 << (N-3)) | (L >> (i+3));
-							col = (1 << (N-2-i));
-							free = (~(ld|rd|col)) & smallmask;
-							SQd0B(ld, rd, col | (~smallmask), 0, free);
-						}
-						// 2 Blocks
-						else {
-							ld = (1 << (N-i-1)) | (L >> k);
-							rd = (1 << (N-3)) | (L >> (i+2));
-							col = (1 << (N-2-i));
-							free = (~(ld|rd|col)) & smallmask;
-							mark1 = k - 2;
-							SQd0BkB(ld, rd, col | (~smallmask), 0, free);
-						}
-					}
 					// d = 1
-					else {
+					if(j != N-1) {
 						// k < l
 						if(k < l) {
 							ld = (1 << (N-i-1)) | (L >> k);
@@ -717,6 +699,26 @@ public class AlgorithmThread extends Thread implements Serializable {
 							}
 						}
 					}
+					// d = 0
+					else {
+						// 2 Blocks
+						if(k != 1) {
+							ld = (1 << (N-i-1)) | (L >> k);
+							rd = (1 << (N-3)) | (L >> (i+2));
+							col = (1 << (N-2-i));
+							free = (~(ld|rd|col)) & smallmask;
+							mark1 = k - 2;
+							SQd0BkB(ld, rd, col | (~smallmask), 0, free);
+						}
+						// 1 Block
+						else {
+							ld = 1 << (N-i);
+							rd = (1 << (N-4)) | (1 << (N-3)) | (L >> (i+3));
+							col = (1 << (N-2-i));
+							free = (~(ld|rd|col)) & smallmask;
+							SQd0B(ld, rd, col | (~smallmask), 0, free);
+						}
+					}
 				}
 				// N-1-j > 2
 				else {
@@ -758,19 +760,8 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 						mark3 = j - 2;
 						
-						//k < l
-						if(k < l) {
-							mark1 = k - 2;
-							mark2 = l - 3;
-							// 2 Blocks
-							if(l == k+1) 
-								SQBklBjrB(ld, rd, col | (~smallmask), 0, free);
-							// 3 Blocks
-							else 
-								SQBkBlBjrB(ld, rd, col | (~smallmask), 0, free);
-						}
-						// l < k
-						else {
+						//k >= l
+						if(k >= l) {
 							mark1 = l - 2;
 							mark2 = k - 3;
 							// 2 Blocks
@@ -779,6 +770,17 @@ public class AlgorithmThread extends Thread implements Serializable {
 							// 3 Blocks
 							else 
 								SQBlBkBjrB(ld, rd, col | (~smallmask), 0, free);
+						}
+						// l > k
+						else {
+							mark1 = k - 2;
+							mark2 = l - 3;
+							// 2 Blocks
+							if(l == k+1) 
+								SQBklBjrB(ld, rd, col | (~smallmask), 0, free);
+							// 3 Blocks
+							else 
+								SQBkBlBjrB(ld, rd, col | (~smallmask), 0, free);
 						}
 					}
 				}
@@ -791,6 +793,8 @@ public class AlgorithmThread extends Thread implements Serializable {
 
 				// for saving and loading progress remove the finished starting constellation
 				startConstellations.removeFirst();
+				// update the current startconstelattion-index
+				constellation_idx++;
 
 				// check if the user wants to pause or break
 				if(pause) {
@@ -833,7 +837,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	public long getSolvecounter() {
 		return solvecounter;
 	}
-	public ArrayDeque<Integer> getUncalculatedStartConstellations(){
+	public IntArrayDeque getUncalculatedStartConstellations(){
 		return startConstellations;
 	}
 	public boolean responds() {
