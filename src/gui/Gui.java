@@ -460,6 +460,8 @@ public class Gui extends JFrame {
 				oldtime = 0;
 				pausetime = 0;
 				
+				if(algStarter.getN() <= 14)
+					updateProgress(100);
 				print("============================\n" + algStarter.getSolvecounter() + " solutions found for N = " + algStarter.getN() + "\n============================", true);
 				
 				// reset buttons
