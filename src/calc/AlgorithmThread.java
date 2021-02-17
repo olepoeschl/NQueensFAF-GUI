@@ -162,7 +162,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 				free -= bit;
 				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1);
 				if(nextfree > 0)
-					if(idx < N5-2) {
+					if(idx < N5-1) {
 						if((~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit)) | 1) > 0)
 							SQd1B(((ld|bit)<<2) | 1, (rd|bit)>>2, col|bit, idx+1, nextfree);
 					} else {
