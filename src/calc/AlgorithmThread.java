@@ -50,13 +50,17 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
+			
+			int next_ld = ((ld|bit)<<1);
+			int next_rd = ((rd|bit)>>1);
+			int next_col = (col|bit);
+			nextfree = ~(next_ld | next_rd | next_col);
 			if(nextfree > 0)
 				if(idx < N5) {
-					if(~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit)) > 0)
-						SQd0B((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+					if(~((next_ld<<1) | (next_rd>>1) | (next_col)) > 0)
+						SQd0B(next_ld, next_rd, next_col, idx+1, nextfree);
 				} else {
-					SQd0B((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+					SQd0B(next_ld, next_rd, next_col, idx+1, nextfree);
 				}
 		}
 	}
@@ -160,13 +164,17 @@ public class AlgorithmThread extends Thread implements Serializable {
 			while(free > 0) {
 				bit = free & (-free);
 				free -= bit;
-				nextfree = ~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit) | 1);
+				
+				int next_ld = ((ld|bit)<<2);
+				int next_rd = ((rd|bit)>>2);
+				int next_col = (col|bit);
+				nextfree = ~(next_ld | next_rd | next_col | 1);
 				if(nextfree > 0)
 					if(idx < N5-2) {
-						if((~(((ld|bit)<<3) | ((rd|bit)>>3) | (col|bit)) | 1) > 0)
-							SQd1B(((ld|bit)<<2) | 1, (rd|bit)>>2, col|bit, idx+1, nextfree);
+						if(~((next_ld<<1) | (next_rd>>1) | (next_col)) > 0)
+							SQd1B(next_ld | 1, next_rd, next_col, idx+1, nextfree);
 					} else {
-						SQd1B(((ld|bit)<<2) | 1, (rd|bit)>>2, col|bit, idx+1, nextfree);
+						SQd1B(next_ld | 1, next_rd, next_col, idx+1, nextfree);
 					}
 			}
 			return;
@@ -340,13 +348,17 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
+			
+			int next_ld = ((ld|bit)<<1);
+			int next_rd = ((rd|bit)>>1);
+			int next_col = (col|bit);
+			nextfree = ~(next_ld | next_rd | next_col);
 			if(nextfree > 0)
-				if(idx+1 < N5) {
-					if(~(((ld|bit)<<2) | ((rd|bit)>>2) | (col|bit)) > 0)
-						SQB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+				if(idx < N5-1) {
+					if(~((next_ld<<1) | (next_rd>>1) | (next_col)) > 0)
+						SQB(next_ld, next_rd, next_col, idx+1, nextfree);
 				} else {
-					SQB((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+					SQB(next_ld, next_rd, next_col, idx+1, nextfree);
 				}
 		}
 	}
