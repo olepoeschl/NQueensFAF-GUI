@@ -313,7 +313,7 @@ public class Gui extends JFrame {
 								long pausestart = System.currentTimeMillis();
 								while(paused) {
 									try {
-										sleep(sleeptime);
+										sleep(5);
 									} catch (InterruptedException e) {
 										e.printStackTrace();
 									}
@@ -623,6 +623,13 @@ public class Gui extends JFrame {
 						dialog.dispose();
 						break;
 					}
+					// if the algorithm is done, close the dialog
+					if(algStarter.getEndtime() != 0) {
+						paused = false;
+						dialog.dispose();
+						break;
+					}
+					
 					if(input != JOptionPane.UNINITIALIZED_VALUE) {
 						dialog.dispose();
 						break;
@@ -660,9 +667,11 @@ public class Gui extends JFrame {
 					print("##### Algorithm canceled #####", true);
 
 				// make buttons pressable again
-				for(Component c : pnlControls.getComponents()) {
-					if(c != btnLoad)
-						c.setEnabled(true);
+				if(algStarter.getEndtime() == 0) {
+					for(Component c : pnlControls.getComponents()) {
+						if(c != btnLoad)
+							c.setEnabled(true);
+					}
 				}
 				
 				// reset the respond-variables of each AlgorithmThread
