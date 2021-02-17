@@ -616,6 +616,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	public void run() {
 		final int listsize = startConstellations.size();
 		int i, j, k, l, ijkl, ld, rd, col, free;
+		int bit, ld1, rd1, col1;
 		final int N = this.N;
 		final int smallmask = (1 << (N-2)) - 1;
 		
@@ -661,7 +662,16 @@ public class AlgorithmThread extends Thread implements Serializable {
 								
 								// 1 Block, k and l are N-2 and N-3
 								if(l == N-3) {
-									SQd1B(ld, rd, col | (~smallmask), 0, free);
+									while(free > 0) {
+										bit = free & (-free);
+										free -= bit;
+										
+										ld1 = (ld|bit)<<1;
+										rd1 = (rd|bit)>>1;
+										col1 = col | bit | (~smallmask);
+										
+										SQd1B(ld1, rd1, col1, 1, ~(ld1 | rd1 | col1));
+									}
 								}
 								// l < N-3
 								else {
@@ -700,11 +710,30 @@ public class AlgorithmThread extends Thread implements Serializable {
 									rd >>= 1;
 									rd |= L3;
 									free = (~(ld|rd|col)) & smallmask;
-									SQd1B(ld, rd, col | (~smallmask), 0, free);
+									
+									while(free > 0) {
+										bit = free & (-free);
+										free -= bit;
+										
+										ld1 = (ld|bit)<<1;
+										rd1 = (rd|bit)>>1;
+										col1  = col | bit | (~smallmask);
+										
+										SQd1B(ld1, rd1, col1, 1, ~(ld1 | rd1 | col1));
+									}
 								}
 								// k = N-2, 1 Block
 								else if(k == N - 2) {
-									SQd1B(ld, rd, col | (~smallmask), 0, free);
+									while(free > 0) {
+										bit = free & (-free);
+										free -= bit;
+										
+										ld1 = (ld|bit)<<1;
+										rd1 = (rd|bit)>>1;
+										col1 = col | bit | (~smallmask);
+										
+										SQd1B(ld1, rd1, col1, 1, ~(ld1 | rd1 | col1));
+									}
 								}
 								// k in between, 2 Blocks
 								else {
@@ -731,7 +760,17 @@ public class AlgorithmThread extends Thread implements Serializable {
 							rd = (1 << (N-4)) | (1 << (N-3)) | (L >> (i+3));
 							col = (1 << (N-2-i));
 							free = (~(ld|rd|col)) & smallmask;
-							SQd0B(ld, rd, col | (~smallmask), 0, free);
+							
+							while(free > 0) {
+								bit = free & (-free);
+								free -= bit;
+								
+								ld1 = (ld|bit)<<1;
+								rd1 = (rd|bit)>>1;
+								col1 = col | bit | (~smallmask);
+								
+								SQd0B(ld1, rd1, col1, 1, ~(ld1 | rd1 | col1));
+							}
 						}
 					}
 				}
