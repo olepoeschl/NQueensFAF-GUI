@@ -2,7 +2,6 @@ package calc;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -22,15 +21,15 @@ public class AlgorithmStarter {
 	public static final int small_n_limit = 10;
 
 	private int N, mask, solvecounter = 0;							// size of board						
-	private int cpu;						// number of threads	
+	private final int cpu;						// number of threads	
 	private long old_solvecounter = 0;		// if we load an old calculation, get the old solvecounter											
 
-	HashSet<Integer> startConstellations = new HashSet<Integer>();		// make sure there are no symmetric equivalent starting constellations in boardPropertiesList			
-	ArrayList<AlgorithmThread> threadlist;							// list of starting constellations for each thread
+	private HashSet<Integer> startConstellations;		// make sure there are no symmetric equivalent starting constellations in boardPropertiesList			
+	private ArrayList<AlgorithmThread> threadlist;							// list of starting constellations for each thread
 
 	// for loading and saving and progress
 	private boolean load = false;
-	private int startConstCount = 0, calculatedStartConstCount = 0, startConstCountBad = 0;
+	private int startConstCount = 0, calculatedStartConstCount = 0;
 
 	// for pausing and canceling
 	private long start = 0, end = 0;
@@ -67,7 +66,7 @@ public class AlgorithmStarter {
 					}
 				}
 
-				startConstCountBad = startConstellations.size();
+				int startConstCountBad = startConstellations.size();
 
 				// calculate starting constellations for no Queens in corners
 				// look above for if missing explanation
@@ -99,28 +98,27 @@ public class AlgorithmStarter {
 			for(int i = 0; i < cpu; i++) {
 				threadConstellations.add(new IntArrayDeque());
 			}
-			Iterator<Integer> iterator = startConstellations.iterator();
 			int i = 0;
-			while(iterator.hasNext()) {
-				threadConstellations.get((i++) % cpu).addFirst(iterator.next());
+			for(int constellation : startConstellations) {
+				threadConstellations.get((i++) % cpu).addFirst(constellation);
 			}
 
 			// start the threads and wait until they are all finished
 			ExecutorService executor = Executors.newFixedThreadPool(cpu);
 			threadlist = new ArrayList<AlgorithmThread>();
-			for(IntArrayDeque constellations : threadConstellations) {
-				AlgorithmThread algThread = new AlgorithmThread(N, constellations);
+			for(i = 0; i < cpu; i++) {
+				AlgorithmThread algThread = new AlgorithmThread(N, threadConstellations.get(i));
 				threadlist.add(algThread);
 				executor.submit(algThread);
 			}
-
+			
 			// threadlist built, everything ready
 			ready = true;
 
 			// wait for the executor
 			executor.shutdown();
 			try {
-				if(executor.awaitTermination(2, TimeUnit.DAYS)) {
+				if(executor.awaitTermination(3, TimeUnit.DAYS)) {
 					// done 
 				} else {
 					// not done
