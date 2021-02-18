@@ -126,9 +126,18 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
+			
+			int next_ld = ((ld|bit)<<1);
+			int next_rd = ((rd|bit)>>1);
+			int next_col = (col|bit);
+			nextfree = ~(next_ld | next_rd | next_col);
 			if(nextfree > 0)
-				SQd1B((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+				if(idx < N5-1) {
+					if(~((next_ld<<1) | (next_rd>>1) | (next_col)) > 0)
+						SQd1B(next_ld, next_rd, next_col, idx+1, nextfree);
+				} else {
+					SQd1B(next_ld, next_rd, next_col, idx+1, nextfree);
+				}
 		}
 	}
 
@@ -617,9 +626,18 @@ public class AlgorithmThread extends Thread implements Serializable {
 		while(free > 0) {
 			bit = free & (-free);
 			free -= bit;
-			nextfree = ~(((ld|bit)<<1) | ((rd|bit)>>1) | (col|bit));
+			
+			int next_ld = ((ld|bit)<<1);
+			int next_rd = ((rd|bit)>>1);
+			int next_col = (col|bit);
+			nextfree = ~(next_ld | next_rd | next_col);
 			if(nextfree > 0)
-				SQd2B((ld|bit)<<1, (rd|bit)>>1, col|bit, idx+1, nextfree);
+				if(idx < N5-1) {
+					if(~((next_ld<<1) | (next_rd>>1) | (next_col)) > 0)
+						SQd2B(next_ld, next_rd, next_col, idx+1, nextfree);
+				} else {
+					SQd2B(next_ld, next_rd, next_col, idx+1, nextfree);
+				}
 		}
 	}
 
