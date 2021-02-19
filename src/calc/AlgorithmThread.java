@@ -174,16 +174,16 @@ public class AlgorithmThread extends Thread implements Serializable {
 				bit = free & (-free);
 				free -= bit;
 				
-				int next_ld = ((ld|bit)<<2);
+				int next_ld = ((ld|bit)<<2) | 1;
 				int next_rd = ((rd|bit)>>2);
 				int next_col = (col|bit);
-				nextfree = ~(next_ld | next_rd | next_col | 1);
+				nextfree = ~(next_ld | next_rd | next_col);
 				if(nextfree > 0)
 					if(idx < N5-2) {
 						if(~((next_ld<<1) | (next_rd>>1) | (next_col)) > 0)
-							SQd1B(next_ld | 1, next_rd, next_col, idx+1, nextfree);
+							SQd1B(next_ld, next_rd, next_col, idx+1, nextfree);
 					} else {
-						SQd1B(next_ld | 1, next_rd, next_col, idx+1, nextfree);
+						SQd1B(next_ld, next_rd, next_col, idx+1, nextfree);
 					}
 			}
 			return;
