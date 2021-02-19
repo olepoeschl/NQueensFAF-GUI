@@ -174,16 +174,16 @@ public class AlgorithmThread extends Thread implements Serializable {
 				bit = free & (-free);
 				free -= bit;
 				
-				int next_ld = ((ld|bit)<<2) | 1;
+				int next_ld = ((ld|bit)<<2);
 				int next_rd = ((rd|bit)>>2);
 				int next_col = (col|bit);
-				nextfree = ~(next_ld | next_rd | next_col);
+				nextfree = ~(next_ld | next_rd | next_col | 1);
 				if(nextfree > 0)
 					if(idx < N5-2) {
 						if(~((next_ld<<1) | (next_rd>>1) | (next_col)) > 0)
-							SQd1B(next_ld, next_rd, next_col, idx+1, nextfree);
+							SQd1B(next_ld | 1, next_rd, next_col, idx+1, nextfree);
 					} else {
-						SQd1B(next_ld, next_rd, next_col, idx+1, nextfree);
+						SQd1B(next_ld | 1, next_rd, next_col, idx+1, nextfree);
 					}
 			}
 			return;
@@ -645,7 +645,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	@Override
 	public void run() {
 		final int listsize = startConstellations.size();
-		int i, j, k, l, ijkl, ld, rd, col;	//, free;
+		int i, j, k, l, ijkl, ld, rd, col, free;
 		final int N = this.N;
 		final int smallmask = (1 << (N-2)) - 1;
 		
@@ -666,18 +666,18 @@ public class AlgorithmThread extends Thread implements Serializable {
 							ld = (1 << (N-i-1)) | (L >> k);
 							rd = (1 << (N-2)) | (L >> (i+2)) | (1 << (l-2));
 							col = (1 << (N-2-i)) | 1;
-//							free = (~(ld|rd|col)) & smallmask;
+							free = (~(ld|rd|col)) & smallmask;
 
 							// 2 Blocks
 							if(l == k+1) {
 								mark2 = k - 2;
-								SQd1BklB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+								SQd1BklB(ld, rd, col | (~smallmask), 0, free);
 							}
 							// 3 Blocks
 							else {
 								mark1 = k - 2;
 								mark2 = l - 3;
-								SQd1BkBlB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+								SQd1BkBlB(ld, rd, col | (~smallmask), 0, free);
 							}
 						}
 						// l < k
@@ -687,11 +687,11 @@ public class AlgorithmThread extends Thread implements Serializable {
 								ld = (1 << (N-i-1)) | (L >> k);
 								rd = (1 << (N-2)) | (L >> (i+2)) | (1 << (l-2));
 								col = (1 << (N-2-i)) | 1;
-//								free = (~(ld|rd|col)) & smallmask;
+								free = (~(ld|rd|col)) & smallmask;
 								
 								// 1 Block, k and l are N-2 and N-3
 								if(l == N-3) {
-									SQd1B(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+									SQd1B(ld, rd, col | (~smallmask), 0, free);
 								}
 								// l < N-3
 								else {
@@ -700,19 +700,19 @@ public class AlgorithmThread extends Thread implements Serializable {
 										// 2 Blocks
 										if(k == l+1) {
 											mark2 = l - 2;
-											SQd1BlkB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+											SQd1BlkB(ld, rd, col | (~smallmask), 0, free);
 										}
 										// 3 Blocks
 										else {
 											mark1 = l - 2;
 											mark2 = k - 3;
-											SQd1BlBkB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+											SQd1BlBkB(ld, rd, col | (~smallmask), 0, free);
 										}
 									}
 									// k = N-2, 2 Blocks
 									else {
 										mark2 = l - 2;
-										SQd1BlB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+										SQd1BlB(ld, rd, col | (~smallmask), 0, free);
 									}
 								}
 
@@ -722,24 +722,24 @@ public class AlgorithmThread extends Thread implements Serializable {
 								ld = (1 << (N-i)) | (L >> (k-1)) | 1;
 								rd = L3 | (L >> (i+3));
 								col = (1 << (N-2-i)) | 1;
-//								free = (~(ld|rd|col)) & smallmask;
+								free = (~(ld|rd|col)) & smallmask;
 								
 								// k = 2 , 1 Block
 								if(k == 2) {
 									ld <<= 1;
 									rd >>= 1;
 									rd |= L3;
-//									free = (~(ld|rd|col)) & smallmask;
-									SQd1B(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+									free = (~(ld|rd|col)) & smallmask;
+									SQd1B(ld, rd, col | (~smallmask), 0, free);
 								}
 								// k = N-2, 1 Block
 								else if(k == N - 2) {
-									SQd1B(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+									SQd1B(ld, rd, col | (~smallmask), 0, free);
 								}
 								// k in between, 2 Blocks
 								else {
 									mark2 = k - 3;
-									SQd1BkB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+									SQd1BkB(ld, rd, col | (~smallmask), 0, free);
 								}
 							}
 						}
@@ -751,17 +751,17 @@ public class AlgorithmThread extends Thread implements Serializable {
 							ld = (1 << (N-i-1)) | (L >> k);
 							rd = (1 << (N-3)) | (L >> (i+2));
 							col = (1 << (N-2-i));
-//							free = (~(ld|rd|col)) & smallmask;
+							free = (~(ld|rd|col)) & smallmask;
 							mark1 = k - 2;
-							SQd0BkB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+							SQd0BkB(ld, rd, col | (~smallmask), 0, free);
 						}
 						// 1 Block
 						else {
 							ld = 1 << (N-i);
 							rd = (1 << (N-4)) | (1 << (N-3)) | (L >> (i+3));
 							col = (1 << (N-2-i));
-//							free = (~(ld|rd|col)) & smallmask;
-							SQd0B(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+							free = (~(ld|rd|col)) & smallmask;
+							SQd0B(ld, rd, col | (~smallmask), 0, free);
 						}
 					}
 				}
@@ -772,17 +772,17 @@ public class AlgorithmThread extends Thread implements Serializable {
 						ld = (1 << (N-i-1)) | (L >> k);
 						rd = (1 << (N-1-j+N-3)) | (L >> (i+2)) | (1 << (l-2));
 						col = (1 << (N-2-i)) | (1 << (N-2-j));
-//						free = (~(ld|rd|col)) & smallmask;
+						free = (~(ld|rd|col)) & smallmask;
 						// k < l
 						if(k < l) {
 							mark1 = k - 2;
 							mark2 = l - 3;
 							// 2 Blocks
 							if(l == k+1) 
-								SQd2BklB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+								SQd2BklB(ld, rd, col | (~smallmask), 0, free);
 							// 3 Blocks
 							else 
-								SQd2BkBlB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+								SQd2BkBlB(ld, rd, col | (~smallmask), 0, free);
 						}
 						// l < k
 						else {
@@ -790,10 +790,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 							mark2 = k - 3;
 							// 2 Blocks
 							if(k == l+1) 
-								SQd2BlkB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+								SQd2BlkB(ld, rd, col | (~smallmask), 0, free);
 							// 3 Blocks
 							else 
-								SQd2BlBkB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+								SQd2BlBkB(ld, rd, col | (~smallmask), 0, free);
 						}
 					}
 					// d > 2
@@ -801,7 +801,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 						ld = (1 << (N-i-1)) | (L >> k);
 						rd = (1 << (N-1-j+N-3)) | (L >> (i+2)) | (1 << (l-2));
 						col = (1 << (N-2-i)) | (1 << (N-2-j));
-//						free = (~(ld|rd|col)) & smallmask;
+						free = (~(ld|rd|col)) & smallmask;
 
 						mark3 = j - 2;
 						
@@ -811,10 +811,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 							mark2 = k - 3;
 							// 2 Blocks
 							if(k == l+1) 
-								SQBlkBjrB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+								SQBlkBjrB(ld, rd, col | (~smallmask), 0, free);
 							// 3 Blocks
 							else 
-								SQBlBkBjrB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+								SQBlBkBjrB(ld, rd, col | (~smallmask), 0, free);
 						}
 						// l > k
 						else {
@@ -822,10 +822,10 @@ public class AlgorithmThread extends Thread implements Serializable {
 							mark2 = l - 3;
 							// 2 Blocks
 							if(l == k+1) 
-								SQBklBjrB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+								SQBklBjrB(ld, rd, col | (~smallmask), 0, free);
 							// 3 Blocks
 							else 
-								SQBkBlBjrB(ld, rd, col | (~smallmask), 0, (~(ld|rd|col)) & smallmask);
+								SQBkBlBjrB(ld, rd, col | (~smallmask), 0, free);
 						}
 					}
 				}
