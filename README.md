@@ -28,11 +28,20 @@ This solution is based on two methods:
       
 - calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://tu-dresden.de">implementation by the TU Dresden</a> (a very good description of this method can be found <a href="http://www.nqueens.de/sub/SearchAlgoUseSymm.en.html">here</a>)
 
+# Current Times
+
+|      Board size N     |        16       |     17    |     18    |     19    |      20      |      21      |
+|      :----------:     |       :-:       |    :-:    |    :-:    |    :-:    |      :-:     |      :-:     |
+|  __single-threaded__  |      1.32s      |   8.95s   |   1:05m   |   8:20m   | not measured | not measured |
+|   __multi-threaded__  |      0.25s      |   1.75s   |   12.5s   |   1:35m   |    13:20m    |     1:52h    |
+
+referring to *i5-9300h @4GHz undervolted*
+
 # Versions
-### <b> !!! *times* are referring to *i5-9300h @4GHz undervolted, _single threaded_* !!! </b>
+following times are referring to *single-threaded*
 
 ## Version X (yet to come):
-      - definitely N = 16 in < 1 sec 
+      - definitely N = 16 in < 1 sec
       
       - maybe integrating the use of GPU
       
