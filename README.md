@@ -23,10 +23,10 @@ This solution is based on two methods:
 
 # Current Times
 
-|      Board size N     |        16       |     17    |     18    |     19    |      20      |      21      |
-|      :----------:     |       :-:       |    :-:    |    :-:    |    :-:    |      :-:     |      :-:     |
-|  __single-threaded__  |      1.32s      |   8.95s   |   1:05m   |   8:20m   | not measured | not measured |
-|   __multi-threaded__  |      0.25s      |   1.75s   |   12.5s   |   1:35m   |    13:20m    |     1:52h    |
+|      Board size N     |        16       |     17    |     18    |     19    |      20      |      21      |      22      |
+|      :----------:     |       :-:       |    :-:    |    :-:    |    :-:    |      :-:     |      :-:     |      :-:     |
+|  __single-threaded__  |      1.32s      |   8.95s   |   1:05m   |   8:20m   | not measured | not measured | not measured |
+|   __multi-threaded__  |      0.25s      |   1.75s   |   12.5s   |   1:35m   |    13:20m    |     1:52h    |     16:18h   |
 
 referring to *i5-9300h @4GHz undervolted*
 
