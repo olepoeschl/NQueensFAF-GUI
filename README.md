@@ -28,7 +28,7 @@ This solution is based on two methods:
 |  __single-threaded__  |      1.32s      |   8.95s   |   1:05m   |   8:20m   | not measured | not measured | not measured |
 |   __multi-threaded__  |      0.25s      |   1.75s   |   12.5s   |   1:35m   |    13:05m    |     1:52h    |     16:18h   |
 
-referring to *i5-9300h @4GHz undervolted*
+CPU: *i5-9300h @4GHz undervolted*
 
 # Versions
 following times are referring to *single-threaded*
