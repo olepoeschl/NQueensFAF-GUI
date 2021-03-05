@@ -36,7 +36,7 @@ following times are referring to *single-threaded*
 ## Version X (yet to come):
       - definitely N = 16 in < 1 sec
       
-      - maybe integrating the use of GPU
+      - integrating the use of GPU
       
 ## Distributed
       - test using board size 23 was successfull !
