@@ -21,7 +21,8 @@ import org.lwjgl.opencl.*;
 public class GpuSolver {
 
 	// calculation variables
-	private int N, mask, solvecounter = 0;
+	private int N, mask;
+	private long solvecounter = 0;
 	private final int PRE_ROWS = 5, BLOCK_SIZE = 64;
 	private int len = 0, compute_units;
 	private long start, end;
