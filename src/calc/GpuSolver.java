@@ -325,7 +325,7 @@ public class GpuSolver {
 	    
 	    try {
 	    	// create temporary directory to stor the native files inside
-	    	temp_libdir = Files.createTempDirectory("Main");
+	    	temp_libdir = Files.createTempDirectory("NQueensFAF");
 
 	    	// copy the native file from within the jar to the temporary directory
 	    	InputStream in = GpuSolver.class.getClassLoader().getResourceAsStream("natives/" + filename);
