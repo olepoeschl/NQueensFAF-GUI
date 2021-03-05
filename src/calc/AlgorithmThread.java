@@ -646,7 +646,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	public void run() {
 		final int listsize = startConstellations.size();
 		int i, j, k, l, ijkl, ld, rd, col;	//, free;
-		final int N = this.N;
+		final int N = this.N, L = this.L;
 		final int smallmask = (1 << (N-2)) - 1;
 		
 		loop:
