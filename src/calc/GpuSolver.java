@@ -1,6 +1,7 @@
 package calc;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.List;
 import java.io.BufferedReader;
 import java.io.File;
@@ -36,31 +37,37 @@ public class GpuSolver {
 	private CLDevice device;
 	private CLCommandQueue queue;
 
-	public GpuSolver(int N) throws URISyntaxException {
-		this.N = N;
-		mask = (1 << N) - 1;
-
+	public GpuSolver() throws URISyntaxException {
 		ld_list = new ArrayDeque<Integer>();
 		rd_list = new ArrayDeque<Integer>();
 		col_list = new ArrayDeque<Integer>();
 		
 		// load lwjgl-native
-		loadLwjglNatives();
+		loadLwjglNative();
+		
+		devices = new ArrayList<CLDevice>();
 	}
 
 	public void start() {
-		// calculate the start-constellations
-		calcStartConstellations();
-
-		// Create our OpenCL context to run commands
-		try {
-			initializeCL();
-		} catch (LWJGLException e) {
-			e.printStackTrace();
-		}
+		reset();
 		
 		// Error buffer used to check for OpenCL error that occurred while a command was running
 		IntBuffer errorBuff = BufferUtils.createIntBuffer(1);
+		
+		// Create an OpenCL context
+		try {
+			context = CLContext.create(platform, platform.getDevices(CL10.CL_DEVICE_TYPE_GPU), errorBuff);
+		} catch (LWJGLException e) {
+			e.printStackTrace();
+		}
+
+		// Create a command queue
+		queue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuff);
+		Util.checkCLError(errorBuff.get(0)); 
+		
+		// get number of compute units
+		compute_units = device.getInfoInt(CL10.CL_DEVICE_MAX_COMPUTE_UNITS);
+		
 
 		// Create program and store it on the specified device
 		CLProgram sqProgram;
@@ -72,8 +79,11 @@ public class GpuSolver {
 		Util.checkCLError(error);
 		// Create kernel
 		CLKernel sqKernel = CL10.clCreateKernel(sqProgram, "run", null);
+
+		// calculate the start-constellations
+		calcStartConstellations();
 		
-		// Buffers for ld, rd and col
+		// Buffer for ld, rd and col
 		int global_work_size = len - (len % (BLOCK_SIZE * compute_units));
 		int[] params = new int[global_work_size * 3];
 		for(int i = 0; i < global_work_size*3; i+=3) {
@@ -113,14 +123,15 @@ public class GpuSolver {
 		// buffer for event that is used for measuring the execution time
 		final PointerBuffer event_Buff = BufferUtils.createPointerBuffer(1);
 		
-		// set pseudo starttime
-		ready = true;
-		start = System.currentTimeMillis();
-		
 		// Run the specified number of work units using our OpenCL program kernel
 		CL10.clEnqueueNDRangeKernel(queue, sqKernel, dimensions, null, globalWorkSize, localWorkSize, null, event_Buff);
 //		System.out.println("> Started " + global_work_size  + " threads");
-		
+
+		// set pseudo starttime
+		start = System.currentTimeMillis();
+		ready = true;
+
+		// solve the rest using cpu
 		for(int i = 0; i < len % (BLOCK_SIZE * compute_units); i++) {
 			int ld = ld_list.removeFirst();
 			int rd = rd_list.removeFirst();
@@ -161,6 +172,8 @@ public class GpuSolver {
 
 		// Destroy the OpenCL context
 		destroyCL();
+		
+		ready = false;
 	}
 
 	// calculation stuff
@@ -223,29 +236,35 @@ public class GpuSolver {
 		}
 	}
 
+	private void reset() {
+		solvecounter = 0;
+		start = 0;
+		end = 0;
+	}
+	
 	// OpenCl stuff
-	private void initializeCL() throws LWJGLException { 
-		IntBuffer errorBuf = BufferUtils.createIntBuffer(1);
-
+	public ArrayDeque<String> listDevices() throws LWJGLException { 
 		// Create OpenCL
 		CL.create();
 
-		// Get the first available platform
-		platform = CLPlatform.getPlatforms().get(0);
-
-		// Run our program on the GPU
-		devices = platform.getDevices(CL10.CL_DEVICE_TYPE_GPU);
-		device = devices.get(0);
-		compute_units = device.getInfoInt(CL10.CL_DEVICE_MAX_COMPUTE_UNITS);
+		devices.clear();
 		
-		// Create an OpenCL context, this is where we could create an OpenCL-OpenGL compatible context
-		context = CLContext.create(platform, devices, errorBuf);
-
-		// Create a command queue
-		queue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuf);
+		// a list that contains vendors and names of all available devices
+		ArrayDeque<String> device_infos = new ArrayDeque<String>();
+		String vendor;
+		for(CLPlatform platform : CLPlatform.getPlatforms()) {
+			vendor = platform.getInfoString(CL10.CL_PLATFORM_VENDOR);
+			if(vendor.toLowerCase().contains("advanced micro devices"))
+				vendor = "AMD";
+			else if(vendor.toLowerCase().contains("intel"))
+				vendor = "Intel";
+			for(CLDevice device : platform.getDevices(CL10.CL_DEVICE_TYPE_GPU)) {
+				devices.add(device);
+				device_infos.add(vendor + ":   " + device.getInfoString(CL10.CL_DEVICE_NAME));
+			}
+		}
 		
-		// Check for any errors
-		Util.checkCLError(errorBuf.get(0)); 
+		return device_infos;
 	}
 	private void destroyCL() {
 		// Finish destroying anything we created
@@ -295,7 +314,7 @@ public class GpuSolver {
 	}
 
 	// function to load the native file that is nessesary for the interaction with the lwjgl library
-	public void loadLwjglNatives() {
+	public void loadLwjglNative() {
 	    Path temp_libdir = null;
 	    String filename = null;
 	    
@@ -354,9 +373,19 @@ public class GpuSolver {
 	public boolean isReady() {
 		return ready;
 	}
+	
+	public void setN(int N) {
+		this.N = N;
+		mask = (1 << N) - 1;
+	}
 	public int getN() {
 		return N;
 	}
+	public void setDevice(int index) {
+		device = devices.get(index);
+		platform = device.getPlatform();
+	}
+	
 	public long getStarttime() {
 		return start;
 	}

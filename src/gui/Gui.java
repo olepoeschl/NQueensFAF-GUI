@@ -15,6 +15,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.DefaultCaret;
 
+import org.lwjgl.LWJGLException;
+
 import com.carrotsearch.hppc.IntArrayDeque;
 
 import calc.AlgorithmStarter;
@@ -22,6 +24,7 @@ import calc.GpuSolver;
 import util.FAFProcessData;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 
@@ -77,6 +80,8 @@ public class Gui extends JFrame {
     private JLabel lblTime;
     private JTextArea taOutput; 
     private JProgressBar progressBar;
+    // gpu-tab
+    private JComboBox<String> cbGpuChooser;
     
     // components for the waiting-dialog
     private JOptionPane optionPane;
@@ -114,6 +119,13 @@ public class Gui extends JFrame {
         eventListener = new EventListener();
         iconImg = Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/queenFire_FAF_beschnitten.png"));
         
+        // initialize gpu-solver
+        try {
+			gpuSolver = new GpuSolver();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+
         // initialize Gui
         initGui();
         this.pack();
@@ -153,6 +165,7 @@ public class Gui extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.getContentPane().setLayout(new BorderLayout());    
         
+        // overall + cpu-tab
         JSplitPane splitPane = new JSplitPane();
         splitPane.setEnabled(false);
         
@@ -184,7 +197,7 @@ public class Gui extends JFrame {
         
         JPanel pnlThreadcount = new JPanel();
         pnlThreadcount.setBorder(new TitledBorder(null, "Number of threads", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        pnlTop.add(pnlThreadcount, BorderLayout.SOUTH);
+        pnlTop.add(pnlThreadcount, BorderLayout.CENTER);
         
         sliderThreadcount = new JSlider();
         sliderThreadcount.setValue(1);
@@ -276,7 +289,20 @@ public class Gui extends JFrame {
         waitlbl = new JLabel();
         optionPane.add(waitlbl);
         
-        // components that are always needed
+        // gpu-tab
+        cbGpuChooser = new JComboBox<String>();
+        cbGpuChooser.setBorder(new TitledBorder(null, "GPU - Chooser", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        try {
+			for(String device_info : gpuSolver.listDevices()) {
+				cbGpuChooser.addItem(device_info);
+			}
+		} catch (LWJGLException e1) {
+			e1.printStackTrace();
+		}
+        cbGpuChooser.setVisible(false);
+        pnlTop.add(cbGpuChooser, BorderLayout.SOUTH);
+        
+        // other
         tabbedPane = new JTabbedPane();
         tabbedPane.addTab(" CPU ", splitPane);
         tabbedPane.addTab(" GPU ", null);
@@ -286,6 +312,7 @@ public class Gui extends JFrame {
 				if(tabbedPane.getSelectedIndex() == 0) {
 					use_cpu = true;
 					// show important gui-components
+					cbGpuChooser.setVisible(false);
 					pnlThreadcount.setVisible(true);
 					btnSave.setVisible(true);
 					btnLoad.setVisible(true);
@@ -293,6 +320,7 @@ public class Gui extends JFrame {
 				} else if(tabbedPane.getSelectedIndex() == 1) {
 					use_cpu = false;
 					// hide unnessesary gui-components
+					cbGpuChooser.setVisible(true);
 					pnlThreadcount.setVisible(false);
 					btnSave.setVisible(false);
 					btnLoad.setVisible(false);
@@ -930,12 +958,9 @@ public class Gui extends JFrame {
                             btnStart.setEnabled(false);
                             
                             int N = Integer.parseInt(tfN.getText());
-                            // initialize new GpuSolver object
-                    		try {
-								gpuSolver = new GpuSolver(N);
-							} catch (URISyntaxException e1) {
-								e1.printStackTrace();
-							}
+                            // initialize GpuSolver object
+                    		gpuSolver.setN(N);
+                    		gpuSolver.setDevice(cbGpuChooser.getSelectedIndex());
                     		
                     		SwingUtilities.invokeLater(new Runnable() {
                                 public void run() {
