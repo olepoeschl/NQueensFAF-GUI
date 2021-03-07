@@ -7,6 +7,7 @@ __kernel void run(__global int *params, __global uint *result){
 	uint ld = params[3 * g_id];
 	uint rd = params[3 * g_id + 1];
 	uint col = params[3 * g_id + 2];
+	uint temp;
 	local uint bits[N-PRE_ROWS+1][BLOCK_SIZE];
 	uint notfree = ld | rd | col;								 	// init notfree
 	bits[0][l_id] = (notfree + 1) & ~notfree;							 	// init bit
@@ -17,12 +18,13 @@ __kernel void run(__global int *params, __global uint *result){
 	
 	// iterative loop representing the recursive setqueen-function
 	while(row >= 0){
-		if(bits[row][l_id] & mask) {							// if bit is on board
-			col |= bits[row][l_id];									// new col
+		if((bits[row][l_id] & mask)) {							// if bit is on board
+			temp = bits[row][l_id];
+			col += temp;									// new col
 			ld_big = (ld_big << 1) | (ld >> 31);
-			ld = (ld | bits[row][l_id]) << 1;							// new ld
+			ld = (ld | temp) << 1;							// new ld
 			rd_big = (rd_big >> 1) | (rd << 31);
-			rd = (rd | bits[row][l_id]) >> 1;							// new rd
+			rd = (rd | temp) >> 1;							// new rd
 			notfree = ld | rd | col;							// new notfree
 			row++;
 			bits[row][l_id] = (notfree + 1) & ~notfree;				// new bit
@@ -31,15 +33,16 @@ __kernel void run(__global int *params, __global uint *result){
 			if(row == N-PRE_ROWS)
 				solvecounter++;
 				
-			row--;																			// one row back
+			row--;																				// one row back
 			if(row >= 0){
-				col &= ~bits[row][l_id];															// remove bit from col khauifbkdlshgni
-				ld = ((ld >> 1) | (ld_big << 31)) & ~bits[row][l_id];						// reset ld
+				temp = bits[row][l_id];
+				col -= temp;															// remove bit from col khauifbkdlshgni
+				ld = ((ld >> 1) | (ld_big << 31)) & ~temp;							// reset ld
 				ld_big >>= 1;
-				rd = ((rd << 1) | (rd_big >> 31)) & ~bits[row][l_id];						// reset rd
+				rd = ((rd << 1) | (rd_big >> 31)) & ~temp;							// reset rd
 				rd_big <<= 1;
-				notfree = ld | rd | col | bits[row][l_id];										// calculate new notfree
-				bits[row][l_id] = (notfree + bits[row][l_id]) & ~notfree;								// calculate new bit
+				notfree = ld | rd | col | temp;										// calculate new notfree
+				bits[row][l_id] = (notfree + temp) & ~notfree;						// calculate new bit
 			}
 		}
 	}
