@@ -251,19 +251,32 @@ public class GpuSolver {
 		
 		// a list that contains vendors and names of all available devices
 		ArrayDeque<String> device_infos = new ArrayDeque<String>();
-		String vendor;
-		for(CLPlatform platform : CLPlatform.getPlatforms()) {
-			vendor = platform.getInfoString(CL10.CL_PLATFORM_VENDOR);
-			if(vendor.toLowerCase().contains("advanced micro devices"))
-				vendor = "AMD";
-			else if(vendor.toLowerCase().contains("intel"))
-				vendor = "Intel";
-			for(CLDevice device : platform.getDevices(CL10.CL_DEVICE_TYPE_GPU)) {
-				devices.add(device);
-				device_infos.add(vendor + ":   " + device.getInfoString(CL10.CL_DEVICE_NAME));
+		String device_type = null;
+		try {
+			for(CLPlatform platform : CLPlatform.getPlatforms()) {
+				for(CLDevice device : platform.getDevices(CL10.CL_DEVICE_TYPE_ALL)) {
+					devices.add(device);
+					
+					switch(device.getInfoInt(CL10.CL_DEVICE_TYPE)) {
+					case 1:
+						device_type = "Default";
+						break;
+					case 2:
+						device_type = "CPU";
+						break;
+					case 4:
+						device_type = "GPU";
+						break;
+					case 8:
+						device_type = "ACCELERATOR";
+						break;
+					}
+					device_infos.add("[" + device_type + "]   " + device.getInfoString(CL10.CL_DEVICE_NAME));
+				}
 			}
+		} catch(NullPointerException e) {
+			// no device found
 		}
-		
 		return device_infos;
 	}
 	private void destroyCL() {
@@ -291,20 +304,14 @@ public class GpuSolver {
 			// Convert the string builder into a string containing the source code to return
 			resultString = result.toString();
 		} catch(NullPointerException npe) {
-			// If there is an error finding the file
-			System.err.println("Error retrieving OpenCL source file: ");
 			npe.printStackTrace();
 		} catch(IOException ioe) {
-			// If there is an IO error while reading the file
-			System.err.println("Error reading OpenCL source file: ");
 			ioe.printStackTrace();
 		} finally {
 			// Finally clean up any open resources
 			try {
 				br.close();
 			} catch (IOException ex) {
-				// If there is an error closing the file after we are done reading from it
-				System.err.println("Error closing OpenCL source file");
 				ex.printStackTrace();
 			}
 		}

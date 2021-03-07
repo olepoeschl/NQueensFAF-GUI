@@ -100,7 +100,7 @@ public class AlgorithmStarter {
 			}
 			int i = 0;
 			for(int constellation : startConstellations) {
-				threadConstellations.get((i++) % cpu).addFirst(constellation);
+				threadConstellations.get((i++) % cpu).addLast(constellation);
 			}
 
 			// start the threads and wait until they are all finished

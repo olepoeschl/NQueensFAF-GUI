@@ -17,7 +17,7 @@ __kernel void run(__global int *params, __global uint *result){
 	
 	// iterative loop representing the recursive setqueen-function
 	while(row >= 0){
-		if((bits[row][l_id] & mask)) {							// if bit is on board
+		if(bits[row][l_id] & mask) {							// if bit is on board
 			col |= bits[row][l_id];									// new col
 			ld_big = (ld_big << 1) | (ld >> 31);
 			ld = (ld | bits[row][l_id]) << 1;							// new ld

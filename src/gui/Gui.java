@@ -80,8 +80,8 @@ public class Gui extends JFrame {
     private JLabel lblTime;
     private JTextArea taOutput; 
     private JProgressBar progressBar;
-    // gpu-tab
-    private JComboBox<String> cbGpuChooser;
+    // OpenCL-tab
+    private JComboBox<String> cbDeviceChooser;
     
     // components for the waiting-dialog
     private JOptionPane optionPane;
@@ -119,7 +119,7 @@ public class Gui extends JFrame {
         eventListener = new EventListener();
         iconImg = Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/queenFire_FAF_beschnitten.png"));
         
-        // initialize gpu-solver
+        // initialize OpenCL-solver
         try {
 			gpuSolver = new GpuSolver();
 		} catch (URISyntaxException e) {
@@ -289,30 +289,32 @@ public class Gui extends JFrame {
         waitlbl = new JLabel();
         optionPane.add(waitlbl);
         
-        // gpu-tab
-        cbGpuChooser = new JComboBox<String>();
-        cbGpuChooser.setBorder(new TitledBorder(null, "GPU - Chooser", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        // OpenCL-tab
+        cbDeviceChooser = new JComboBox<String>();
+        cbDeviceChooser.setBorder(new TitledBorder(null, "Device - Chooser", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         try {
 			for(String device_info : gpuSolver.listDevices()) {
-				cbGpuChooser.addItem(device_info);
+				cbDeviceChooser.addItem(device_info);
 			}
 		} catch (LWJGLException e1) {
 			e1.printStackTrace();
 		}
-        cbGpuChooser.setVisible(false);
-        pnlTop.add(cbGpuChooser, BorderLayout.SOUTH);
+        cbDeviceChooser.setVisible(false);
+        pnlTop.add(cbDeviceChooser, BorderLayout.SOUTH);
         
         // other
         tabbedPane = new JTabbedPane();
         tabbedPane.addTab(" CPU ", splitPane);
-        tabbedPane.addTab(" GPU ", null);
+        tabbedPane.addTab(" OpenCL ", null);
+        if(cbDeviceChooser.getItemCount() == 0)						// if no opencl-devices are available, disbale the OpenCL-tab
+        	tabbedPane.setEnabledAt(1, false);
         tabbedPane.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				if(tabbedPane.getSelectedIndex() == 0) {
 					use_cpu = true;
 					// show important gui-components
-					cbGpuChooser.setVisible(false);
+					cbDeviceChooser.setVisible(false);
 					pnlThreadcount.setVisible(true);
 					btnSave.setVisible(true);
 					btnLoad.setVisible(true);
@@ -320,7 +322,7 @@ public class Gui extends JFrame {
 				} else if(tabbedPane.getSelectedIndex() == 1) {
 					use_cpu = false;
 					// hide unnessesary gui-components
-					cbGpuChooser.setVisible(true);
+					cbDeviceChooser.setVisible(true);
 					pnlThreadcount.setVisible(false);
 					btnSave.setVisible(false);
 					btnLoad.setVisible(false);
@@ -797,16 +799,20 @@ public class Gui extends JFrame {
     }
     
     private void lockTab() {
-    	if(use_cpu)
-    		tabbedPane.setEnabledAt(1, false);
-    	else
-    		tabbedPane.setEnabledAt(0, false);
+    	if(cbDeviceChooser.getItemCount() > 0) {
+        	if(use_cpu)
+        		tabbedPane.setEnabledAt(1, false);
+        	else
+        		tabbedPane.setEnabledAt(0, false);
+    	}
     }
     private void unlockTab() {
-    	if(use_cpu)
-    		tabbedPane.setEnabledAt(1, true);
-    	else
-    		tabbedPane.setEnabledAt(0, true);
+    	if(cbDeviceChooser.getItemCount() > 0) {
+        	if(use_cpu)
+        		tabbedPane.setEnabledAt(1, true);
+        	else
+        		tabbedPane.setEnabledAt(0, true);
+    	}
     }
     
     private class EventListener implements ChangeListener, KeyListener, FocusListener, ActionListener {
@@ -958,9 +964,9 @@ public class Gui extends JFrame {
                             btnStart.setEnabled(false);
                             
                             int N = Integer.parseInt(tfN.getText());
-                            // initialize GpuSolver object
+                            // initialize OpenCL-Solver object
                     		gpuSolver.setN(N);
-                    		gpuSolver.setDevice(cbGpuChooser.getSelectedIndex());
+                    		gpuSolver.setDevice(cbDeviceChooser.getSelectedIndex());
                     		
                     		SwingUtilities.invokeLater(new Runnable() {
                                 public void run() {
