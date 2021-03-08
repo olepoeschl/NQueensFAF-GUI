@@ -365,10 +365,6 @@ public class GpuSolver {
 	    	}
 	    	fos.close();
 	    	in.close();
-
-	    	// delete the temporary file and the folder when the jvm exits
-			file.deleteOnExit();
-			temp_libdir.toFile().deleteOnExit();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

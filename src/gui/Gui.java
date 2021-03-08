@@ -35,7 +35,12 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.ArrayDeque;
 
@@ -163,6 +168,44 @@ public class Gui extends JFrame {
         this.setIconImage(iconImg);
         this.setResizable(false);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.addWindowListener(new WindowListener() {
+			@Override
+			public void windowOpened(WindowEvent e) {}
+			@Override
+			public void windowClosing(WindowEvent e) {
+				setVisible(false);
+				
+				try {
+					// clean the temp-directory that was created for the lwjgl-native binary
+					InputStream in = GpuSolver.class.getClassLoader().getResourceAsStream("bin/clear_temp_data.exe");
+					byte[] buffer = new byte[1024];
+					int read = -1;
+					File file = File.createTempFile("clear_temp_data", ".exe");
+					FileOutputStream fos = new FileOutputStream(file);
+					while((read = in.read(buffer)) != -1) {
+						fos.write(buffer, 0, read);
+					}
+					fos.close();
+					in.close();
+
+					Runtime.getRuntime().exec(file.getAbsolutePath());
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+			@Override
+			public void windowClosed(WindowEvent e) {}
+
+			@Override
+			public void windowIconified(WindowEvent e) {}
+			@Override
+			public void windowDeiconified(WindowEvent e) {}
+
+			@Override
+			public void windowActivated(WindowEvent e) {}
+			@Override
+			public void windowDeactivated(WindowEvent e) {}
+        });
         this.getContentPane().setLayout(new BorderLayout());    
         
         // overall + cpu-tab
