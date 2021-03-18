@@ -1,51 +1,102 @@
-__kernel void run(__global int *params, __global uint *result){
-	const int g_id = get_global_id(0);
-	const int l_id = get_local_id(0);
+//	//	//	//	//	//	//	//	//
+// kernel for nqueens-solving	//
+//	//	//	//	//	//	//	//	//
+
+
+// main function of the kernel
+__kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_arr, global int *LD_arr, global int *RD_arr, global int *kl_arr, global int *start_arr, global uint *result) {
 	
-	// variables
-	__const uint mask = (1 << N) - 1; 
-	uint ld = params[3 * g_id];
-	uint rd = params[3 * g_id + 1];
-	uint col = params[3 * g_id + 2];
-	uint temp;
-	local uint bits[N-PRE_ROWS+1][BLOCK_SIZE];
-	uint notfree = ld | rd | col;								 	// init notfree
-	bits[0][l_id] = (notfree + 1) & ~notfree;							 	// init bit
-	uint ld_big = 0;
-	uint rd_big = 0;
-	int row = 0;
+// gpu intern indice
+	const int g_id = get_global_id(0);												// global thread id
+	const short l_id = get_local_id(0);												// local thread id within workgroup
+	
+// variables	
+	// for the board
+	uint ld = ld_arr[g_id];															// left diagonal
+	uint rd = rd_arr[g_id];															// right diagonal
+	uint col_mask = ~((1 << N) - 1) | 1;														// col_maskumn and mask
+	
+	// k and l - row indice where a queen is already set and we have to go to the next row
+	const short k = kl_arr[g_id] >> 8;														
+	const short l = kl_arr[g_id] & 255;
+	
+	// (1 << (N-1))D and RD - occupancy of board-entering diagonals due to the queens from the start constellation
+	const uint jdiag = LD_arr[g_id] & RD_arr[g_id];
+	
+	// wir shiften das ja in der zeile immer (im solver), aslo muss es hier einfach in der 0-ten zeile die diagonale der dame belegen EASY
+	const uint L = 1 << (N-1);
+	
+	// init col_mask
+	col_mask |= col_mask_arr[g_id] | L | 1;
+	
+	// start index
+	const short start = start_arr[g_id];
+	
+	// to memorize diagonals leaving the board at a certain row
+	uint ld_mem = 0;															
+	uint rd_mem = 0;
+	
+	// initialize current row and solvecounter as 0
+	int row = start;
 	uint solvecounter = 0;
 	
+	ld |= (L >> k) << row;
+	rd |= (1 << l) >> row;
+	
+	// init klguard
+	uint notfree = ld | rd | col_mask | (jdiag >> N-1-row) | (jdiag << (N-1-row));
+	if(row == k)
+		notfree = ~L;
+	else if (row == l)
+		notfree = ~1U;
+	
+	// local (faster) array containing positions of the queens of each row 
+	// for all boards of the workgroup
+	local uint bits[N][BLOCK_SIZE];													// is '1', where a queen will be set; one integer for each line 
+	bits[start][l_id] = (notfree + 1) & ~notfree;							 			// initialize bit as rightmost free space ('0' in notfree)
+	
+	// temp variable
+	uint temp = bits[start][l_id];														// for reducing array reads
+	uint diff = 1;
+	int direction = 1;
+	
 	// iterative loop representing the recursive setqueen-function
-	while(row >= 0){
-		if((bits[row][l_id] & mask)) {							// if bit is on board
-			temp = bits[row][l_id];
-			col += temp;									// new col
-			ld_big = (ld_big << 1) | (ld >> 31);
-			ld = (ld | temp) << 1;							// new ld
-			rd_big = (rd_big >> 1) | (rd << 31);
-			rd = (rd | temp) >> 1;							// new rd
-			notfree = ld | rd | col;							// new notfree
+	while(row >= start){
+		if(temp) {																	// if bit is on board
+			col_mask |= temp;															// new col
+			ld_mem = ld_mem << 1 | ld >> 31;
+			rd_mem = rd_mem >> 1 | rd << 31;
+			ld = (ld | temp) << 1;													// shift diagonals to next line
+			rd = (rd | temp) >> 1;													
+			
 			row++;
-			bits[row][l_id] = (notfree + 1) & ~notfree;				// new bit
+			diff = direction = 1;
 		}
 		else {
-			if(row == N-PRE_ROWS)
-				solvecounter++;
-				
-			row--;																				// one row back
-			if(row >= 0){
-				temp = bits[row][l_id];
-				col -= temp;															// remove bit from col khauifbkdlshgni
-				ld = ((ld >> 1) | (ld_big << 31)) & ~temp;							// reset ld
-				ld_big >>= 1;
-				rd = ((rd << 1) | (rd_big >> 31)) & ~temp;							// reset rd
-				rd_big <<= 1;
-				notfree = ld | rd | col | temp;										// calculate new notfree
-				bits[row][l_id] = (notfree + temp) & ~notfree;						// calculate new bit
-			}
+			row--;																	// one row back
+			temp = bits[row][l_id];													// this saves 2 reads from local array
+			temp *= (row != k && row != l);
+			ld = ((ld >> 1) | (ld_mem << 31)) & ~temp;								// shift diagonals one row up
+			rd = ((rd << 1) | (rd_mem >> 31)) & ~temp;								// if there was a diagonal leaving the board in the line before, occupy it again
+			ld_mem >>= 1;															// shift those as well
+			rd_mem <<= 1;
+			
+			direction = 0;
+			diff = temp;
 		}
+		solvecounter += (row == N-1);
+		
+		notfree = (jdiag >> N-1-row) | (jdiag << (N-1-row)) | ld | rd | col_mask;							// calculate occupancy of next row
+		if(!direction)
+			col_mask &= ~temp;
+		
+		temp = (notfree + diff) & ~notfree;
+		if(row == k)
+			temp = L * direction;
+		if(row == l)
+			temp = direction;
+			
+		bits[row][l_id] = temp;
 	}
 	result[g_id] = solvecounter;
-	//printf("%i \n", solvecounter);
 }

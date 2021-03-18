@@ -22,13 +22,11 @@ import org.lwjgl.opencl.*;
 public class GpuSolver {
 
 	// calculation variables
-	private int N, mask;
+	private int N;
 	private long solvecounter = 0;
-	private final int PRE_ROWS = 5, BLOCK_SIZE = 64;
-	private int len = 0, compute_units;
+	private final int BLOCK_SIZE = 64;
 	private long start, end;
 	private boolean ready = false;
-	private ArrayDeque<Integer> ld_list, rd_list, col_list;
 
 	// OpenCL variables
 	private CLContext context;
@@ -38,25 +36,21 @@ public class GpuSolver {
 	private CLCommandQueue queue;
 
 	public GpuSolver() throws URISyntaxException {
-		ld_list = new ArrayDeque<Integer>();
-		rd_list = new ArrayDeque<Integer>();
-		col_list = new ArrayDeque<Integer>();
-		
 		// load lwjgl-native
 		loadLwjglNative();
-		
+
 		devices = new ArrayList<CLDevice>();
 	}
 
 	public void start() {
 		reset();
-		
+
 		// Error buffer used to check for OpenCL error that occurred while a command was running
 		IntBuffer errorBuff = BufferUtils.createIntBuffer(1);
-		
+
 		// Create an OpenCL context
 		try {
-			context = CLContext.create(platform, platform.getDevices(CL10.CL_DEVICE_TYPE_GPU), errorBuff);
+			context = CLContext.create(platform, platform.getDevices(CL10.CL_DEVICE_TYPE_ALL), errorBuff);
 		} catch (LWJGLException e) {
 			e.printStackTrace();
 		}
@@ -64,53 +58,127 @@ public class GpuSolver {
 		// Create a command queue
 		queue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuff);
 		Util.checkCLError(errorBuff.get(0)); 
-		
-		// get number of compute units
-		compute_units = device.getInfoInt(CL10.CL_DEVICE_MAX_COMPUTE_UNITS);
-		
 
 		// Create program and store it on the specified device
 		CLProgram sqProgram;
 		sqProgram = CL10.clCreateProgramWithSource(context, loadText("res/setqueen_kernel.c"), null);
-		
+
 		// build program and define N and preRows as a macro for the kernel
-		String options = "-D N="+N + " -D PRE_ROWS="+PRE_ROWS + " -D BLOCK_SIZE="+BLOCK_SIZE + " -cl-mad-enable";
+		String options = "-D N="+N + " -D BLOCK_SIZE="+BLOCK_SIZE + " -cl-mad-enable";
 		int error = CL10.clBuildProgram(sqProgram, device, options, null);
 		Util.checkCLError(error);
 		// Create kernel
 		CLKernel sqKernel = CL10.clCreateKernel(sqProgram, "run", null);
 
-		// calculate the start-constellations
-		calcStartConstellations();
-		
-		// Buffer for ld, rd and col
-		int global_work_size = len - (len % (BLOCK_SIZE * compute_units));
-		int[] params = new int[global_work_size * 3];
-		for(int i = 0; i < global_work_size*3; i+=3) {
-			params[i] = ld_list.removeFirst();
-			params[i+1] = rd_list.removeFirst();
-			params[i+2] = col_list.removeFirst();
+		// generate startconstellations and retreive the parameters
+		ConstellationsGenerator presolver = new ConstellationsGenerator();
+		presolver.genConstellations(N);
+
+		// set global work size
+		int global_work_size = presolver.getld_list().size();
+
+		int[] ld_arr = new int[global_work_size];
+		int[] rd_arr = new int[global_work_size];
+		int[] col_arr = new int[global_work_size];
+		int[] LD_arr = new int[global_work_size];
+		int[] RD_arr = new int[global_work_size];
+		int[] kl_arr = new int[global_work_size];
+		int[] start_arr = new int[global_work_size];
+		int[] sym_arr = new int[global_work_size];
+		for(int i = 0; i < global_work_size; i++) {
+			ld_arr[i] = presolver.getld_list().removeFirst();
+			rd_arr[i] = presolver.getrd_list().removeFirst();
+			col_arr[i] = presolver.getcol_list().removeFirst();
+			LD_arr[i] = presolver.getLD_list().removeFirst();
+			RD_arr[i] = presolver.getRD_list().removeFirst();
+			kl_arr[i] = presolver.getkl_list().removeFirst();
+			start_arr[i] = presolver.getstart_list().removeFirst();
+			sym_arr[i] = presolver.getsym_list().removeFirst();
 		}
-		
-		IntBuffer params_Buff = BufferUtils.createIntBuffer(global_work_size * 3);
-		params_Buff.put(params);	
-		params_Buff.rewind();
-		// Create an OpenCL memory object containing a copy of the stack buffer
-		CLMem params_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, params_Buff.capacity()*4, errorBuff);
+
+		// Buffers for the kernel arguments
+		// ld
+		IntBuffer ld_buff = BufferUtils.createIntBuffer(global_work_size);
+		ld_buff.put(ld_arr);	
+		ld_buff.rewind();
+		// rd
+		IntBuffer rd_buff = BufferUtils.createIntBuffer(global_work_size);
+		rd_buff.put(rd_arr);	
+		rd_buff.rewind();
+		// col
+		IntBuffer col_buff = BufferUtils.createIntBuffer(global_work_size);
+		col_buff.put(col_arr);	
+		col_buff.rewind();
+		// LD
+		IntBuffer LD_buff = BufferUtils.createIntBuffer(global_work_size);
+		LD_buff.put(LD_arr);	
+		LD_buff.rewind();
+		// RD
+		IntBuffer RD_buff = BufferUtils.createIntBuffer(global_work_size);
+		RD_buff.put(RD_arr);	
+		RD_buff.rewind();
+		// kl
+		IntBuffer kl_buff = BufferUtils.createIntBuffer(global_work_size);
+		kl_buff.put(kl_arr);	
+		kl_buff.rewind();
+		// start
+		IntBuffer start_buff = BufferUtils.createIntBuffer(global_work_size);
+		start_buff.put(start_arr);	
+		start_buff.rewind();
+
+		// OpenCL-Memory Objects for the kernel arguments
+		// ld
+		CLMem ld_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		CL10.clEnqueueWriteBuffer(queue, params_mem, 0, 0, params_Buff, null, null);
+		CL10.clEnqueueWriteBuffer(queue, ld_mem, 0, 0, ld_buff, null, null);
 		Util.checkCLError(errorBuff.get(0));
-		
+		// rd
+		CLMem rd_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		CL10.clEnqueueWriteBuffer(queue, rd_mem, 0, 0, rd_buff, null, null);
+		Util.checkCLError(errorBuff.get(0));
+		// col
+		CLMem col_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		CL10.clEnqueueWriteBuffer(queue, col_mem, 0, 0, col_buff, null, null);
+		Util.checkCLError(errorBuff.get(0));
+		// LD
+		CLMem LD_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		CL10.clEnqueueWriteBuffer(queue, LD_mem, 0, 0, LD_buff, null, null);
+		Util.checkCLError(errorBuff.get(0));
+		// RD
+		CLMem RD_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		CL10.clEnqueueWriteBuffer(queue, RD_mem, 0, 0, RD_buff, null, null);
+		Util.checkCLError(errorBuff.get(0));
+		// kl
+		CLMem kl_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		CL10.clEnqueueWriteBuffer(queue, kl_mem, 0, 0, kl_buff, null, null);
+		Util.checkCLError(errorBuff.get(0));
+		// start
+		CLMem start_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		CL10.clEnqueueWriteBuffer(queue, start_mem, 0, 0, start_buff, null, null);
+		Util.checkCLError(errorBuff.get(0));
+
 		// result memory
 		CLMem resultMemory;
-		resultMemory = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY, global_work_size * 4, errorBuff);
+		resultMemory = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY, global_work_size*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		
+
 		// Set the kernel parameters
-		sqKernel.setArg(0, params_mem);
-		sqKernel.setArg(1, resultMemory);
-		
-		// Create a buffer of pointers defining the multi-dimensional size of the number of work units to execute
+		sqKernel.setArg(0, ld_mem);
+		sqKernel.setArg(1, rd_mem);
+		sqKernel.setArg(2, col_mem);
+		sqKernel.setArg(3, LD_mem);
+		sqKernel.setArg(4, RD_mem);
+		sqKernel.setArg(5, kl_mem);
+		sqKernel.setArg(6, start_mem);
+		sqKernel.setArg(7, resultMemory);
+
+		// create buffer of pointers defining the multi-dimensional size of the number of work units to execute
 		final int dimensions = 1;
 		PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions);
 		globalWorkSize.put(0, global_work_size);
@@ -119,136 +187,66 @@ public class GpuSolver {
 
 		// wait for the queue to finish all preparations
 		CL10.clFinish(queue);
-		
-		// buffer for event that is used for measuring the execution time
-		final PointerBuffer event_Buff = BufferUtils.createPointerBuffer(1);
-		
-		// Run the specified number of work units using our OpenCL program kernel
-		CL10.clEnqueueNDRangeKernel(queue, sqKernel, dimensions, null, globalWorkSize, localWorkSize, null, event_Buff);
+
+		// run kernel and profile time
+		final PointerBuffer event_Buff = BufferUtils.createPointerBuffer(1);		// buffer for event that is used for measuring the execution time
+		CL10.clEnqueueNDRangeKernel(queue, sqKernel, dimensions, null, globalWorkSize, localWorkSize, null, event_Buff);	// Run the specified number of work units using our OpenCL program kernel
 //		System.out.println("> Started " + global_work_size  + " threads");
 
 		// set pseudo starttime
-		start = System.currentTimeMillis();
 		ready = true;
+		start = System.currentTimeMillis();
+		
+		CL10.clFinish(queue);			// wait till the task is complete
 
-		// solve the rest using cpu
-		for(int i = 0; i < len % (BLOCK_SIZE * compute_units); i++) {
-			int ld = ld_list.removeFirst();
-			int rd = rd_list.removeFirst();
-			int col = col_list.removeFirst();
-			nq2(ld, rd, col, PRE_ROWS, ~(ld | rd | col) & mask);
-		}
-		
-		// wait till the task is complete
-		CL10.clFinish(queue);
-		
-		// get time values using the clEvent, print the time
+		// get time values using the clEvent, print time
 		final CLEvent event = queue.getCLEvent(event_Buff.get(0));
 		start = event.getProfilingInfoLong(CL10.CL_PROFILING_COMMAND_START);
 		end = event.getProfilingInfoLong(CL10.CL_PROFILING_COMMAND_END);
 //		String seconds_str = String.format(Locale.ROOT, "%.3f", (end-start)*0.000000001);
 //		System.out.println("------------------------");
 //		System.out.println("time: \t\t\t" + (end-start) + " nanoseconds (~" + seconds_str + " seconds)");
-		
-		//This reads the result memory buffer
-		IntBuffer resultBuff;
-		resultBuff = BufferUtils.createIntBuffer(global_work_size);
 
-		// We read the buffer in blocking mode so that when the method returns we know that the result buffer is full
+		// read from the result memory buffer
+		IntBuffer resultBuff = BufferUtils.createIntBuffer(global_work_size);
 		CL10.clEnqueueReadBuffer(queue, resultMemory, CL10.CL_TRUE, 0, resultBuff, null, null);
 		// Print the values in the result buffer
-//		System.out.println("cpu-solutions: \t\t" + solvecounter);
 		for(int i = 0; i < resultBuff.capacity(); i++) {
-			solvecounter += resultBuff.get(i);
+			solvecounter += resultBuff.get(i) * sym_arr[i];			// calculate the solutions-counter using the symmetry-factors of the sym_arr-array
 		}
-		solvecounter *= 2;
-//		System.out.println("total solutions: \t" + solvecounter);
+//		System.out.println("total solutions: \t" + (solvecounter));
 
 		// Destroy our kernel and program
 		CL10.clReleaseKernel(sqKernel);
 		CL10.clReleaseProgram(sqProgram);
-		CL10.clReleaseMemObject(params_mem);
+		CL10.clReleaseMemObject(ld_mem);
+		CL10.clReleaseMemObject(rd_mem);
+		CL10.clReleaseMemObject(col_mem);
+		CL10.clReleaseMemObject(LD_mem);
+		CL10.clReleaseMemObject(RD_mem);
+		CL10.clReleaseMemObject(kl_mem);
+		CL10.clReleaseMemObject(start_mem);
 		CL10.clReleaseMemObject(resultMemory);
 
 		// Destroy the OpenCL context
 		destroyCL();
-		
+
 		ready = false;
 	}
-
-	// calculation stuff
-	private void calcStartConstellations() {
-		for(int i = 0; i < N/2; i++) {
-			int q = 1 << i;
-			int ld = q << 1;
-			int rd = q >> 1;
-			nq(ld, rd, q, 1, ~(ld|rd|q) & mask);
-		}
-		if(N%2 > 0) {
-			int q1 = 1 << (N/2);
-			int ld1 = q1 << 2;
-			int rd1 = q1 >> 2;
-			for(int j = 0; j < N/2-1; j++) {
-				int q2 = 1 << j;
-				int ld2 = q2 << 1;
-				int rd2 = q2 >> 1;
-				nq(ld1|ld2, rd1|rd2, q1|q2, 2, ~(ld1|ld2|rd1|rd2|q1|q2) & mask);
-			}
-		}
-		len = ld_list.size();
-	}
-	private void nq(int ld, int rd, int col, int row, int free) {
-		if(row == PRE_ROWS) {
-			ld_list.add(ld);
-			rd_list.add(rd);
-			col_list.add(col);
-			return;
-		}
-		
-		int bit;
-		int nextfree;
-		
-		while(free > 0) {
-			bit = free & (-free);
-			free -= bit;
-			nextfree = ~((ld|bit)<<1 | (rd|bit)>>1 | col|bit) & mask;
-			
-			if(nextfree > 0)
-				nq((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1, nextfree);
-		}
-	}
-	private void nq2(int ld, int rd, int col, int row, int free) {
-		if(row == N-1) {
-			solvecounter++;
-			return;
-		}
-		
-		int bit;
-		int nextfree;
-		
-		while(free > 0) {
-			bit = free & (-free);
-			free -= bit;
-			nextfree = ~((ld|bit)<<1 | (rd|bit)>>1 | col|bit) & mask;
-			
-			if(nextfree > 0)
-				nq2((ld|bit)<<1, (rd|bit)>>1, col|bit, row+1, nextfree);
-		}
-	}
-
+	
 	private void reset() {
 		solvecounter = 0;
 		start = 0;
 		end = 0;
 	}
-	
+
 	// OpenCl stuff
 	public ArrayDeque<String> listDevices() throws LWJGLException { 
 		// Create OpenCL
 		CL.create();
 
 		devices.clear();
-		
+
 		// a list that contains vendors and names of all available devices
 		ArrayDeque<String> device_infos = new ArrayDeque<String>();
 		String device_type = null;
@@ -256,7 +254,7 @@ public class GpuSolver {
 			for(CLPlatform platform : CLPlatform.getPlatforms()) {
 				for(CLDevice device : platform.getDevices(CL10.CL_DEVICE_TYPE_ALL)) {
 					devices.add(device);
-					
+
 					switch(device.getInfoInt(CL10.CL_DEVICE_TYPE)) {
 					case 1:
 						device_type = "Default";
@@ -322,64 +320,63 @@ public class GpuSolver {
 
 	// function to load the native file that is nessesary for the interaction with the lwjgl library
 	public void loadLwjglNative() {
-	    Path temp_libdir = null;
-	    String filename = null;
-	    
-	    // determine system architecture
-	    String arch = System.getProperty("os.arch");
-	    if(arch.contains("64"))
-	    	arch = "64";
-	    else
-	    	arch = "";
-	    // determine operating system
-	    String os = System.getProperty("os.name").toLowerCase();
-	    if(os.contains("win")) {
-	    	// windows
-	    	filename = "lwjgl" + arch + ".dll";
-	    } else if(os.contains("mac")) {
-	    	// mac
-	    	filename = "liblwjgl_mac.dylib";
-	    } else if(os.contains("nix") || os.contains("nux") || os.contains("aix")) {
-	    	// unix (linux etc)
-	    	filename = "liblwjgl" + arch + "_linux.so";
-	    } else if(os.contains("sunos")) {
-	    	// solaris
-	    	filename = "liblwjgl" + arch + "_solaris.so";
-	    } else {
-	    	// unknown os
-	    	System.err.println("No native executables available for this operating system (" + os + ").");
-	    }
-	    
-	    try {
-	    	// create temporary directory to stor the native files inside
-	    	temp_libdir = Files.createTempDirectory("NQueensFAF");
+		Path temp_libdir = null;
+		String filename = null;
 
-	    	// copy the native file from within the jar to the temporary directory
-	    	InputStream in = GpuSolver.class.getClassLoader().getResourceAsStream("natives/" + filename);
-	    	byte[] buffer = new byte[1024];
-	    	int read = -1;
-	    	File file = new File(temp_libdir + "/" + filename);
-	    	FileOutputStream fos = new FileOutputStream(file);
-	    	while((read = in.read(buffer)) != -1) {
-	    		fos.write(buffer, 0, read);
-	    	}
-	    	fos.close();
-	    	in.close();
+		// determine system architecture
+		String arch = System.getProperty("os.arch");
+		if(arch.contains("64"))
+			arch = "64";
+		else
+			arch = "";
+		// determine operating system
+		String os = System.getProperty("os.name").toLowerCase();
+		if(os.contains("win")) {
+			// windows
+			filename = "lwjgl" + arch + ".dll";
+		} else if(os.contains("mac")) {
+			// mac
+			filename = "liblwjgl_mac.dylib";
+		} else if(os.contains("nix") || os.contains("nux") || os.contains("aix")) {
+			// unix (linux etc)
+			filename = "liblwjgl" + arch + "_linux.so";
+		} else if(os.contains("sunos")) {
+			// solaris
+			filename = "liblwjgl" + arch + "_solaris.so";
+		} else {
+			// unknown os
+			System.err.println("No native executables available for this operating system (" + os + ").");
+		}
+
+		try {
+			// create temporary directory to stor the native files inside
+			temp_libdir = Files.createTempDirectory("NQueensFAF");
+
+			// copy the native file from within the jar to the temporary directory
+			InputStream in = GpuSolver.class.getClassLoader().getResourceAsStream("natives/" + filename);
+			byte[] buffer = new byte[1024];
+			int read = -1;
+			File file = new File(temp_libdir + "/" + filename);
+			FileOutputStream fos = new FileOutputStream(file);
+			while((read = in.read(buffer)) != -1) {
+				fos.write(buffer, 0, read);
+			}
+			fos.close();
+			in.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	    
-	    System.setProperty("org.lwjgl.librarypath", temp_libdir.toAbsolutePath().toString());
+
+		System.setProperty("org.lwjgl.librarypath", temp_libdir.toAbsolutePath().toString());
 	}
 
 	// getters and setters
 	public boolean isReady() {
 		return ready;
 	}
-	
+
 	public void setN(int N) {
 		this.N = N;
-		mask = (1 << N) - 1;
 	}
 	public int getN() {
 		return N;
@@ -388,7 +385,7 @@ public class GpuSolver {
 		device = devices.get(index);
 		platform = device.getPlatform();
 	}
-	
+
 	public long getStarttime() {
 		return start;
 	}

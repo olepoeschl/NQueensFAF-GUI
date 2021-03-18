@@ -38,9 +38,11 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.util.ArrayDeque;
 
@@ -610,7 +612,20 @@ public class Gui extends JFrame {
     			}.start();
 
     			// start the calculation
-    			gpuSolver.start();
+    			try {
+        			gpuSolver.start();
+    			} catch(Exception e) {
+    				File file = new File("latest_error.nqueensfaf.log");
+    				PrintStream ps = null;
+					try {
+						ps = new PrintStream(file);
+					} catch (FileNotFoundException e1) {
+						e1.printStackTrace();
+					}
+    				e.printStackTrace(ps);
+    				ps.close();
+    				JOptionPane.showMessageDialog(context, "There was an error while trying to execute the NQueensFAF-Kernel on the chosen GPU. \nTake a look at the log-file and / or contact the administrators of this project: \nolepoeschl.developing@gmail.com", "Error", JOptionPane.ERROR_MESSAGE);
+    			}
 
     			// stop time
     			updateTime = 2;
