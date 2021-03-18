@@ -56,7 +56,7 @@ public class AlgorithmStarter {
 		else {
 			// if we don't load an old calculation
 			if(!load) {		
-				// column, left and right diag, idx of row, mask marks the board, halfN half of N rounded up
+				// halfN half of N rounded up
 				final int halfN = (N + 1) / 2;
 
 				// calculating start constellations with the first Queen on square (0,0)
@@ -100,7 +100,7 @@ public class AlgorithmStarter {
 			}
 			int i = 0;
 			for(int constellation : startConstellations) {
-				threadConstellations.get((i++) % cpu).addFirst(constellation);
+				threadConstellations.get((i++) % cpu).addLast(constellation);
 			}
 
 			// start the threads and wait until they are all finished

@@ -1,3 +1,5 @@
+# NQueensFAF
+=======
 # N-Queens Solver FAF
 <!--img src="https://www.student.hs-mittweida.de/~opoeschl/data/queenFire_FAF.png" width="200" height="200" align="right" /-->
 
@@ -119,15 +121,5 @@ Mail: olepoeschl.developing@gmail.com
 # Credits
 <a href="https://github.com/carrotsearch/hppc">HPPC-library</a> (High Performance Primitive Collections) <br>
 Icon by Jojo
-      
-      
-      
-      
-      
-      
-      
-     
-      
-      
-      
-      
+
+
