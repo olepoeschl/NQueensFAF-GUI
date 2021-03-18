@@ -615,7 +615,7 @@ public class Gui extends JFrame {
     			try {
         			gpuSolver.start();
     			} catch(Exception e) {
-    				File file = new File("latest_error.nqueensfaf.log");
+    				File file = new File(System.getProperty("user.home") + "/latest_error.nqueensfaf.log");
     				PrintStream ps = null;
 					try {
 						ps = new PrintStream(file);
@@ -624,7 +624,7 @@ public class Gui extends JFrame {
 					}
     				e.printStackTrace(ps);
     				ps.close();
-    				JOptionPane.showMessageDialog(context, "There was an error while trying to execute the NQueensFAF-Kernel on the chosen GPU. \nTake a look at the log-file and / or contact the administrators of this project: \nolepoeschl.developing@gmail.com", "Error", JOptionPane.ERROR_MESSAGE);
+    				JOptionPane.showMessageDialog(context, "There was an error while trying to execute the NQueensFAF-Kernel on the chosen device. \nProbably, this means that the chosen device is not compatible for this porgram. \n\nTake a look at the log-file and / or contact the administrators of this project. \nE-mail: olepoeschl.developing@gmail.com \nLocation of log-file: " + file.getAbsolutePath(), "Error during execution of OpenCL-kernel", JOptionPane.ERROR_MESSAGE);
     			}
 
     			// stop time
