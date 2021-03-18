@@ -1,8 +1,8 @@
 # NQueensFAF
 <!--img src="https://www.student.hs-mittweida.de/~opoeschl/data/queenFire_FAF.png" width="200" height="200" align="right" /-->
 
-A really fast and highly optimized Gui-Program for calculating the number of solutions of the N-Queens Problem using CPU.
-<br>Supports multithreading.
+A really fast and highly optimized Gui-Program for calculating the number of solutions of the N-Queens Problem.
+<br>Supports CPU multithreading and GPU.
 
 ### Download
 See the "Release" section for the latest stable build. <br>
@@ -31,12 +31,10 @@ This solution is based on two methods:
 CPU: *i5-9300h @4GHz undervolted*
 
 # Versions
-following times are referring to *single-threaded*
+unless otherwise stated, following times are referring to *single-threaded*
 
 ## Version X (yet to come):
       - definitely N = 16 in < 1 sec
-      
-      - integrating the use of GPU
       
 ## Distributed
       - test using board size 23 was successfull !
@@ -48,6 +46,10 @@ following times are referring to *single-threaded*
         
       - STAY TUNED !
       
+## Version 10:
+      - included support for GPU's using OpenCL through lwjgl
+      
+      - insanely fast thanks to optimized parallel programming
 ## Version 9:
       - REMARKABLE IMPROVEMENT!!! (~35%)
 
