@@ -9,6 +9,7 @@ See the "Release" section for the latest stable build. <br>
 Download the latest nightly build (may be unstable):     
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.student.hs-mittweida.de/~opoeschl/executables/NQueensFaf.jar"> NQueensFaf.jar (Java 15) </a>
 <br>&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.student.hs-mittweida.de/~opoeschl/executables/NQueensFaf_Java8.jar"> NQueensFaf_Java8.jar (Java 8) </a>
+<br>&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.student.hs-mittweida.de/~opoeschl/executables/NQueensFaf.exe"> (Self contained executable) NQueensFaf.exe (Java 15) </a>
 <br>(if you don't already have Java, download it <a href="https://www.java.com/en/download/manual.jsp">here</a>)
 
 It's an eclipse project, so you can clone it, import it into eclipse and run it.
