@@ -23,6 +23,8 @@ public class GpuSolver {
 
 	// calculation variables
 	private int N;
+	private int compute_units, minmem, maxmem, k, l, LD, RD, mask, sym, kl;
+	private int L, kbit, lbit, kmask, lmask;
 	private long solvecounter = 0;
 	private final int BLOCK_SIZE = 64;
 	private long start, end;
@@ -70,12 +72,19 @@ public class GpuSolver {
 		// Create kernel
 		CLKernel sqKernel = CL10.clCreateKernel(sqProgram, "run", null);
 
+		// preparation for cpu-solver
+		mask = (1 << N) - 1;
+		L = (1 << (N-1));
+		kmask = mask - L;	// hält nur ganz links frei für die dame
+		lmask = mask - 1;	// ganz rechts das gleiche
+		
 		// generate startconstellations and retreive the parameters
 		ConstellationsGenerator presolver = new ConstellationsGenerator();
 		presolver.genConstellations(N);
 
 		// set global work size
-		int global_work_size = presolver.getld_list().size();
+		compute_units = device.getInfoInt(CL10.CL_DEVICE_MAX_COMPUTE_UNITS);
+		int global_work_size = presolver.getld_list().size() - (presolver.getld_list().size() % (BLOCK_SIZE * compute_units));
 
 		int[] ld_arr = new int[global_work_size];
 		int[] rd_arr = new int[global_work_size];
@@ -196,6 +205,26 @@ public class GpuSolver {
 		// set pseudo starttime
 		ready = true;
 		start = System.currentTimeMillis();
+
+		// solve the rest using CPU
+		int a = presolver.getld_list().size(), ld, rd, col, start_idx;
+		for(int i = 0; i < a; i++) {
+			sym = presolver.getsym_list().removeFirst();
+			kl = presolver.getkl_list().removeFirst();
+			LD = presolver.getLD_list().removeFirst();
+			RD = presolver.getRD_list().removeFirst();
+			k = kl >>> 8;
+			l = kl & 255;
+			kbit = (1 << (N-k-1));
+			lbit = (1 << l);	
+			ld = presolver.getld_list().removeFirst();
+			rd = presolver.getrd_list().removeFirst();
+			col = presolver.getcol_list().removeFirst();
+			start_idx = presolver.getstart_list().removeFirst();
+
+			solver(ld, rd, col, start_idx);
+		}
+
 		
 		CL10.clFinish(queue);			// wait till the task is complete
 
@@ -318,6 +347,22 @@ public class GpuSolver {
 		return resultString;
 	}
 
+	private void solver(int ld, int rd, int col, int row) {
+		if(row == N-1) {
+			solvecounter += sym;
+			return;
+		}
+		int klguard = ((kbit << row) ^ L) | ((lbit >>> row) ^ 1) | ((((kbit << row)&L) >>> (N-1)) * kmask) | (((lbit >>> row)&1) * lmask);	
+		int free = ~(ld | rd | col | (LD >>> (N-1-row)) | (RD << (N-1-row)) | klguard) & mask;
+		int bit = 0;
+		
+		while(free > 0) {
+			bit = free & (-free);
+			free -= bit;
+			solver((ld|bit) << 1, (rd|bit) >>> 1, col|bit, row+1);
+		}
+	}
+	
 	// function to load the native file that is nessesary for the interaction with the lwjgl library
 	public void loadLwjglNative() {
 		Path temp_libdir = null;
