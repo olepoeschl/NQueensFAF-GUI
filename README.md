@@ -14,6 +14,10 @@ Download the latest nightly build (may be unstable):
 It's an eclipse project, so you can clone it, import it into eclipse and run it.
 For lower Java JDK versions than 15, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
+### Antivirus false positive
+Maybe your antivirus software identifies this program as a virus. No worries! That is the case because of the way this program works. Here you can read the reason: <br>
+When it starts, it copies the needed native OpenCL file to the "temp directory". That is necessary because this way the program works both times, when it is packed inside a jar and when it is executed from the IDE. But now, the copied native file has to be deleted so that your disk is not filled with trash like this. For now, this is done using the AutoIt-Script clear_temp_data.exe located in /res/bin. What it does, is, it finds all temporary created files from this program and deletes them all at once, so that when the program crashes one time, the next time it will delete the temporary file that was left over from the last time.
+
 # General
 This solution is based on two methods:
 
