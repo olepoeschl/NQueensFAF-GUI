@@ -37,7 +37,7 @@ This solution is based on two methods:
 CPU: *i5-9300h @4GHz undervolted*
 
 # Versions
-unless otherwise stated, following times are referring to *single-threaded*
+unless its stated otherwise, following times are referring to *single-threaded*
 
 ## Version X (yet to come):
       - definitely N = 16 in < 1 sec
