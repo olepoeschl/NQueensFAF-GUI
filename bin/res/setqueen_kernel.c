@@ -30,7 +30,7 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 	col_mask |= col_mask_arr[g_id] | L | 1;
 	
 	// start index
-	const short start = start_arr[g_id];
+	short start = start_arr[g_id];
 	
 	// to memorize diagonals leaving the board at a certain row
 	uint ld_mem = 0;															
@@ -68,7 +68,7 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 			rd_mem = rd_mem >> 1 | rd << 31;
 			ld = (ld | temp) << 1;													// shift diagonals to next line
 			rd = (rd | temp) >> 1;													
-			
+				
 			row++;
 			diff = direction = 1;
 		}
