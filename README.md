@@ -127,6 +127,7 @@ We're happy about every comment, question, idea or whatever - if you have such a
 Mail: olepoeschl.developing@gmail.com
       
 # Credits
-<a href="https://github.com/carrotsearch/hppc">HPPC-library</a> (High Performance Primitive Collections) <br>
+<a href="http://legacy.lwjgl.org/"> LWJGL 2.x library </a> (Lightweight Java Game Library, enables the use of OpenCL in Java)
+<a href="https://github.com/carrotsearch/hppc">HPPC library</a> (High Performance Primitive Collections) <br>
 Icon by Jojo
 
