@@ -1,3 +1,0 @@
-java.lang.NullPointerException: Cannot invoke "org.lwjgl.opencl.CLEvent.getProfilingInfoLong(int)" because "event" is null
-	at calc.GpuSolver.start(GpuSolver.java:204)
-	at gui.Gui$7.run(Gui.java:616)
