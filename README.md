@@ -73,7 +73,7 @@ unless its stated otherwise, following times are referring to *single-threaded*
       
       - currently only works for board sizes up to N=23, this will be updated soon
       
-      - N = 16 in ~1.3 sec --> broke the 2-second-Barrier!
+      - N = 16 in ~1.35 sec --> broke the 2-second-Barrier!
 ## Version 8:
       - better handling of the different start constellation cases
       
