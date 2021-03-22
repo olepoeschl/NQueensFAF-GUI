@@ -37,8 +37,7 @@ This solution is based on two methods:
 
 CPU: *i5-9300h @4GHz undervolted* <br>
 GPU: GTX-1650 (Laptop) <br>
-(Attention: when testing times on GPU, your graphics card may go into another power state. To avoid this, you can use a tool such as "nvidiainfo". <br>
- Also, for some nvidia cards there is a big startup time for the kernel, depending also on the boardsize N. )
+(Attention: when testing times on GPU, your graphics card may go into another power state. To avoid this, you can use a tool such as "nvidiainfo". Also, for some nvidia cards there is a big startup time for the kernel, depending also on the boardsize N. )
 
 # Versions
 unless its stated otherwise, following times are referring to *single-threaded*
