@@ -62,40 +62,63 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 	
 	// iterative loop representing the recursive setqueen-function
 	while(row >= start){
-		if(temp) {																	// if bit is on board
-			col_mask |= temp;															// new col
+		direction = (temp != 0);
+		row += (direction) ? 1 : -1;
+		if(direction) {																	// if bit is on board
 			ld_mem = ld_mem << 1 | ld >> 31;
 			rd_mem = rd_mem >> 1 | rd << 31;
 			ld = (ld | temp) << 1;													// shift diagonals to next line
-			rd = (rd | temp) >> 1;													
-				
-			row++;
-			diff = direction = 1;
+			rd = (rd | temp) >> 1;			
 		}
 		else {
-			row--;																	// one row back
 			temp = bits[row][l_id];													// this saves 2 reads from local array
 			temp *= (row != k && row != l);
 			ld = ((ld >> 1) | (ld_mem << 31)) & ~temp;								// shift diagonals one row up
 			rd = ((rd << 1) | (rd_mem >> 31)) & ~temp;								// if there was a diagonal leaving the board in the line before, occupy it again
 			ld_mem >>= 1;															// shift those as well
 			rd_mem <<= 1;
-			
-			direction = 0;
-			diff = temp;
 		}
 		solvecounter += (row == N-1);
 		
+		diff = (direction) ? 1 : temp;
+		col_mask |= temp;
 		notfree = (jdiag >> N-1-row) | (jdiag << (N-1-row)) | ld | rd | col_mask;							// calculate occupancy of next row
-		if(!direction)
-			col_mask &= ~temp;
+		col_mask = (direction) ? col_mask : col_mask & ~temp;
 		
-		temp = (notfree + diff) & ~notfree;
-		if(row == k)
-			temp = L * direction;
-		if(row == l)
-			temp = direction;
+		temp = (row == k || row == l) ? direction : ((notfree + diff) & ~notfree);
+		temp = (row == k && direction) ? L : temp;
 			
+		bits[row][l_id] = temp;
+		
+		// unroll 1 iteration
+		if(row < start)
+			break;
+		direction = (temp != 0);
+		row += (direction) ? 1 : -1;
+		if(direction) {																	// if bit is on board
+			ld_mem = ld_mem << 1 | ld >> 31;
+			rd_mem = rd_mem >> 1 | rd << 31;
+			ld = (ld | temp) << 1;													// shift diagonals to next line
+			rd = (rd | temp) >> 1;			
+		}
+		else {
+			temp = bits[row][l_id];													// this saves 2 reads from local array
+			temp *= (row != k && row != l);
+			ld = ((ld >> 1) | (ld_mem << 31)) & ~temp;								// shift diagonals one row up
+			rd = ((rd << 1) | (rd_mem >> 31)) & ~temp;								// if there was a diagonal leaving the board in the line before, occupy it again
+			ld_mem >>= 1;															// shift those as well
+			rd_mem <<= 1;
+		}
+		solvecounter += (row == N-1);
+		
+		diff = (direction) ? 1 : temp;
+		col_mask |= temp;
+		notfree = (jdiag >> N-1-row) | (jdiag << (N-1-row)) | ld | rd | col_mask;							// calculate occupancy of next row
+		col_mask = (direction) ? col_mask : col_mask & ~temp;
+			
+		temp = (row == k || row == l) ? direction : ((notfree + diff) & ~notfree);
+		temp = (row == k && direction) ? L : temp;
+				
 		bits[row][l_id] = temp;
 	}
 	result[g_id] = solvecounter;
