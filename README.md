@@ -12,20 +12,8 @@ Download the latest nightly build (may be unstable):
 <br>(if you don't already have Java, download it <a href="https://www.java.com/en/download/manual.jsp">here</a> or use the version below)
 <br>&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.student.hs-mittweida.de/~opoeschl/executables/NQueensFaf.exe"> (Self contained executable) NQueensFaf.exe (uses Java 15) </a>
  
-
-It's an eclipse project, so you can clone it, import it into eclipse and run it.
+<br> It's an eclipse project, so you can clone it, import it into eclipse and run it.
 For lower Java JDK versions than 15, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
-
-### Antivirus false positive
-Maybe your antivirus software identifies this program as a virus. No worries! That is the case because of the way this program works. Here you can read the reason: <br>
-When it starts, it copies the needed native OpenCL file to the "temp directory". That is necessary because this way the program works both times, when it is packed inside a jar and when it is executed from the IDE. But now, the copied native file has to be deleted so that your disk is not filled with trash like this. For now, this is done using the AutoIt-Script clear_temp_data.exe located in /res/bin. What it does, is, it finds all temporary created files from this program and deletes them all at once, so that when the program crashes one time, the next time it will delete the temporary file that was left over from the last time. Currently, this only works with Windows because AutoIt is used.
-
-# General
-This solution is based on two methods:
-
-- using bits to represent the occupancy of the board; based on the <a href="http://users.rcn.com/liusomers/nqueen_demo/nqueens.html">implementation by Jeff Somers </a>
-      
-- calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://tu-dresden.de">implementation by the TU Dresden</a> (a very good description of this method can be found <a href="http://www.nqueens.de/sub/SearchAlgoUseSymm.en.html">here</a>)
 
 # Current Times
 
@@ -38,6 +26,17 @@ This solution is based on two methods:
 CPU: *i5-9300h @4GHz undervolted* <br>
 GPU: GTX-1650 (Laptop) <br>
 (Attention: when testing times on GPU, your graphics card may go into another power state. To avoid this, you can use a tool such as "nvidiainfo". Also, for some nvidia cards there is a big startup time for the kernel, depending also on the boardsize N. )
+
+# General
+This solution is based on two methods:
+
+- using bits to represent the occupancy of the board; based on the <a href="http://users.rcn.com/liusomers/nqueen_demo/nqueens.html">implementation by Jeff Somers </a>
+      
+- calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://tu-dresden.de">implementation by the TU Dresden</a> (a very good description of this method can be found <a href="http://www.nqueens.de/sub/SearchAlgoUseSymm.en.html">here</a>)
+
+### Antivirus false positive
+Maybe your antivirus software identifies this program as a virus. No worries! That is the case because of the way this program works. Here you can read the reason: <br>
+When it starts, it copies the needed native OpenCL file to the "temp directory". That is necessary because this way the program works both times, when it is packed inside a jar and when it is executed from the IDE. But now, the copied native file has to be deleted so that your disk is not filled with trash like this. For now, this is done using the AutoIt-Script clear_temp_data.exe located in /res/bin. What it does, is, it finds all temporary created files from this program and deletes them all at once, so that when the program crashes one time, the next time it will delete the temporary file that was left over from the last time. Currently, this only works with Windows because AutoIt is used.
 
 # Versions
 unless its stated otherwise, following times are referring to *single-threaded*
