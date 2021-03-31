@@ -2,6 +2,8 @@
 // kernel for nqueens-solving	//
 //	//	//	//	//	//	//	//	//
 
+#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
 
 // main function of the kernel
 __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_arr, global int *LD_arr, global int *RD_arr, global int *kl_arr, global int *start_arr, global uint *result) {
@@ -30,7 +32,7 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 	col_mask |= col_mask_arr[g_id] | L | 1;
 	
 	// start index
-	short start = start_arr[g_id];
+	const short start = start_arr[g_id];
 	
 	// to memorize diagonals leaving the board at a certain row
 	uint ld_mem = 0;															
@@ -50,53 +52,84 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 	else if (row == l)
 		notfree = ~1U;
 	
+	// temp variable
+	uint temp = (notfree + 1) & ~notfree;														// for reducing array reads
+	
 	// local (faster) array containing positions of the queens of each row 
 	// for all boards of the workgroup
 	local uint bits[N][BLOCK_SIZE];													// is '1', where a queen will be set; one integer for each line 
-	bits[start][l_id] = (notfree + 1) & ~notfree;							 			// initialize bit as rightmost free space ('0' in notfree)
+	atom_xchg(&(bits[row][l_id]), temp);
+	//bits[start][l_id] = (notfree + 1) & ~notfree;							 			// initialize bit as rightmost free space ('0' in notfree)
 	
-	// temp variable
-	uint temp = bits[start][l_id];														// for reducing array reads
+	// other variables
 	uint diff = 1;
 	int direction = 1;
 	
 	// iterative loop representing the recursive setqueen-function
 	while(row >= start){
-		if(temp) {																	// if bit is on board
-			col_mask |= temp;															// new col
+		direction = (temp != 0);
+		row += (direction) ? 1 : -1;
+		if(direction) {																	// if bit is on board
 			ld_mem = ld_mem << 1 | ld >> 31;
 			rd_mem = rd_mem >> 1 | rd << 31;
 			ld = (ld | temp) << 1;													// shift diagonals to next line
-			rd = (rd | temp) >> 1;													
-				
-			row++;
-			diff = direction = 1;
+			rd = (rd | temp) >> 1;			
 		}
 		else {
-			row--;																	// one row back
 			temp = bits[row][l_id];													// this saves 2 reads from local array
 			temp *= (row != k && row != l);
 			ld = ((ld >> 1) | (ld_mem << 31)) & ~temp;								// shift diagonals one row up
 			rd = ((rd << 1) | (rd_mem >> 31)) & ~temp;								// if there was a diagonal leaving the board in the line before, occupy it again
 			ld_mem >>= 1;															// shift those as well
 			rd_mem <<= 1;
-			
-			direction = 0;
-			diff = temp;
 		}
 		solvecounter += (row == N-1);
 		
+		col_mask |= temp;
 		notfree = (jdiag >> N-1-row) | (jdiag << (N-1-row)) | ld | rd | col_mask;							// calculate occupancy of next row
-		if(!direction)
-			col_mask &= ~temp;
+		col_mask = (direction) ? col_mask : col_mask & ~temp;
 		
-		temp = (notfree + diff) & ~notfree;
-		if(row == k)
-			temp = L * direction;
-		if(row == l)
-			temp = direction;
+		diff = (direction) ? 1 : temp;
+		temp = (row == k || row == l) ? direction : ((notfree + diff) & ~notfree);
+		temp = (row == k && direction) ? L : temp;
 			
-		bits[row][l_id] = temp;
+		atom_xchg(&(bits[row][l_id]), temp);
+		//bits[row][l_id] = temp;
+		
+		
+		
+		// unroll 1 iteration
+		if(row < start)
+			break;
+		direction = (temp != 0);
+		row += (direction) ? 1 : -1;
+		if(direction) {																	// if bit is on board
+			ld_mem = ld_mem << 1 | ld >> 31;
+			rd_mem = rd_mem >> 1 | rd << 31;
+			ld = (ld | temp) << 1;													// shift diagonals to next line
+			rd = (rd | temp) >> 1;			
+		}
+		else {
+			temp = bits[row][l_id];													// this saves 2 reads from local array
+			temp *= (row != k && row != l);
+			ld = ((ld >> 1) | (ld_mem << 31)) & ~temp;								// shift diagonals one row up
+			rd = ((rd << 1) | (rd_mem >> 31)) & ~temp;								// if there was a diagonal leaving the board in the line before, occupy it again
+			ld_mem >>= 1;															// shift those as well
+			rd_mem <<= 1;
+		}
+		solvecounter += (row == N-1);
+		
+		col_mask |= temp;
+		notfree = (jdiag >> N-1-row) | (jdiag << (N-1-row)) | ld | rd | col_mask;							// calculate occupancy of next row
+		col_mask = (direction) ? col_mask : col_mask & ~temp;
+			
+		diff = (direction) ? 1 : temp;
+		temp = (row == k || row == l) ? direction : ((notfree + diff) & ~notfree);
+		temp = (row == k && direction) ? L : temp;
+			
+		atom_xchg(&(bits[row][l_id]), temp);
+		//bits[row][l_id] = temp;
 	}
-	result[g_id] = solvecounter;
+	atom_xchg(&(result[g_id]), solvecounter);
+	//result[g_id] = solvecounter;
 }

@@ -1,11 +1,14 @@
 package calc;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 
 public class ConstellationsGenerator {
 	
-	private int N, L, mask, LD, RD, counter, solvecounter = 0, sym, k, l, ld_mem, rd_mem, notfree, notmask, iter = 0, start;
+	private int N, L, mask, LD, RD, counter, solvecounter = 0, sym, k, l, ld_mem, rd_mem, notfree, notmask, solvecounter2 = 0, iter = 0, start;
 	private int kbit, lbit, kmask, lmask; 	// belegt de diagoanle auf der später k bzw. l dame stehen soll
 	private int[] bits;
 	private int[][] klcounter;
@@ -149,6 +152,43 @@ public class ConstellationsGenerator {
 		}
 		
 //		System.out.println("Gefundene Startkonstellationen: " + ld_list.size());
+		
+		// sort the starting constellations
+		int len = ld_list.size();
+		ArrayList<BoardProperties> list = new ArrayList<BoardProperties>(len);
+		for(int i = 0; i < len; i++) {
+			list.add(new BoardProperties(ld_list.removeFirst(), rd_list.removeFirst(), col_list.removeFirst(), start_list.removeFirst(), kl_list.removeFirst(), LD_list.removeFirst(), RD_list.removeFirst(), sym_list.removeFirst()));
+		}
+		Collections.sort(list, new Comparator<BoardProperties>() {
+		    @Override
+		    public int compare(BoardProperties o1, BoardProperties o2) {
+		        if(o1.start > o2.start) {
+		        	return 1;
+		        } else if(o1.start < o2.start) {
+		        	return -1;
+		        } else {
+		        	if((o1.kl >> 8) > (o2.kl >> 8)) {
+		        		return 1;
+		        	} else if((o1.kl >> 8) < (o2.kl >> 8)) {
+		        		return -1;
+		        	}
+		        	return 0;
+		        }
+		    }
+		});
+		for(int i = 0; i < len; i++) {
+			ld_list.add(list.get(i).ld);
+			rd_list.add(list.get(i).rd);
+			col_list.add(list.get(i).col);
+			start_list.add(list.get(i).start);
+			kl_list.add(list.get(i).kl);
+			LD_list.add(list.get(i).LD);
+			RD_list.add(list.get(i).RD);
+			sym_list.add(list.get(i).sym);
+		}
+		
+		
+		// java solver
 //		int a = ld_list.size();
 //		for(int i = 0; i < a; i++) {
 //			sym = sym_list.removeFirst();
@@ -335,7 +375,7 @@ public class ConstellationsGenerator {
 			}
 			else {
 				if(row == N-1)
-					solvecounter += sym;
+					solvecounter2 += sym;
 				
 				row--;																	// one row back
 				temp = bits[row];													// this saves 2 reads from local array
