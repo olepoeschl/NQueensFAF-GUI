@@ -366,7 +366,8 @@ public class GpuSolver {
 	// function to load the native file that is nessesary for the interaction with the lwjgl library
 	public void loadLwjglNative() {
 		Path temp_libdir = null;
-		String filename = null;
+		String filenameIn = null;
+		String filenameOut = null;
 
 		// determine system architecture
 		String arch = System.getProperty("os.arch");
@@ -378,16 +379,20 @@ public class GpuSolver {
 		String os = System.getProperty("os.name").toLowerCase();
 		if(os.contains("win")) {
 			// windows
-			filename = "lwjgl" + arch + ".dll";
+			filenameIn = "lwjgl" + arch + ".dll";
+			filenameOut = filenameIn;
 		} else if(os.contains("mac")) {
 			// mac
-			filename = "liblwjgl_mac.dylib";
+			filenameIn = "liblwjgl_mac.dylib";
+			filenameOut = "liblwjgl.dylib";
 		} else if(os.contains("nix") || os.contains("nux") || os.contains("aix")) {
 			// unix (linux etc)
-			filename = "liblwjgl" + arch + "_linux.so";
+			filenameIn = "liblwjgl" + arch + "_linux.so";
+			filenameOut = "liblwjgl" + arch + ".so";
 		} else if(os.contains("sunos")) {
 			// solaris
-			filename = "liblwjgl" + arch + "_solaris.so";
+			filenameIn = "liblwjgl" + arch + "_solaris.so";
+			filenameOut = "liblwjgl" + arch + ".so";
 		} else {
 			// unknown os
 			System.err.println("No native executables available for this operating system (" + os + ").");
@@ -395,13 +400,13 @@ public class GpuSolver {
 
 		try {
 			// create temporary directory to stor the native files inside
-			temp_libdir = Files.createTempDirectory("NQueensFAF");
+			temp_libdir = Files.createTempDirectory("NQueensFaf");
 
 			// copy the native file from within the jar to the temporary directory
-			InputStream in = GpuSolver.class.getClassLoader().getResourceAsStream("natives/" + filename);
+			InputStream in = GpuSolver.class.getClassLoader().getResourceAsStream("natives/" + filenameIn);
 			byte[] buffer = new byte[1024];
 			int read = -1;
-			File file = new File(temp_libdir + "/" + filename);
+			File file = new File(temp_libdir + "/" + filenameOut);
 			FileOutputStream fos = new FileOutputStream(file);
 			while((read = in.read(buffer)) != -1) {
 				fos.write(buffer, 0, read);

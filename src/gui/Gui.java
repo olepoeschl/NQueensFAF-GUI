@@ -178,19 +178,47 @@ public class Gui extends JFrame {
 				setVisible(false);
 				
 				try {
-					// clean the temp-directory that was created for the lwjgl-native binary
-					InputStream in = GpuSolver.class.getClassLoader().getResourceAsStream("bin/clear_temp_data.exe");
-					byte[] buffer = new byte[1024];
-					int read = -1;
-					File file = File.createTempFile("clear_temp_data", ".exe");
-					FileOutputStream fos = new FileOutputStream(file);
-					while((read = in.read(buffer)) != -1) {
-						fos.write(buffer, 0, read);
+					// platform specific binary
+					String prefix = "";
+					String suffix = "";
+					String os = System.getProperty("os.name").toLowerCase();
+					if(os.contains("win")) {
+						// windows
+						prefix = "wscript.exe ";
+						suffix = ".vbs";
+					} else if(os.contains("mac")) {
+						// mac
+						prefix = "sh ";
+						suffix = ".sh";
+					} else if(os.contains("nix") || os.contains("nux") || os.contains("aix")) {
+						// unix (linux etc)
+						prefix = "sh ";
+						suffix = ".sh";
+					} else if(os.contains("sunos")) {
+						// solaris
+						prefix = "sh ";
+						suffix = ".sh";
+					} else {
+						// unknown os
+						System.err.println("No cleanup-executable available for this operating system (" + os + ").");
 					}
-					fos.close();
-					in.close();
+					
+					// if there is a binary for this operating system, use it to clean up the temporary files created by this program ( -> lwjgl-binaries)
+					if(suffix.length() > 0) {
+						// clean the temp-directory that was created for the lwjgl-native binary
+						InputStream in = GpuSolver.class.getClassLoader().getResourceAsStream("bin/NQueensFaf_Cleanup" + suffix);
+						byte[] buffer = new byte[1024];
+						int read = -1;
+						File file = File.createTempFile("NQueensFaf_Cleanup", suffix);
+						FileOutputStream fos = new FileOutputStream(file);
+						while((read = in.read(buffer)) != -1) {
+							fos.write(buffer, 0, read);
+						}
+						fos.close();
+						in.close();
 
-					Runtime.getRuntime().exec(file.getAbsolutePath());
+						Runtime.getRuntime().exec(prefix + file.getAbsolutePath());
+					}
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
