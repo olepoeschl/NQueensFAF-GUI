@@ -34,10 +34,7 @@ This solution is based on two methods:
       
 - calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://github.com/preusser/q27">implementation by the TU Dresden</a> (a very good description of this method can be found <a href="http://www.nqueens.de/sub/SearchAlgoUseSymm.en.html">here</a>)
 
-### Antivirus false positive
-Maybe your antivirus software identifies this program as a virus. No worries! That is the case because of the way this program works. Here you can read the reason: <br>
-When it starts, it copies the needed native OpenCL file to the "temp directory". That is necessary because this way the program works both times, when it is packed inside a jar and when it is executed from the IDE. But now, the copied native file has to be deleted so that your disk is not filled with trash like this. For now, this is done using the AutoIt-Script clear_temp_data.exe located in /res/bin. What it does, is, it finds all temporary created files from this program and deletes them all at once, so that when the program crashes one time, the next time it will delete the temporary file that was left over from the last time. 
-<br>Currently, this cleanup-functionnonly works with Windows because AutoIt is used.
+The program copies the needed lwjgl-binaries to the temp-folder of the system and tries to delete it later when the program is done. This function is done using self-deleting scripts and is successsfully tested for windows and linux. If you recognize that the temporary folder (named "NQueensFaf*") is still existing later than 10 seconds after the program is closed, feel free to open an issue.
 
 # Versions
 unless its stated otherwise, following times are referring to *single-threaded*
