@@ -133,4 +133,3 @@ Mail: olepoeschl.developing@gmail.com
 <a href="http://legacy.lwjgl.org/"> LWJGL 2.x library </a> (Lightweight Java Game Library, enables the use of OpenCL in Java) <br>
 <a href="https://github.com/carrotsearch/hppc">HPPC library</a> (High Performance Primitive Collections) <br>
 Icon by Jojo
-
