@@ -2,8 +2,6 @@
 // kernel for nqueens-solving	//
 //	//	//	//	//	//	//	//	//
 
-#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
-#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
 
 // main function of the kernel
 __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_arr, global int *LD_arr, global int *RD_arr, global int *kl_arr, global int *start_arr, global uint *result) {
@@ -53,15 +51,14 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 		notfree = ~1U;
 	
 	// temp variable
-	uint temp = (notfree + 1) & ~notfree;														// for reducing array reads
+	uint temp = (notfree + 1) & ~notfree;		// for reducing array reads
 	
 	// local (faster) array containing positions of the queens of each row 
 	// for all boards of the workgroup
 	local uint bits[N][BLOCK_SIZE];													// is '1', where a queen will be set; one integer for each line 
-	atom_xchg(&(bits[row][l_id]), temp);
-	//bits[start][l_id] = (notfree + 1) & ~notfree;							 			// initialize bit as rightmost free space ('0' in notfree)
+	bits[start][l_id] = temp;							 			// initialize bit as rightmost free space ('0' in notfree)
 	
-	// other variables
+	// other variables											
 	uint diff = 1;
 	int direction = 1;
 	
@@ -85,18 +82,15 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 		}
 		solvecounter += (row == N-1);
 		
+		diff = (direction) ? 1 : temp;
 		col_mask |= temp;
 		notfree = (jdiag >> N-1-row) | (jdiag << (N-1-row)) | ld | rd | col_mask;							// calculate occupancy of next row
 		col_mask = (direction) ? col_mask : col_mask & ~temp;
 		
-		diff = (direction) ? 1 : temp;
 		temp = (row == k || row == l) ? direction : ((notfree + diff) & ~notfree);
 		temp = (row == k && direction) ? L : temp;
 			
-		atom_xchg(&(bits[row][l_id]), temp);
-		//bits[row][l_id] = temp;
-		
-		
+		bits[row][l_id] = temp;
 		
 		// unroll 1 iteration
 		if(row < start)
@@ -119,17 +113,15 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 		}
 		solvecounter += (row == N-1);
 		
+		diff = (direction) ? 1 : temp;
 		col_mask |= temp;
 		notfree = (jdiag >> N-1-row) | (jdiag << (N-1-row)) | ld | rd | col_mask;							// calculate occupancy of next row
 		col_mask = (direction) ? col_mask : col_mask & ~temp;
 			
-		diff = (direction) ? 1 : temp;
 		temp = (row == k || row == l) ? direction : ((notfree + diff) & ~notfree);
 		temp = (row == k && direction) ? L : temp;
-			
-		atom_xchg(&(bits[row][l_id]), temp);
-		//bits[row][l_id] = temp;
+				
+		bits[row][l_id] = temp;
 	}
-	atom_xchg(&(result[g_id]), solvecounter);
-	//result[g_id] = solvecounter;
+	result[g_id] = solvecounter;
 }
