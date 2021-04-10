@@ -45,10 +45,9 @@ unless its stated otherwise, following times are referring to *single-threaded*
 ## Distributed
       - test using board size 23 was successfull!
       
-      - currently: further developing of the client executable
-      
-      - once everything works fine and we got a pretty looking program, we will upload it
-        and start tests for even bigger board sizes
+      - currently: including GPU computation into the client
+
+      - thus revise the distribution of workloads (computational power varies a lot between different CPU's and GPU's)
         
       - STAY TUNED!
       
