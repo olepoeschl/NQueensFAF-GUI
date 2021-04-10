@@ -43,14 +43,14 @@ unless its stated otherwise, following times are referring to *single-threaded*
       - definitely N = 16 in < 1 sec
       
 ## Distributed
-      - test using board size 23 was successfull !
+      - test using board size 23 was successfull!
       
       - currently: further developing of the client executable
       
       - once everything works fine and we got a pretty looking program, we will upload it
         and start tests for even bigger board sizes
         
-      - STAY TUNED !
+      - STAY TUNED!
       
 ## Version 10:
       - included support for GPU's using OpenCL through lwjgl
