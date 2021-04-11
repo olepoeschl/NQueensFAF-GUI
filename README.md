@@ -48,8 +48,8 @@ unless its stated otherwise, following times are referring to *single-threaded*
       - currently: including GPU computation into the client
 
       - thus revise the distribution of workloads (computational power varies a lot between different CPU's and GPU's)
-        
-      - STAY TUNED!
+      
+      - stay tuned
       
 ## Version 10:
       - included support for GPU's using OpenCL through lwjgl
