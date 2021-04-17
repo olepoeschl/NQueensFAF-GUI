@@ -49,7 +49,7 @@ unless its stated otherwise, following times are referring to *single-threaded*
 
       - thus revise the distribution of workloads (computational power varies a lot between different CPU's and GPU's)
         
-      - STAY TUNED!
+      - Stay tuned!
       
 ## Version 10:
       - included support for GPU's using OpenCL through lwjgl
