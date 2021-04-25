@@ -19,7 +19,7 @@ import org.lwjgl.LWJGLException;
 
 import com.carrotsearch.hppc.IntArrayDeque;
 
-import calc.AlgorithmStarter;
+import calc.CpuSolver;
 import calc.GpuSolver;
 import util.FAFProcessData;
 
@@ -98,7 +98,7 @@ public class Gui extends JFrame {
     private Object input;
     
     // Solver-instances
-    private AlgorithmStarter algStarter;
+    private CpuSolver algStarter;
     private GpuSolver gpuSolver;
     
     // helper variables
@@ -442,7 +442,7 @@ public class Gui extends JFrame {
                     // Updating the progress (progressBar, text, percentage in console[taOutput])
                     if(progressUpdateQueue.size() > 0) {
                         value = progressUpdateQueue.removeFirst();
-                        if(value == 128f && algStarter.getN() > AlgorithmStarter.small_n_limit) {
+                        if(value == 128f && algStarter.getN() > CpuSolver.small_n_limit) {
                             value = algStarter.getProgress()*100;
                         }
                         
@@ -453,7 +453,7 @@ public class Gui extends JFrame {
                             progressBar.repaint();
                             
                             tempvalue = 0;
-                        } else if(algStarter.getN() > AlgorithmStarter.small_n_limit){
+                        } else if(algStarter.getN() > CpuSolver.small_n_limit){
                             progressBar.setValue((int)value);
                             ((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + (((int)(value*10000)) / 10000f) + "%    [ " + algStarter.getCalculatedStartConstCount() + " of " + algStarter.getStartConstCount() + " ]        [ solutions: " + getSolvecounterStr(algStarter.getSolvecounter()) + " ]");
                             progressBar.repaint();
@@ -737,9 +737,9 @@ public class Gui extends JFrame {
             // load FAFProcessData from filepath filename
             FAFProcessData fafprocessdata = FAFProcessData.load(filepath);
             
-            // initialize AlgorithmStarter with the loaded data
+            // initialize CpuSolver with the loaded data
             int threadcount = Integer.parseInt(tfThreadcount.getText());
-            algStarter = new AlgorithmStarter(fafprocessdata.N, threadcount);
+            algStarter = new CpuSolver(fafprocessdata.N, threadcount);
             algStarter.load(fafprocessdata);
             
             // update gui to the loaded values
@@ -878,7 +878,7 @@ public class Gui extends JFrame {
                     }
                 }
                 
-                // reset the respond-variables of each AlgorithmThread
+                // reset the respond-variables of each CpuSolverThread
                 algStarter.resetRespond();
             }
         }.start();
@@ -1029,13 +1029,13 @@ public class Gui extends JFrame {
                             btnSave.setEnabled(true);
                                                     
                             // if no file was loaded
-                            // get inputs from the gui and initialize AlgorithmStarter
+                            // get inputs from the gui and initialize CpuSolver
                             int threadcount = Integer.parseInt(tfThreadcount.getText());
                             if(!load) {
                                 int N = Integer.parseInt(tfN.getText());
                                 
-                                // initialize new AlgorithmStarter object
-                                algStarter = new AlgorithmStarter(N, threadcount);
+                                // initialize new CpuSolver object
+                                algStarter = new CpuSolver(N, threadcount);
                             }
                             
                             

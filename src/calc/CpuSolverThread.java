@@ -7,7 +7,7 @@ import com.carrotsearch.hppc.IntArrayDeque;
 // this is the solver
 // we use recursive functions for Backtracking
 
-public class AlgorithmThread extends Thread implements Serializable {
+public class CpuSolverThread extends Thread implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -24,7 +24,7 @@ public class AlgorithmThread extends Thread implements Serializable {
 	private boolean pause = false, cancel = false, respond = false;
 
 
-	public AlgorithmThread(int N, IntArrayDeque startConstellations) {
+	public CpuSolverThread(int N, IntArrayDeque startConstellations) {
 		this.N = N;	
 		N3 = N - 3;
 		N4 = N - 4;
