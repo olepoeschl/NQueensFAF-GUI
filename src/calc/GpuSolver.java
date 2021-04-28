@@ -264,7 +264,7 @@ public class GpuSolver {
 					solvecounter = tempcounter;
 					// short delay
 					try {
-						sleep(1000);
+						sleep(128);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
