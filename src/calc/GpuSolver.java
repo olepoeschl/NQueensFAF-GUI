@@ -176,9 +176,8 @@ public class GpuSolver {
 		// result memory
 		CLMem resMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		ByteBuffer resPtr = CL10.clEnqueueMapBuffer(queue, resMem, CL10.CL_TRUE, CL10.CL_MAP_READ, 0, globalWorkSize*4, null,null, errorBuff);
+		ByteBuffer resPtr = CL10.clEnqueueMapBuffer(queue, resMem, CL10.CL_TRUE, CL10.CL_MAP_READ | CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		CL10.clEnqueueUnmapMemObject(queue, resMem, resPtr, null, null);
 
 		// progress memory
 		CLMem progressMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
@@ -190,7 +189,7 @@ public class GpuSolver {
 		}
 		CL10.clEnqueueUnmapMemObject(queue, progressMem, progressWritePtr, null, null);
 		// map progress memory
-		ByteBuffer progressPtr = CL10.clEnqueueMapBuffer(queue, progressMem, CL10.CL_TRUE, CL10.CL_MAP_READ, 0, globalWorkSize*4, null,null, errorBuff);
+		ByteBuffer progressPtr = CL10.clEnqueueMapBuffer(queue, progressMem, CL10.CL_TRUE, CL10.CL_MAP_READ | CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		
 		// Set the kernel parameters
@@ -249,29 +248,29 @@ public class GpuSolver {
 		cpuConstCount = calculatedStartConstCount;
 		
 		// check process
-//		new Thread() {
-//			public void run() {
-//				long tempcounter;
-//				int tempCalcConstCount;
-//				while(running) {
-//					// calculate current sovlecounter
-//					tempcounter = cpucounter;
-//					tempCalcConstCount = cpuConstCount;
-//					for(int i = 0; i < globalWorkSize-2; i++) {
-//						tempcounter += resPtr.getInt(i*4) * symArr[i];
-//						tempCalcConstCount += progressPtr.getInt(i*4);
-//					}
-//					calculatedStartConstCount = tempCalcConstCount;
-//					solvecounter = tempcounter;
-//					// short delay
-//					try {
-//						sleep(1000);
-//					} catch (InterruptedException e) {
-//						e.printStackTrace();
-//					}
-//				}
-//			}
-//		}.start();
+		new Thread() {
+			public void run() {
+				long tempcounter;
+				int tempCalcConstCount;
+				while(running) {
+					// calculate current sovlecounter
+					tempcounter = cpucounter;
+					tempCalcConstCount = cpuConstCount;
+					for(int i = 0; i < globalWorkSize-2; i++) {
+						tempcounter += resPtr.getInt(i*4) * symArr[i];
+						tempCalcConstCount += progressPtr.getInt(i*4);
+					}
+					calculatedStartConstCount = tempCalcConstCount;
+					solvecounter = tempcounter;
+					// short delay
+					try {
+						sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
 		
 		CL10.clFinish(queue);			// wait till the task is complete
 //		CL10.clWaitForEvents(eventBuff);
@@ -283,8 +282,6 @@ public class GpuSolver {
 		end = event.getProfilingInfoLong(CL10.CL_PROFILING_COMMAND_END);
 
 		// read from the result memory buffer
-		resPtr = CL10.clEnqueueMapBuffer(queue, resMem, CL10.CL_TRUE, CL10.CL_MAP_READ, 0, globalWorkSize*4, null,null, errorBuff);
-		Util.checkCLError(errorBuff.get(0));
 		solvecounter = cpucounter;
 		for(int i = 0; i < globalWorkSize; i++) {
 			solvecounter += resPtr.getInt(i*4) *  symArr[i];
