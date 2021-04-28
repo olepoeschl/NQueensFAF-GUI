@@ -16,7 +16,7 @@ import util.FAFProcessData;
 // Queens are only placed on the first and last row and col
 // this board with those Queens is called starting constellation and no starting constellation can be transformed into an other one by using rotation or mirroring
 
-public class AlgorithmStarter {
+public class CpuSolver {
 
 	public static final int small_n_limit = 10;
 
@@ -25,7 +25,7 @@ public class AlgorithmStarter {
 	private long old_solvecounter = 0;		// if we load an old calculation, get the old solvecounter											
 
 	private HashSet<Integer> startConstellations;		// make sure there are no symmetric equivalent starting constellations in boardPropertiesList			
-	private ArrayList<AlgorithmThread> threadlist;							// list of starting constellations for each thread
+	private ArrayList<CpuSolverThread> threadlist;							// list of starting constellations for each thread
 
 	// for loading and saving and progress
 	private boolean load = false;
@@ -36,7 +36,7 @@ public class AlgorithmStarter {
 	private boolean ready = false, pause = false;
 
 
-	public AlgorithmStarter(int N, int cpu) {
+	public CpuSolver(int N, int cpu) {
 		this.N = N;
 		this.cpu = cpu;
 
@@ -105,9 +105,9 @@ public class AlgorithmStarter {
 
 			// start the threads and wait until they are all finished
 			ExecutorService executor = Executors.newFixedThreadPool(cpu);
-			threadlist = new ArrayList<AlgorithmThread>();
+			threadlist = new ArrayList<CpuSolverThread>();
 			for(i = 0; i < cpu; i++) {
-				AlgorithmThread algThread = new AlgorithmThread(N, threadConstellations.get(i));
+				CpuSolverThread algThread = new CpuSolverThread(N, threadConstellations.get(i));
 				threadlist.add(algThread);
 				executor.submit(algThread);
 			}
@@ -118,7 +118,7 @@ public class AlgorithmStarter {
 			// wait for the executor
 			executor.shutdown();
 			try {
-				if(executor.awaitTermination(3, TimeUnit.DAYS)) {
+				if(executor.awaitTermination(365, TimeUnit.DAYS)) {
 					// done 
 				} else {
 					// not done
@@ -155,23 +155,23 @@ public class AlgorithmStarter {
 	// pause, cancel, continue
 	public void pause() {
 		pause = true;
-		for(AlgorithmThread algThread : threadlist) {
+		for(CpuSolverThread algThread : threadlist) {
 			algThread.pause();
 		}
 	}
 	public void go() {
 		pause = false;
-		for(AlgorithmThread algThread : threadlist) {
+		for(CpuSolverThread algThread : threadlist) {
 			algThread.go();
 		}
 	}
 	public void cancel() {
-		for(AlgorithmThread algThread : threadlist) {
+		for(CpuSolverThread algThread : threadlist) {
 			algThread.cancel();
 		}
 	}
 	public void dontCancel() {
-		for(AlgorithmThread algThread : threadlist) {
+		for(CpuSolverThread algThread : threadlist) {
 			algThread.dontCancel();
 		}
 	}
@@ -185,14 +185,14 @@ public class AlgorithmStarter {
 
 	public boolean responds() {
 		boolean responds = true;
-		for(AlgorithmThread algThread : threadlist) {
+		for(CpuSolverThread algThread : threadlist) {
 			if( ! algThread.responds())
 				responds = false;
 		}
 		return responds;
 	}
 	public void resetRespond() {
-		for(AlgorithmThread algThread : threadlist) {
+		for(CpuSolverThread algThread : threadlist) {
 			algThread.resetRespond();
 		}
 	}
@@ -211,7 +211,7 @@ public class AlgorithmStarter {
 	}
 	public int getCalculatedStartConstCount() {
 		int counter = 0;
-		for(AlgorithmThread algThread : threadlist) {
+		for(CpuSolverThread algThread : threadlist) {
 			counter += algThread.getStartConstIndex();
 		}
 		return calculatedStartConstCount + counter;
@@ -222,7 +222,7 @@ public class AlgorithmStarter {
 	// loading 
 	public IntArrayDeque getUncalculatedStartConstellations() {
 		IntArrayDeque uncalcbplist = new IntArrayDeque();
-		for(AlgorithmThread algThread : threadlist) {
+		for(CpuSolverThread algThread : threadlist) {
 			for(IntCursor c : algThread.getUncalculatedStartConstellations()) {
 				uncalcbplist.addFirst(c.value);
 			}
@@ -247,7 +247,7 @@ public class AlgorithmStarter {
 		}
 
 		long solvecounter = 0;
-		for(AlgorithmThread algThread : threadlist) {
+		for(CpuSolverThread algThread : threadlist) {
 			solvecounter += algThread.getSolvecounter();
 		}
 		return solvecounter + old_solvecounter;

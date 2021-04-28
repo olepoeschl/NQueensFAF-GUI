@@ -4,7 +4,7 @@
 
 
 // main function of the kernel
-__kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_arr, global int *LD_arr, global int *RD_arr, global int *kl_arr, global int *start_arr, global uint *result) {
+__kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_arr, global int *LD_arr, global int *RD_arr, global int *kl_arr, global int *start_arr, global uint *result, global int *progress) {
 	
 // gpu intern indice
 	const int g_id = get_global_id(0);												// global thread id
@@ -20,7 +20,7 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 	const short k = kl_arr[g_id] >> 8;														
 	const short l = kl_arr[g_id] & 255;
 	
-	// (1 << (N-1))D and RD - occupancy of board-entering diagonals due to the queens from the start constellation
+	// LD and RD - occupancy of board-entering diagonals due to the queens from the start constellation
 	const uint jdiag = LD_arr[g_id] & RD_arr[g_id];
 	
 	// wir shiften das ja in der zeile immer (im solver), aslo muss es hier einfach in der 0-ten zeile die diagonale der dame belegen EASY
@@ -124,4 +124,5 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 		bits[row][l_id] = temp;
 	}
 	result[g_id] = solvecounter;
+	progress[g_id] = 1;
 }
