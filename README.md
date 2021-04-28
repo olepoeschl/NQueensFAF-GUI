@@ -55,8 +55,8 @@ unless its stated otherwise, following times are referring to *single-threaded*
       - included support for GPU's using OpenCL through lwjgl
       
       - insanely fast thanks to optimized parallel programming
-
-      - for performance reasons, there are no progress updates in the "OpenCL" - Tab.
+      
+      - realtime progress updates thanks to OpenCL memory mapping
 ## Version 9:
       - REMARKABLE IMPROVEMENT!!! (~35%)
 
