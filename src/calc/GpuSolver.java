@@ -248,29 +248,29 @@ public class GpuSolver {
 		cpuConstCount = calculatedStartConstCount;
 		
 		// check process
-		new Thread() {
-			public void run() {
-				long tempcounter;
-				int tempCalcConstCount;
-				while(running) {
-					// calculate current sovlecounter
-					tempcounter = cpucounter;
-					tempCalcConstCount = cpuConstCount;
-					for(int i = 0; i < globalWorkSize-2; i++) {
-						tempcounter += resPtr.getInt(i*4) * symArr[i];
-						tempCalcConstCount += progressPtr.getInt(i*4);
-					}
-					calculatedStartConstCount = tempCalcConstCount;
-					solvecounter = tempcounter;
-					// short delay
-					try {
-						sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}.start();
+//		new Thread() {
+//			public void run() {
+//				long tempcounter;
+//				int tempCalcConstCount;
+//				while(running) {
+//					// calculate current sovlecounter
+//					tempcounter = cpucounter;
+//					tempCalcConstCount = cpuConstCount;
+//					for(int i = 0; i < globalWorkSize-2; i++) {
+//						tempcounter += resPtr.getInt(i*4) * symArr[i];
+//						tempCalcConstCount += progressPtr.getInt(i*4);
+//					}
+//					calculatedStartConstCount = tempCalcConstCount;
+//					solvecounter = tempcounter;
+//					// short delay
+//					try {
+//						sleep(1000);
+//					} catch (InterruptedException e) {
+//						e.printStackTrace();
+//					}
+//				}
+//			}
+//		}.start();
 		
 		CL10.clFinish(queue);			// wait till the task is complete
 //		CL10.clWaitForEvents(eventBuff);
