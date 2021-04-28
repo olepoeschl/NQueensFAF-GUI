@@ -178,6 +178,7 @@ public class GpuSolver {
 		Util.checkCLError(errorBuff.get(0));
 		ByteBuffer resPtr = CL10.clEnqueueMapBuffer(queue, resMem, CL10.CL_TRUE, CL10.CL_MAP_READ, 0, globalWorkSize*4, null,null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
+		CL10.clEnqueueUnmapMemObject(queue, resMem, resPtr, null, null);
 
 		// progress memory
 		CLMem progressMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
@@ -282,6 +283,8 @@ public class GpuSolver {
 		end = event.getProfilingInfoLong(CL10.CL_PROFILING_COMMAND_END);
 
 		// read from the result memory buffer
+		resPtr = CL10.clEnqueueMapBuffer(queue, resMem, CL10.CL_TRUE, CL10.CL_MAP_READ, 0, globalWorkSize*4, null,null, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
 		solvecounter = cpucounter;
 		for(int i = 0; i < globalWorkSize; i++) {
 			solvecounter += resPtr.getInt(i*4) *  symArr[i];
