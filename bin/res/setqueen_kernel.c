@@ -4,7 +4,7 @@
 
 
 // main function of the kernel
-__kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_arr, global int *LD_arr, global int *RD_arr, global int *kl_arr, global int *start_arr, global uint *result) {
+__kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_arr, global int *LD_arr, global int *RD_arr, global int *kl_arr, global int *start_arr, global uint *result, global int *progress) {
 	
 // gpu intern indice
 	const int g_id = get_global_id(0);												// global thread id
@@ -124,4 +124,5 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 		bits[row][l_id] = temp;
 	}
 	result[g_id] = solvecounter;
+	progress[g_id] = 1;
 }

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,10 +26,11 @@ public class GpuSolver {
 	private int N;
 	private int compute_units, minmem, maxmem, k, l, LD, RD, mask, sym, kl;
 	private int L, kbit, lbit, kmask, lmask;
-	private long solvecounter = 0;
+	private long solvecounter, cpucounter;
+	private int startConstCount, calculatedStartConstCount, cpuConstCount;
 	private final int BLOCK_SIZE = 64;
 	private long start, end;
-	private boolean ready = false;
+	private boolean ready = false, running = false;
 
 	// OpenCL variables
 	private CLContext context;
@@ -84,123 +86,139 @@ public class GpuSolver {
 
 		// set global work size
 		compute_units = device.getInfoInt(CL10.CL_DEVICE_MAX_COMPUTE_UNITS);
-		int global_work_size = presolver.getld_list().size() - (presolver.getld_list().size() % (BLOCK_SIZE * compute_units));
+		startConstCount = presolver.getld_list().size();
+		int globalWorkSize = presolver.getld_list().size() - (presolver.getld_list().size() % (BLOCK_SIZE * compute_units));
 
-		int[] ld_arr = new int[global_work_size];
-		int[] rd_arr = new int[global_work_size];
-		int[] col_arr = new int[global_work_size];
-		int[] LD_arr = new int[global_work_size];
-		int[] RD_arr = new int[global_work_size];
-		int[] kl_arr = new int[global_work_size];
-		int[] start_arr = new int[global_work_size];
-		int[] sym_arr = new int[global_work_size];
-		for(int i = 0; i < global_work_size; i++) {
-			ld_arr[i] = presolver.getld_list().removeFirst();
-			rd_arr[i] = presolver.getrd_list().removeFirst();
-			col_arr[i] = presolver.getcol_list().removeFirst();
-			LD_arr[i] = presolver.getLD_list().removeFirst();
-			RD_arr[i] = presolver.getRD_list().removeFirst();
-			kl_arr[i] = presolver.getkl_list().removeFirst();
-			start_arr[i] = presolver.getstart_list().removeFirst();
-			sym_arr[i] = presolver.getsym_list().removeFirst();
+		int[] ldArr = new int[globalWorkSize];
+		int[] rdArr = new int[globalWorkSize];
+		int[] colArr = new int[globalWorkSize];
+		int[] LDArr = new int[globalWorkSize];
+		int[] RDArr = new int[globalWorkSize];
+		int[] klArr = new int[globalWorkSize];
+		int[] startArr = new int[globalWorkSize];
+		int[] symArr = new int[globalWorkSize];
+		for(int i = 0; i < globalWorkSize; i++) {
+			ldArr[i] = presolver.getld_list().removeFirst();
+			rdArr[i] = presolver.getrd_list().removeFirst();
+			colArr[i] = presolver.getcol_list().removeFirst();
+			LDArr[i] = presolver.getLD_list().removeFirst();
+			RDArr[i] = presolver.getRD_list().removeFirst();
+			klArr[i] = presolver.getkl_list().removeFirst();
+			startArr[i] = presolver.getstart_list().removeFirst();
+			symArr[i] = presolver.getsym_list().removeFirst();
 		}
-
-		// Buffers for the kernel arguments
-		// ld
-		IntBuffer ld_buff = BufferUtils.createIntBuffer(global_work_size);
-		ld_buff.put(ld_arr);	
-		ld_buff.rewind();
-		// rd
-		IntBuffer rd_buff = BufferUtils.createIntBuffer(global_work_size);
-		rd_buff.put(rd_arr);	
-		rd_buff.rewind();
-		// col
-		IntBuffer col_buff = BufferUtils.createIntBuffer(global_work_size);
-		col_buff.put(col_arr);	
-		col_buff.rewind();
-		// LD
-		IntBuffer LD_buff = BufferUtils.createIntBuffer(global_work_size);
-		LD_buff.put(LD_arr);	
-		LD_buff.rewind();
-		// RD
-		IntBuffer RD_buff = BufferUtils.createIntBuffer(global_work_size);
-		RD_buff.put(RD_arr);	
-		RD_buff.rewind();
-		// kl
-		IntBuffer kl_buff = BufferUtils.createIntBuffer(global_work_size);
-		kl_buff.put(kl_arr);	
-		kl_buff.rewind();
-		// start
-		IntBuffer start_buff = BufferUtils.createIntBuffer(global_work_size);
-		start_buff.put(start_arr);	
-		start_buff.rewind();
 
 		// OpenCL-Memory Objects for the kernel arguments
 		// ld
-		CLMem ld_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		CLMem ldMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		CL10.clEnqueueWriteBuffer(queue, ld_mem, 0, 0, ld_buff, null, null);
+		ByteBuffer paramPtr = CL10.clEnqueueMapBuffer(queue, ldMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
+		for(int i = 0; i < globalWorkSize; i++) {
+			paramPtr.putInt(i*4, ldArr[i]);
+		}
+		CL10.clEnqueueUnmapMemObject(queue, ldMem, paramPtr, null, null);
 		// rd
-		CLMem rd_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		CLMem rdMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		CL10.clEnqueueWriteBuffer(queue, rd_mem, 0, 0, rd_buff, null, null);
+		paramPtr = CL10.clEnqueueMapBuffer(queue, rdMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
+		for(int i = 0; i < globalWorkSize; i++) {
+			paramPtr.putInt(i*4, rdArr[i]);
+		}
+		CL10.clEnqueueUnmapMemObject(queue, rdMem, paramPtr, null, null);
 		// col
-		CLMem col_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		CLMem colMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		CL10.clEnqueueWriteBuffer(queue, col_mem, 0, 0, col_buff, null, null);
+		paramPtr = CL10.clEnqueueMapBuffer(queue, colMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
+		for(int i = 0; i < globalWorkSize; i++) {
+			paramPtr.putInt(i*4, colArr[i]);
+		}
+		CL10.clEnqueueUnmapMemObject(queue, colMem, paramPtr, null, null);
 		// LD
-		CLMem LD_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		CLMem LDMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		CL10.clEnqueueWriteBuffer(queue, LD_mem, 0, 0, LD_buff, null, null);
+		paramPtr = CL10.clEnqueueMapBuffer(queue, LDMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
+		for(int i = 0; i < globalWorkSize; i++) {
+			paramPtr.putInt(i*4, LDArr[i]);
+		}
+		CL10.clEnqueueUnmapMemObject(queue, LDMem, paramPtr, null, null);
 		// RD
-		CLMem RD_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		CLMem RDMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		CL10.clEnqueueWriteBuffer(queue, RD_mem, 0, 0, RD_buff, null, null);
+		paramPtr = CL10.clEnqueueMapBuffer(queue, RDMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
+		for(int i = 0; i < globalWorkSize; i++) {
+			paramPtr.putInt(i*4, RDArr[i]);
+		}
+		CL10.clEnqueueUnmapMemObject(queue, RDMem, paramPtr, null, null);
 		// kl
-		CLMem kl_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		CLMem klMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		CL10.clEnqueueWriteBuffer(queue, kl_mem, 0, 0, kl_buff, null, null);
+		paramPtr = CL10.clEnqueueMapBuffer(queue, klMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
+		for(int i = 0; i < globalWorkSize; i++) {
+			paramPtr.putInt(i*4, klArr[i]);
+		}
+		CL10.clEnqueueUnmapMemObject(queue, klMem, paramPtr, null, null);
 		// start
-		CLMem start_mem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, global_work_size*4, errorBuff);
+		CLMem startMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		CL10.clEnqueueWriteBuffer(queue, start_mem, 0, 0, start_buff, null, null);
+		paramPtr = CL10.clEnqueueMapBuffer(queue, startMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
+		for(int i = 0; i < globalWorkSize; i++) {
+			paramPtr.putInt(i*4, startArr[i]);
+		}
+		CL10.clEnqueueUnmapMemObject(queue, startMem, paramPtr, null, null);
 
 		// result memory
-		CLMem resultMemory;
-		resultMemory = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY, global_work_size*4, errorBuff);
+		CLMem resMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		ByteBuffer resPtr = CL10.clEnqueueMapBuffer(queue, resMem, CL10.CL_TRUE, CL10.CL_MAP_READ, 0, globalWorkSize*4, null,null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 
+		// progress memory
+		CLMem progressMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		ByteBuffer progressWritePtr = CL10.clEnqueueMapBuffer(queue, progressMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		for(int i = 0; i < globalWorkSize; i++) {
+			progressWritePtr.putInt(i*4, 0);
+		}
+		CL10.clEnqueueUnmapMemObject(queue, progressMem, progressWritePtr, null, null);
+		// map progress memory
+		ByteBuffer progressPtr = CL10.clEnqueueMapBuffer(queue, progressMem, CL10.CL_TRUE, CL10.CL_MAP_READ, 0, globalWorkSize*4, null,null, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		
 		// Set the kernel parameters
-		sqKernel.setArg(0, ld_mem);
-		sqKernel.setArg(1, rd_mem);
-		sqKernel.setArg(2, col_mem);
-		sqKernel.setArg(3, LD_mem);
-		sqKernel.setArg(4, RD_mem);
-		sqKernel.setArg(5, kl_mem);
-		sqKernel.setArg(6, start_mem);
-		sqKernel.setArg(7, resultMemory);
+		sqKernel.setArg(0, ldMem);
+		sqKernel.setArg(1, rdMem);
+		sqKernel.setArg(2, colMem);
+		sqKernel.setArg(3, LDMem);
+		sqKernel.setArg(4, RDMem);
+		sqKernel.setArg(5, klMem);
+		sqKernel.setArg(6, startMem);
+		sqKernel.setArg(7, resMem);
+		sqKernel.setArg(8, progressMem);
 
 		// create buffer of pointers defining the multi-dimensional size of the number of work units to execute
 		final int dimensions = 1;
-		PointerBuffer globalWorkSize = BufferUtils.createPointerBuffer(dimensions);
-		globalWorkSize.put(0, global_work_size);
+		PointerBuffer globalWorkers = BufferUtils.createPointerBuffer(dimensions);
+		globalWorkers.put(0, globalWorkSize);
 		PointerBuffer localWorkSize = BufferUtils.createPointerBuffer(dimensions);
 		localWorkSize.put(0, BLOCK_SIZE);
 
 		// wait for the queue to finish all preparations
-		CL10.clFinish(queue);
+		CL10.clFlush(queue);
 
 		// run kernel and profile time
-		final PointerBuffer event_Buff = BufferUtils.createPointerBuffer(1);		// buffer for event that is used for measuring the execution time
-		CL10.clEnqueueNDRangeKernel(queue, sqKernel, dimensions, null, globalWorkSize, localWorkSize, null, event_Buff);	// Run the specified number of work units using our OpenCL program kernel
-//		System.out.println("> Started " + global_work_size  + " threads");
+		final PointerBuffer eventBuff = BufferUtils.createPointerBuffer(1);		// buffer for event that is used for measuring the execution time
+		CL10.clEnqueueNDRangeKernel(queue, sqKernel, dimensions, null, globalWorkers, localWorkSize, null, eventBuff);	// Run the specified number of work units using our OpenCL program kernel
+		CL10.clFlush(queue);
+		running = true;
+//		System.out.println("> Started " + globalWorkSize  + " threads");
 
 		// set pseudo starttime
 		ready = true;
@@ -223,39 +241,69 @@ public class GpuSolver {
 			start_idx = presolver.getstart_list().removeFirst();
 
 			solver(ld, rd, col, start_idx);
+			
+			calculatedStartConstCount++;
+			solvecounter = cpucounter;
 		}
-
+		cpuConstCount = calculatedStartConstCount;
+		
+		// check process
+		new Thread() {
+			public void run() {
+				long tempcounter;
+				int tempCalcConstCount;
+				while(running) {
+					// calculate current sovlecounter
+					tempcounter = cpucounter;
+					tempCalcConstCount = cpuConstCount;
+					for(int i = 0; i < globalWorkSize-2; i++) {
+						tempcounter += resPtr.getInt(i*4) * symArr[i];
+						tempCalcConstCount += progressPtr.getInt(i*4);
+					}
+					calculatedStartConstCount = tempCalcConstCount;
+					solvecounter = tempcounter;
+					// short delay
+					try {
+						sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}.start();
 		
 		CL10.clFinish(queue);			// wait till the task is complete
-
+//		CL10.clWaitForEvents(eventBuff);
+		running = false;
+		
 		// get time values using the clEvent, print time
-		final CLEvent event = queue.getCLEvent(event_Buff.get(0));
+		final CLEvent event = queue.getCLEvent(eventBuff.get(0));
 		start = event.getProfilingInfoLong(CL10.CL_PROFILING_COMMAND_START);
 		end = event.getProfilingInfoLong(CL10.CL_PROFILING_COMMAND_END);
-//		String seconds_str = String.format(Locale.ROOT, "%.3f", (end-start)*0.000000001);
-//		System.out.println("------------------------");
-//		System.out.println("time: \t\t\t" + (end-start) + " nanoseconds (~" + seconds_str + " seconds)");
 
 		// read from the result memory buffer
-		IntBuffer resultBuff = BufferUtils.createIntBuffer(global_work_size);
-		CL10.clEnqueueReadBuffer(queue, resultMemory, CL10.CL_TRUE, 0, resultBuff, null, null);
-		// Print the values in the result buffer
-		for(int i = 0; i < resultBuff.capacity(); i++) {
-			solvecounter += resultBuff.get(i) * sym_arr[i];			// calculate the solutions-counter using the symmetry-factors of the sym_arr-array
+		solvecounter = cpucounter;
+		for(int i = 0; i < globalWorkSize; i++) {
+			solvecounter += resPtr.getInt(i*4) *  symArr[i];
 		}
-//		System.out.println("total solutions: \t" + (solvecounter));
+		calculatedStartConstCount = startConstCount;
 
+		// unmap pointers for results and progress
+		CL10.clEnqueueUnmapMemObject(queue, resMem, resPtr, null, null);
+		CL10.clEnqueueUnmapMemObject(queue, progressMem, progressPtr, null, null);
+		
 		// Destroy our kernel and program
 		CL10.clReleaseKernel(sqKernel);
 		CL10.clReleaseProgram(sqProgram);
-		CL10.clReleaseMemObject(ld_mem);
-		CL10.clReleaseMemObject(rd_mem);
-		CL10.clReleaseMemObject(col_mem);
-		CL10.clReleaseMemObject(LD_mem);
-		CL10.clReleaseMemObject(RD_mem);
-		CL10.clReleaseMemObject(kl_mem);
-		CL10.clReleaseMemObject(start_mem);
-		CL10.clReleaseMemObject(resultMemory);
+		CL10.clReleaseMemObject(ldMem);
+		CL10.clReleaseMemObject(rdMem);
+		CL10.clReleaseMemObject(colMem);
+		CL10.clReleaseMemObject(LDMem);
+		CL10.clReleaseMemObject(RDMem);
+		CL10.clReleaseMemObject(klMem);
+		CL10.clReleaseMemObject(startMem);
+		CL10.clReleaseMemObject(resMem);
+		CL10.clReleaseMemObject(progressMem);
 
 		// Destroy the OpenCL context
 		destroyCL();
@@ -264,6 +312,9 @@ public class GpuSolver {
 	}
 	
 	private void reset() {
+		startConstCount = 0;
+		calculatedStartConstCount = 0;
+		cpucounter = 0;
 		solvecounter = 0;
 		start = 0;
 		end = 0;
@@ -349,7 +400,7 @@ public class GpuSolver {
 
 	private void solver(int ld, int rd, int col, int row) {
 		if(row == N-1) {
-			solvecounter += sym;
+			cpucounter += sym;
 			return;
 		}
 		int klguard = ((kbit << row) ^ L) | ((lbit >>> row) ^ 1) | ((((kbit << row)&L) >>> (N-1)) * kmask) | (((lbit >>> row)&1) * lmask);	
@@ -444,5 +495,14 @@ public class GpuSolver {
 	}
 	public long getSolvecounter() {
 		return solvecounter;
+	}
+	public float getProgress() {
+		return ((float) calculatedStartConstCount) / startConstCount;
+	}
+	public int getStartConstCount() {
+		return startConstCount;
+	}
+	public int getCalculatedStartConstCount() {
+		return calculatedStartConstCount;
 	}
 }
