@@ -38,14 +38,14 @@ public class Solvers {
 			solvers[mode].compute();
 		} else {
 			cpuSolver.setN(N);
-			solvers[mode].setStarttime(System.currentTimeMillis());
 			cpuSolver.cheapSolver();
-			solvers[mode].setEndtime(System.currentTimeMillis());
+			solvers[mode].setStarttime(cpuSolver.getStarttime());
+			solvers[mode].setEndtime(cpuSolver.getEndtime());
 		}
 	}
-
+	
 	public void save() {
-
+		
 	}
 
 	public void load(FAFProcessData d) {

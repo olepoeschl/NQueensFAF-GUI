@@ -133,6 +133,7 @@ class CpuSolver extends Solver {
 		setStarttime(System.currentTimeMillis());
 		int mask = (1 << getN()) - 1;
 		nq(0, 0, 0, 0, mask, mask);
+		setEndtime(System.currentTimeMillis());
 	}
 	private void nq(int ld, int rd, int col, int row, int free, int mask) {
 		if(row == getN()-1) {
