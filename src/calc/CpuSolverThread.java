@@ -1,8 +1,8 @@
 package calc;
 
 import java.io.Serializable;
+import java.util.ArrayDeque;
 
-import com.carrotsearch.hppc.IntArrayDeque;
 
 // this is the solver
 // we use recursive functions for Backtracking
@@ -18,13 +18,13 @@ public class CpuSolverThread extends Thread implements Serializable {
 	private int mark1, mark2, mark3;
  
 	// list of uncalculated starting positions, their indices
-	private IntArrayDeque startConstellations;
+	private ArrayDeque<Integer> startConstellations;
 
 	// for canceling and pausing 
 	private boolean pause = false, cancel = false, respond = false;
 
 
-	public CpuSolverThread(int N, IntArrayDeque startConstellations) {
+	public CpuSolverThread(int N, ArrayDeque<Integer> startConstellations) {
 		this.N = N;	
 		N3 = N - 3;
 		N4 = N - 4;
@@ -882,7 +882,7 @@ public class CpuSolverThread extends Thread implements Serializable {
 	public long getSolvecounter() {
 		return solvecounter;
 	}
-	public IntArrayDeque getUncalculatedStartConstellations(){
+	public ArrayDeque<Integer> getUncalculatedStartConstellations() {
 		return startConstellations;
 	}
 	public boolean responds() {

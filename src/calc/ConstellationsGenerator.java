@@ -15,10 +15,45 @@ public class ConstellationsGenerator {
 	private HashSet<Integer> startConstellations;
 	private ArrayDeque<Integer> ld_list, rd_list, col_list, LD_list, RD_list, kl_list, sym_list, start_list;
 	
-	// generate startConstellations and return them as an integer-array
-	public void genConstellations(int N) {
-		System.gc();	// please collect your garbage, Sir!
+	// calculate start constellations and return them as a HashSet<Integer> for cpu computation
+	public HashSet<Integer> genConstellationsCpu(int N){
+		startConstellations = new HashSet<Integer>();
 		
+		// halfN half of N rounded up
+		this.N = N;
+		final int halfN = (N + 1) / 2;
+
+		// calculating start constellations with the first Queen on square (0,0)
+		for(int j = 1; j < N-2; j++) {						// j is idx of Queen in last row				
+			for(int l = j+1; l < N-1; l++) {				// l is idx of Queen in last col
+				startConstellations.add(toijkl(0, j, 0, l));
+			}
+		}
+
+		// calculate starting constellations for no Queens in corners
+		// look above for if missing explanation
+		for(int k = 1; k < halfN; k++) {						// gothrough first col
+			for(int l = k+1; l < N-1; l++) {					// go through last col
+				for(int i = k+1; i < N-1; i++) {				// go through first row
+					if(i == N-1-l)								// skip if occupied
+						continue;
+					for(int j = N-k-2; j > 0; j--) {			// go through last row
+						if(j==i || l == j)
+							continue;
+
+						if(!checkRotations(i, j, k, l)) {		// if no rotation-symmetric starting constellation already found
+							startConstellations.add(toijkl(i, j, k, l));
+						}
+					}
+				}
+			}
+		}
+		
+		return startConstellations;
+	}
+	
+	// calculate occupancy of starting row for gpu computation
+	public void genConstellationsGpu(int N) {
 		ld_list = new ArrayDeque<Integer>();
 		rd_list = new ArrayDeque<Integer>();
 		col_list = new ArrayDeque<Integer>();
@@ -43,7 +78,7 @@ public class ConstellationsGenerator {
 		startConstellations = new HashSet<Integer>();
 		
 		// start time
-		long starttime = System.currentTimeMillis();
+//		long starttime = System.currentTimeMillis();
 		
 		// calculating start constellations with the first Queen on square (0,0)
 		for(int j = 1; j < N-2; j++) {						// j is idx of Queen in last row				
@@ -153,40 +188,6 @@ public class ConstellationsGenerator {
 		
 //		System.out.println("Gefundene Startkonstellationen: " + ld_list.size());
 		
-		// sort the starting constellations
-		int len = ld_list.size();
-		ArrayList<BoardProperties> list = new ArrayList<BoardProperties>(len);
-		for(int i = 0; i < len; i++) {
-			list.add(new BoardProperties(ld_list.removeFirst(), rd_list.removeFirst(), col_list.removeFirst(), start_list.removeFirst(), kl_list.removeFirst(), LD_list.removeFirst(), RD_list.removeFirst(), sym_list.removeFirst()));
-		}
-		Collections.sort(list, new Comparator<BoardProperties>() {
-		    @Override
-		    public int compare(BoardProperties o1, BoardProperties o2) {
-		        if(o1.start > o2.start) {
-		        	return 1;
-		        } else if(o1.start < o2.start) {
-		        	return -1;
-		        } else {
-		        	if((o1.kl >> 8) > (o2.kl >> 8)) {
-		        		return 1;
-		        	} else if((o1.kl >> 8) < (o2.kl >> 8)) {
-		        		return -1;
-		        	}
-		        	return 0;
-		        }
-		    }
-		});
-		for(int i = 0; i < len; i++) {
-			ld_list.add(list.get(i).ld);
-			rd_list.add(list.get(i).rd);
-			col_list.add(list.get(i).col);
-			start_list.add(list.get(i).start);
-			kl_list.add(list.get(i).kl);
-			LD_list.add(list.get(i).LD);
-			RD_list.add(list.get(i).RD);
-			sym_list.add(list.get(i).sym);
-		}
-		
 		
 		// java solver
 //		int a = ld_list.size();
@@ -219,13 +220,47 @@ public class ConstellationsGenerator {
 //			
 //			iter++;
 //		}
-		long endtime = System.currentTimeMillis();
+//		long endtime = System.currentTimeMillis();
 		
 //		System.out.println("Solutions: \t" + solvecounter);
 //		System.out.println("IterSolutions: \t" + solvecounter2);
 //		System.out.println("Time in ms: " + (-starttime + endtime));
 	}
 	
+	public void sortConstellations() {
+		int len = ld_list.size();
+		ArrayList<BoardProperties> list = new ArrayList<BoardProperties>(len);
+		for(int i = 0; i < len; i++) {
+			list.add(new BoardProperties(ld_list.removeFirst(), rd_list.removeFirst(), col_list.removeFirst(), start_list.removeFirst(), kl_list.removeFirst(), LD_list.removeFirst(), RD_list.removeFirst(), sym_list.removeFirst()));
+		}
+		Collections.sort(list, new Comparator<BoardProperties>() {
+		    @Override
+		    public int compare(BoardProperties o1, BoardProperties o2) {
+		        if(o1.start > o2.start) {
+		        	return 1;
+		        } else if(o1.start < o2.start) {
+		        	return -1;
+		        } else {
+		        	if((o1.kl >> 8) > (o2.kl >> 8)) {
+		        		return 1;
+		        	} else if((o1.kl >> 8) < (o2.kl >> 8)) {
+		        		return -1;
+		        	}
+		        	return 0;
+		        }
+		    }
+		});
+		for(int i = 0; i < len; i++) {
+			ld_list.add(list.get(i).ld);
+			rd_list.add(list.get(i).rd);
+			col_list.add(list.get(i).col);
+			start_list.add(list.get(i).start);
+			kl_list.add(list.get(i).kl);
+			LD_list.add(list.get(i).LD);
+			RD_list.add(list.get(i).RD);
+			sym_list.add(list.get(i).sym);
+		}
+	}
 	
 	// true, if starting constellation rotated by any angle has already been found
 	private boolean checkRotations(int i, int j, int k, int l) {

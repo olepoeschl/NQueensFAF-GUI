@@ -6,7 +6,6 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="extern_lib/hppc/hppc-0.7.2.jar"/>
 	<classpathentry kind="lib" path="extern_lib/lwjgl-2.9.3/jar/lwjgl.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
