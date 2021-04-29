@@ -22,30 +22,30 @@ abstract class Solver {
 		this.N = N;
 		constGenerator = new ConstellationsGenerator();
 	}
-	
+
 	// abstract methods
 	abstract void compute();
 	abstract void genConstellations();
 	abstract void reset();
-	
+
 	abstract void save();
 	abstract void load(FAFProcessData d);
 	abstract void resetLoad();
-	
+
 	abstract long getSolvecounter();
 	abstract int getSolvedStartConstCount();
 	abstract ArrayDeque<Integer> getUnsolvedStartConstellations();
-	
+
 	// methods
 	protected void incFSolvecounter() {
 		fSolvecounter++;
 	}
-	
+
 	// getters
 	int getN() {
 		return N;
 	}
-	
+
 	long getStarttime() {
 		return start;
 	}
@@ -53,19 +53,19 @@ abstract class Solver {
 	long getEndtime() {
 		return end;
 	}
-	
+
 	int getStartConstCount() {
 		return startConstCount;
 	}
-	
+
 	int getUnsolvedStartConstCount() {
 		return startConstCount - getSolvedStartConstCount();
 	}
-	
+
 	float getProgress() {
 		return ((float) getSolvedStartConstCount()) / startConstCount *100;
 	}
-	
+
 	boolean isReady() {
 		return ready;
 	}
@@ -73,19 +73,19 @@ abstract class Solver {
 	boolean isRunning() {
 		return running;
 	}
-	
+
 	long getFSolvecounter() {
 		return fSolvecounter;
 	}
-	
+
 	int getFSolvedStartConstCount() {
 		return fSolvedStartconstCount;
 	}
-	
+
 	protected ConstellationsGenerator getConstellationsGenerator() {
 		return constGenerator;
 	}
-	
+
 	// setters
 	void setN(int N) {
 		this.N = N;
@@ -98,11 +98,11 @@ abstract class Solver {
 	protected void setEndtime(long end) {
 		this.end = end;
 	}
-	
+
 	protected void setStartConstCount(int startConstCount) {
 		this.startConstCount = startConstCount;
 	}
-	
+
 	protected void setReady(boolean ready) {
 		this.ready = ready;
 	}
@@ -110,11 +110,11 @@ abstract class Solver {
 	protected void setRunning(boolean running) {
 		this.running = running;
 	}
-	
+
 	protected void setFSolvecounter(long fSolvecounter) {
 		this.fSolvecounter = fSolvecounter;
 	}
-	
+
 	protected void setFSolvedStartConstCount(int rSolvedStartConstCount) {
 		this.fSolvedStartconstCount = rSolvedStartConstCount;
 	}

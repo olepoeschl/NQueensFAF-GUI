@@ -33,7 +33,7 @@ import util.FAFProcessData;
 
 class GpuSolver extends Solver {
 
-//	private HashSet<Integer> startConstellations;		// for saving and restoring (loading)
+	// private HashSet<Integer> startConstellations;		// for saving and restoring (loading)
 	private long currSolvecounter;
 	private int solvedStartConstCount;
 
@@ -43,11 +43,11 @@ class GpuSolver extends Solver {
 	private List<CLDevice> devices;
 	private CLDevice device;
 	private CLCommandQueue queue;
-	
+
 	// OpenCL variables
 	private final int BLOCK_SIZE = 64;
 	private int computeUnits;
-	
+
 	// variables for computing the remaining constellations on the cpu
 	private long cpucounter;
 	private int mask, L, sym, kl, k, l, kbit, lbit, kmask, lmask, LD, RD;
@@ -55,7 +55,7 @@ class GpuSolver extends Solver {
 
 	// other variables
 	private boolean gpuRunning = false, restored = false;
-	
+
 	// constructor from superclass
 	GpuSolver() {
 		super();
@@ -261,18 +261,18 @@ class GpuSolver extends Solver {
 			LD = getConstellationsGenerator().getLD_list().removeFirst();
 			RD = getConstellationsGenerator().getRD_list().removeFirst();
 			k = kl >>> 8;
-			l = kl & 255;
-			kbit = (1 << (getN()-k-1));
-			lbit = (1 << l);	
-			ld = getConstellationsGenerator().getld_list().removeFirst();
-			rd = getConstellationsGenerator().getrd_list().removeFirst();
-			col = getConstellationsGenerator().getcol_list().removeFirst();
-			start_idx = getConstellationsGenerator().getstart_list().removeFirst();
+		l = kl & 255;
+		kbit = (1 << (getN()-k-1));
+		lbit = (1 << l);	
+		ld = getConstellationsGenerator().getld_list().removeFirst();
+		rd = getConstellationsGenerator().getrd_list().removeFirst();
+		col = getConstellationsGenerator().getcol_list().removeFirst();
+		start_idx = getConstellationsGenerator().getstart_list().removeFirst();
 
-			solver(ld, rd, col, start_idx);
+		solver(ld, rd, col, start_idx);
 
-			solvedStartConstCount++;
-			currSolvecounter = cpucounter;
+		solvedStartConstCount++;
+		currSolvecounter = cpucounter;
 		}
 		cpuSolvedStartConstCount = solvedStartConstCount;
 
@@ -305,7 +305,7 @@ class GpuSolver extends Solver {
 		CL10.clFinish(queue);			// wait till the task is complete
 		//		CL10.clWaitForEvents(eventBuff);
 		gpuRunning = false;
-		
+
 		// get time values using the clEvent, print time
 		final CLEvent event = queue.getCLEvent(eventBuff.get(0));
 		setStarttime(event.getProfilingInfoLong(CL10.CL_PROFILING_COMMAND_START) / 1000000);
@@ -353,7 +353,7 @@ class GpuSolver extends Solver {
 
 	@Override
 	void reset() {
-//		startConstellations = null;
+		//		startConstellations = null;
 		currSolvecounter = 0;
 		cpucounter = 0;
 		solvedStartConstCount = 0;
@@ -380,7 +380,7 @@ class GpuSolver extends Solver {
 	void resetLoad() {
 		restored = false;
 	}
-	
+
 	// own methods
 	private void solver(int ld, int rd, int col, int row) {
 		if(row == getN()-1) {
@@ -548,7 +548,7 @@ class GpuSolver extends Solver {
 	ArrayDeque<Integer> getUnsolvedStartConstellations(){
 		return null;
 	}
-	
+
 	// setters
 	void setDevice(int index) {
 		device = devices.get(index);
