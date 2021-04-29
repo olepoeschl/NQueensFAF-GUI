@@ -8,7 +8,7 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 	
 // gpu intern indice
 	const int g_id = get_global_id(0);												// global thread id
-	const short l_id = get_local_id(0);												// local thread id within workgroup
+	const int l_id = get_local_id(0);												// local thread id within workgroup
 	
 // variables	
 	// for the board
@@ -17,8 +17,9 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 	uint col_mask = ~((1 << N) - 1) | 1;														// col_maskumn and mask
 	
 	// k and l - row indice where a queen is already set and we have to go to the next row
-	const short k = kl_arr[g_id] >> 8;														
-	const short l = kl_arr[g_id] & 255;
+	int k = kl_arr[g_id];
+	int l = k & 255;
+	k >>= 8;
 	
 	// LD and RD - occupancy of board-entering diagonals due to the queens from the start constellation
 	const uint jdiag = LD_arr[g_id] & RD_arr[g_id];
@@ -30,7 +31,7 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 	col_mask |= col_mask_arr[g_id] | L | 1;
 	
 	// start index
-	const short start = start_arr[g_id];
+	const int start = start_arr[g_id];
 	
 	// to memorize diagonals leaving the board at a certain row
 	uint ld_mem = 0;															
@@ -70,7 +71,7 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 			ld_mem = ld_mem << 1 | ld >> 31;
 			rd_mem = rd_mem >> 1 | rd << 31;
 			ld = (ld | temp) << 1;													// shift diagonals to next line
-			rd = (rd | temp) >> 1;			
+			rd = (rd | temp) >> 1;
 		}
 		else {
 			temp = bits[row][l_id];													// this saves 2 reads from local array
@@ -89,7 +90,7 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 		
 		temp = (row == k || row == l) ? direction : ((notfree + diff) & ~notfree);
 		temp = (row == k && direction) ? L : temp;
-			
+
 		bits[row][l_id] = temp;
 		
 		// unroll 1 iteration
@@ -101,7 +102,7 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 			ld_mem = ld_mem << 1 | ld >> 31;
 			rd_mem = rd_mem >> 1 | rd << 31;
 			ld = (ld | temp) << 1;													// shift diagonals to next line
-			rd = (rd | temp) >> 1;			
+			rd = (rd | temp) >> 1;
 		}
 		else {
 			temp = bits[row][l_id];													// this saves 2 reads from local array
@@ -117,10 +118,10 @@ __kernel void run(global int *ld_arr, global int *rd_arr, global int *col_mask_a
 		col_mask |= temp;
 		notfree = (jdiag >> N-1-row) | (jdiag << (N-1-row)) | ld | rd | col_mask;							// calculate occupancy of next row
 		col_mask = (direction) ? col_mask : col_mask & ~temp;
-			
+
 		temp = (row == k || row == l) ? direction : ((notfree + diff) & ~notfree);
 		temp = (row == k && direction) ? L : temp;
-				
+
 		bits[row][l_id] = temp;
 	}
 	result[g_id] = solvecounter;

@@ -330,7 +330,7 @@ public class Gui extends JFrame {
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
 		progressBar = new JProgressBar();
-		progressBar.setForeground(new Color(0, 255, 127));
+		progressBar.setForeground(Color.GREEN);
 		progressBar.setBackground(new Color(245, 245, 220));
 		progressBar.setMinimum(0);
 		progressBar.setMaximum(100);

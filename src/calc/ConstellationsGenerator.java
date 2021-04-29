@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 
-public class ConstellationsGenerator {
+class ConstellationsGenerator {
 	
 	private int N, L, mask, LD, RD, counter, solvecounter = 0, sym, k, l, ld_mem, rd_mem, notfree, notmask, solvecounter2 = 0, iter = 0, start;
 	private int kbit, lbit, kmask, lmask; 	// belegt de diagoanle auf der später k bzw. l dame stehen soll
@@ -16,7 +16,7 @@ public class ConstellationsGenerator {
 	private ArrayDeque<Integer> ld_list, rd_list, col_list, LD_list, RD_list, kl_list, sym_list, start_list;
 	
 	// calculate start constellations and return them as a HashSet<Integer> for cpu computation
-	public HashSet<Integer> genConstellationsCpu(int N){
+	HashSet<Integer> genConstellationsCpu(int N){
 		startConstellations = new HashSet<Integer>();
 		
 		// halfN half of N rounded up
@@ -53,7 +53,7 @@ public class ConstellationsGenerator {
 	}
 	
 	// calculate occupancy of starting row for gpu computation
-	public void genConstellationsGpu(int N) {
+	void genConstellationsGpu(int N) {
 		ld_list = new ArrayDeque<Integer>();
 		rd_list = new ArrayDeque<Integer>();
 		col_list = new ArrayDeque<Integer>();
@@ -227,7 +227,7 @@ public class ConstellationsGenerator {
 //		System.out.println("Time in ms: " + (-starttime + endtime));
 	}
 	
-	public void sortConstellations() {
+	void sortConstellations() {
 		int len = ld_list.size();
 		ArrayList<BoardProperties> list = new ArrayList<BoardProperties>(len);
 		for(int i = 0; i < len; i++) {
@@ -471,28 +471,28 @@ public class ConstellationsGenerator {
 
 
 	// getters
-	public ArrayDeque<Integer> getld_list() {
+	ArrayDeque<Integer> getld_list() {
 		return ld_list;
 	}
-	public ArrayDeque<Integer> getrd_list() {
+	ArrayDeque<Integer> getrd_list() {
 		return rd_list;
 	}
-	public ArrayDeque<Integer> getcol_list() {
+	ArrayDeque<Integer> getcol_list() {
 		return col_list;
 	}
-	public ArrayDeque<Integer> getLD_list() {
+	ArrayDeque<Integer> getLD_list() {
 		return LD_list;
 	}
-	public ArrayDeque<Integer> getRD_list() {
+	ArrayDeque<Integer> getRD_list() {
 		return RD_list;
 	}
-	public ArrayDeque<Integer> getkl_list() {
+	ArrayDeque<Integer> getkl_list() {
 		return kl_list;
 	}
-	public ArrayDeque<Integer> getstart_list() {
+	ArrayDeque<Integer> getstart_list() {
 		return start_list;
 	}
-	public ArrayDeque<Integer> getsym_list() {
+	ArrayDeque<Integer> getsym_list() {
 		return sym_list;
 	}
 }

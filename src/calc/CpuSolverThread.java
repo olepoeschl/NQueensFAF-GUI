@@ -7,7 +7,7 @@ import java.util.ArrayDeque;
 // this is the solver
 // we use recursive functions for Backtracking
 
-public class CpuSolverThread extends Thread implements Serializable {
+class CpuSolverThread extends Thread implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -24,7 +24,7 @@ public class CpuSolverThread extends Thread implements Serializable {
 	private boolean pause = false, cancel = false, respond = false;
 
 
-	public CpuSolverThread(int N, ArrayDeque<Integer> startConstellations) {
+	CpuSolverThread(int N, ArrayDeque<Integer> startConstellations) {
 		this.N = N;	
 		N3 = N - 3;
 		N4 = N - 4;
@@ -862,33 +862,33 @@ public class CpuSolverThread extends Thread implements Serializable {
 	}
 
 	// for pause and continue
-	public void pause() {
+	void pause() {
 		pause = true;
 	}
-	public void go() {
+	void go() {
 		pause = false;
 	}
-	public void cancel() {
+	void cancel() {
 		cancel = true;
 	}
-	public void dontCancel() {
+	void dontCancel() {
 		cancel = false;
 	}
 
 	// for progress
-	public int getStartConstIndex() {
+	int getStartConstIndex() {
 		return constellation_idx;
 	}
-	public long getSolvecounter() {
+	long getSolvecounter() {
 		return solvecounter;
 	}
-	public ArrayDeque<Integer> getUncalculatedStartConstellations() {
+	ArrayDeque<Integer> getUncalculatedStartConstellations() {
 		return startConstellations;
 	}
-	public boolean responds() {
+	boolean responds() {
 		return respond;
 	}
-	public void resetRespond() {
+	void resetRespond() {
 		respond = false;
 	}
 
