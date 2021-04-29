@@ -130,6 +130,7 @@ class CpuSolver extends Solver {
 	// own methods
 	void cheapSolver() {
 		reset();
+		setStarttime(System.currentTimeMillis());
 		int mask = (1 << getN()) - 1;
 		nq(0, 0, 0, 0, mask, mask);
 	}

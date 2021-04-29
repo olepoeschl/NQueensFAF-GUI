@@ -38,7 +38,9 @@ public class Solvers {
 			solvers[mode].compute();
 		} else {
 			cpuSolver.setN(N);
+			solvers[mode].setStarttime(System.currentTimeMillis());
 			cpuSolver.cheapSolver();
+			solvers[mode].setEndtime(System.currentTimeMillis());
 		}
 	}
 

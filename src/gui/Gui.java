@@ -570,7 +570,6 @@ public class Gui extends JFrame {
 
 				// start solver
 				solvers.solve();
-				System.out.println(solvers.getSolvecounter());
 
 				// update gui objects and variables
 				// stop time updates

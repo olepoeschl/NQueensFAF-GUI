@@ -71,7 +71,7 @@ class GpuSolver extends Solver {
 	@Override
 	void compute() {
 		// abort computing if the parameters are invalid
-		if(getN() <= 0 || getN() >= 32) {
+		if(getN() <= Solvers.NBorder || getN() >= 32) {
 			System.err.println("Error: \tInvalid value for board size (N): \t" + getN());
 			return;
 		}
@@ -261,18 +261,18 @@ class GpuSolver extends Solver {
 			LD = getConstellationsGenerator().getLD_list().removeFirst();
 			RD = getConstellationsGenerator().getRD_list().removeFirst();
 			k = kl >>> 8;
-		l = kl & 255;
-		kbit = (1 << (getN()-k-1));
-		lbit = (1 << l);	
-		ld = getConstellationsGenerator().getld_list().removeFirst();
-		rd = getConstellationsGenerator().getrd_list().removeFirst();
-		col = getConstellationsGenerator().getcol_list().removeFirst();
-		start_idx = getConstellationsGenerator().getstart_list().removeFirst();
+			l = kl & 255;
+			kbit = (1 << (getN()-k-1));
+			lbit = (1 << l);	
+			ld = getConstellationsGenerator().getld_list().removeFirst();
+			rd = getConstellationsGenerator().getrd_list().removeFirst();
+			col = getConstellationsGenerator().getcol_list().removeFirst();
+			start_idx = getConstellationsGenerator().getstart_list().removeFirst();
 
-		solver(ld, rd, col, start_idx);
-
-		solvedStartConstCount++;
-		currSolvecounter = cpucounter;
+			solver(ld, rd, col, start_idx);
+	
+			solvedStartConstCount++;
+			currSolvecounter = cpucounter;
 		}
 		cpuSolvedStartConstCount = solvedStartConstCount;
 
@@ -286,7 +286,7 @@ class GpuSolver extends Solver {
 					// calculate current sovlecounter
 					tempcounter = cpucounter;
 					tempCalcConstCount = cpuSolvedStartConstCount;
-					for(int i = 0; i < globalWorkSize-2; i++) {
+					for(int i = 0; i < globalWorkSize; i++) {
 						tempcounter += resPtr.getInt(i*4) * symArr[i];
 						tempCalcConstCount += progressPtr.getInt(i*4);
 					}
@@ -299,6 +299,7 @@ class GpuSolver extends Solver {
 						e.printStackTrace();
 					}
 				}
+				gpuRunning = true;
 			}
 		}.start();
 
@@ -311,6 +312,15 @@ class GpuSolver extends Solver {
 		setStarttime(event.getProfilingInfoLong(CL10.CL_PROFILING_COMMAND_START) / 1000000);
 		setEndtime(event.getProfilingInfoLong(CL10.CL_PROFILING_COMMAND_END) / 1000000);
 
+		// wait for the update-thread (above) to end
+		while(!gpuRunning) {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		gpuRunning = false;
 		// read from the result memory buffer
 		currSolvecounter = cpucounter;
 		for(int i = 0; i < globalWorkSize; i++) {
