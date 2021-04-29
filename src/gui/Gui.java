@@ -17,10 +17,7 @@ import javax.swing.text.DefaultCaret;
 
 import org.lwjgl.LWJGLException;
 
-import com.carrotsearch.hppc.IntArrayDeque;
-
-import calc.CpuSolver;
-import calc.GpuSolver;
+import calc.Solvers;
 import util.FAFProcessData;
 
 import javax.swing.JButton;
@@ -38,12 +35,9 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
-import java.net.URISyntaxException;
 import java.util.ArrayDeque;
 
 import javax.swing.JLabel;
@@ -97,15 +91,13 @@ public class Gui extends JFrame {
     private JDialog dialog;
     private Object input;
     
-    // Solver-instances
-    private CpuSolver cpuSolver;
-    private GpuSolver gpuSolver;
+    // Solvers
+    private Solvers solvers;
     
     // helper variables
     private long time = 0, pausetime = 0, oldtime = 0;
-    private boolean running = false, paused = false, load = false;
+    private boolean paused = false;
     private int updateTime = 0;
-    private boolean useCpu = true;
     
     // FileFilter
     private FileFilter filefilter;
@@ -126,14 +118,10 @@ public class Gui extends JFrame {
         eventListener = new EventListener();
         iconImg = Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/queenFire_FAF_beschnitten.png"));
         
-        // initialize OpenCL-solver
-        try {
-			gpuSolver = new GpuSolver();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-
-        // initialize Gui
+        // initialize Solvers
+        solvers = new Solvers();
+        
+        // initialize GuiAlt
         initGui();
         this.pack();
         Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -157,7 +145,7 @@ public class Gui extends JFrame {
         msgQueue = new ArrayDeque<String>();
         // Queue displaying the progress
         progressUpdateQueue = new ArrayDeque<Float>();
-        // start the thread that updates the Gui's components
+        // start the thread that updates the GuiAlt's components
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -206,7 +194,7 @@ public class Gui extends JFrame {
 					// if there is a binary for this operating system, use it to clean up the temporary files created by this program ( -> lwjgl-binaries)
 					if(suffix.length() > 0) {
 						// clean the temp-directory that was created for the lwjgl-native binary
-						InputStream in = GpuSolver.class.getClassLoader().getResourceAsStream("bin/NQueensFaf_Cleanup" + suffix);
+						InputStream in = Solvers.class.getClassLoader().getResourceAsStream("bin/NQueensFaf_Cleanup" + suffix);
 						byte[] buffer = new byte[1024];
 						int read = -1;
 						File file = File.createTempFile("NQueensFaf_Cleanup", suffix);
@@ -366,7 +354,7 @@ public class Gui extends JFrame {
         cbDeviceChooser = new JComboBox<String>();
         cbDeviceChooser.setBorder(new TitledBorder(null, "Device - Chooser", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         try {
-			for(String device_info : gpuSolver.listDevices()) {
+			for(String device_info : solvers.listDevices()) {
 				cbDeviceChooser.addItem(device_info);
 			}
 		} catch (LWJGLException e1) {
@@ -385,7 +373,7 @@ public class Gui extends JFrame {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				if(tabbedPane.getSelectedIndex() == 0) {
-					useCpu = true;
+					solvers.setMode(Solvers.USE_CPU);
 					// show important gui-components
 					cbDeviceChooser.setVisible(false);
 					pnlThreadcount.setVisible(true);
@@ -393,7 +381,7 @@ public class Gui extends JFrame {
 					btnLoad.setVisible(true);
 					btnCancel.setVisible(true);
 				} else if(tabbedPane.getSelectedIndex() == 1) {
-					useCpu = false;
+					solvers.setMode(Solvers.USE_GPU);
 					// hide unnessesary gui-components
 					cbDeviceChooser.setVisible(true);
 					pnlThreadcount.setVisible(false);
@@ -411,82 +399,63 @@ public class Gui extends JFrame {
                 float value;
                 int tempvalue = 0;
                 String msg;
+                long pausestart = 0;
                 
                 while(true) {
-                    if(running) {
-                        // update time and check if the user paused the application
-                        if(updateTime == 1) {
-                            if(paused) {
-                                long pausestart = System.currentTimeMillis();
-                                while(paused) {
-                                    try {
-                                        sleep(5);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                pausetime += System.currentTimeMillis() - pausestart;
-                            } else {
-                                // display and update time
-                                updateTimeLbl();
-                                if(useCpu)
-                                	time = System.currentTimeMillis() - cpuSolver.getStarttime() - pausetime + oldtime;
-                                else
-                                	time = System.currentTimeMillis() - gpuSolver.getStarttime();
-                            }
-                        } else {
-                            updateTime = 0;
-                        }
-                    }
+                	// update time and check if the user paused the application
+                	if(paused) {
+                		if(pausestart == 0) {
+                			pausestart = System.currentTimeMillis();
+                    		updateTime();
+                		}
+                		else {
+                			pausetime = System.currentTimeMillis() - pausestart;
+                		}
+                	} else {
+                		pausestart = 0;
+                		if(updateTime == 1 && !paused) {
+                    		// display and update time
+                    		updateTime();
+                    	} else {
+                    		updateTime = 0;
+                    	}
+                	}
+                	updateTimeLbl();
+
 
                     // Updating the progress (progressBar, text, percentage in console[taOutput])
                     if(progressUpdateQueue.size() > 0) {
                         value = progressUpdateQueue.removeFirst();
                         if(value == 128f) {
-                        	if(useCpu) {
-                            	if(cpuSolver.getN() > CpuSolver.small_n_limit)
-                                    value = cpuSolver.getProgress()*100;
-                        	} else {
-                        		value = gpuSolver.getProgress()*100;
-                        	}
+                        	value = solvers.getProgress();
                         }
                         
                         // update progressBar, text and the Windows-Taskbar-Icon-Progressbar
-                        if((int) value == 100 || value == 0) {
-                            progressBar.setValue((int)value);
-                            ((TitledBorder)progressBar.getBorder()).setTitle("Progress: " + value + "%");
-                            progressBar.repaint();
-                            
-                            tempvalue = 0;
-                        } else {
-                        	if((useCpu && cpuSolver.getN() > CpuSolver.small_n_limit) || (!useCpu && gpuSolver.isReady())){
-                                progressBar.setValue((int)value);
-                                String progressData = "Progress: " + (((int)(value*10000)) / 10000f) + "%    ";
-                                if(useCpu) {
-                                	progressData += "[ " + cpuSolver.getCalculatedStartConstCount() + " of " + cpuSolver.getStartConstCount() + " ]        [ solutions: " + getSolvecounterStr(cpuSolver.getSolvecounter()) + " ]";
-                                } else {
-                                	progressData += "[ " + gpuSolver.getCalculatedStartConstCount() + " of " + gpuSolver.getStartConstCount() + " ]        [ solutions: " + getSolvecounterStr(gpuSolver.getSolvecounter()) + " ]";
-                                }
-                                ((TitledBorder)progressBar.getBorder()).setTitle(progressData);
-                                progressBar.repaint();
-                                
-                                // output
-                                if((int)value >= tempvalue + 5 || (int) value < tempvalue) {
-                                	if(useCpu) {
-                                        print((int)value + "% calculated      \t[ " + cpuSolver.getCalculatedStartConstCount() + " of " + cpuSolver.getStartConstCount() + " in " + getTimeStr() + " ]", true);
-                                        tempvalue = (int) value;
-                                	} else {
-                                        print((int)value + "% calculated      \t[ " + gpuSolver.getCalculatedStartConstCount() + " of " + gpuSolver.getStartConstCount() + " in " + getTimeStr() + " ]", true);
-                                        tempvalue = (int) value;
-                                	}
-                                }
+                    	progressBar.setValue((int)value);
+                    	String progressData = "Progress: " + (((int)(value*10000)) / 10000f) + "%    ";
+                    	((TitledBorder)progressBar.getBorder()).setTitle(progressData);
+                        if(solvers.isReady()) {
+                        	progressData += "[ " + solvers.getSolvedStartConstCount() + " of " + solvers.getStartConstCount() + " ]        ";
+                        	progressData += "[ solutions: " + getSolvecounterStr(solvers.getSolvecounter()) + " ]";
+                        	((TitledBorder)progressBar.getBorder()).setTitle(progressData);
+
+                        	// output
+                        	if((int)value >= tempvalue + 5 || (int) value < tempvalue) {
+                        		print((int)value + "% calculated      \t[ " + solvers.getSolvedStartConstCount() + " of " + solvers.getStartConstCount() + " in " + getTimeStr() + " ]", true);
+                        		tempvalue = (int) value;
                         	}
-                        
+                        	
+                        	if(((int) value) == 100 || ((int) value) == 0) {
+                        		tempvalue = 0;
+                        	}
                         }
+                    	progressBar.repaint();
+
+
                     }
 
                     // fetch new progress-values
-                    if((cpuSolver != null && cpuSolver.getEndtime() == 0) || (!useCpu && gpuSolver.isReady())) {
+                    if(solvers.isReady()) {
                         updateProgress();
                     }
                     
@@ -567,6 +536,9 @@ public class Gui extends JFrame {
         }
         return strbuilder.toString();
     }
+    private void updateTime() {
+    	time = System.currentTimeMillis() - solvers.getStarttime() - pausetime + oldtime;
+    }
     private void updateTimeLbl() {
         lblTime.setText(getTimeStr());
     }
@@ -578,22 +550,29 @@ public class Gui extends JFrame {
         progressUpdateQueue.add(value);
     }
     
-    private void startAlgThread() {
-        new Thread() {
-            public void run() {
-                print("Starting CPU-solver...", false);
+    private void startSolver() {
+    	new Thread() {
+    		public void run() {
+    			String mode = null;
+    			switch(solvers.getMode()) {
+    			case Solvers.USE_CPU:
+    				mode = "CPU";
+    				break;
+    			case Solvers.USE_GPU:
+    				mode = "GPU";
+    				break;
+    			}
+                print("Starting " + mode + "-Solver...", false);
                 
-                // activate btn for canceling
-                btnCancel.setEnabled(true);
-                
-                // start time
+                // start time updates
                 time = 0;
                 updateTime = 1;
-
-                // start the calculation
-                cpuSolver.startAlgorithm();
                 
-                // stop time
+                // start solver
+                solvers.solve();
+                
+                // update gui objects and variables
+                // stop time updates
                 updateTime = 2;
                 while(updateTime == 2) {
                     // wait before cheking again
@@ -603,104 +582,24 @@ public class Gui extends JFrame {
                         e.printStackTrace();
                     }
                 }
-                // calculate full time needed for the calculation and show it at the label
-                time = cpuSolver.getEndtime() - cpuSolver.getStarttime() - pausetime + oldtime;
+                // update gui objects and variables
+                time = solvers.getEndtime() - solvers.getStarttime() - pausetime + oldtime;
                 updateTimeLbl();
-                // reset oldtime and pausetime
-                oldtime = 0;
                 pausetime = 0;
+                oldtime = 0;
+                updateProgress();
+
+                print("============================\n" + solvers.getSolvecounter() + " solutions found for N = " + solvers.getN() + "\n============================", true);
                 
-                if(cpuSolver.getN() <= 14)
-                    updateProgress(100);
-                print("============================\n" + cpuSolver.getSolvecounter() + " solutions found for N = " + cpuSolver.getN() + "\n============================", true);
-                
-                // reset buttons
+                // reset gui objects
                 btnStart.setText("START");
                 btnStart.setEnabled(true);
                 btnCancel.setEnabled(false);
                 btnSave.setEnabled(false);
                 btnLoad.setEnabled(true);
-
-                // reset boolean for load
-                load = false;
-                
-                // unlock tabs so that user can switch again between them
-                unlockTab();
-                
-    			running = false;
-            }
-        }.start();
-    }
-
-    private void startGpuSolver() {
-    	new Thread() {
-    		public void run() {
-                print("Starting GPU-solver...", false);
-    			// reset time and progress
-    			time = 0;
-    			updateTimeLbl();
-    			updateProgress(0);
-    			
-    			// thread to determine when to start the time counter
-    			new Thread() {
-    				public void run() {
-    	    			// wait till opencl is setup and ready
-    	    			while( ! gpuSolver.isReady()) {
-    	    				try {
-    							sleep(sleeptime);
-    						} catch (InterruptedException e) {
-    							e.printStackTrace();
-    						}
-    	    			}
-    	    			
-    	    			// start time
-    	    			updateTime = 1;
-    				}
-    			}.start();
-
-    			// start the calculation
-    			try {
-        			gpuSolver.start();
-    			} catch(Exception e) {
-    				File file = new File(System.getProperty("user.home") + "/latest_error.nqueensfaf.log");
-    				PrintStream ps = null;
-					try {
-						ps = new PrintStream(file);
-					} catch (FileNotFoundException e1) {
-						e1.printStackTrace();
-					}
-    				e.printStackTrace(ps);
-    				ps.close();
-    				JOptionPane.showMessageDialog(context, "There was an error while trying to execute the NQueensFAF-Kernel on the chosen device. \nProbably, this means that the chosen device is not compatible for this porgram. \n\nTake a look at the log-file and / or contact the administrators of this project. \nE-mail: olepoeschl.developing@gmail.com \nLocation of log-file: " + file.getAbsolutePath(), "Error during execution of OpenCL-kernel", JOptionPane.ERROR_MESSAGE);
-    			}
-
-    			// stop time
-    			updateTime = 2;
-    			while(updateTime == 2) {
-    				// wait before cheking again
-    				try {
-    					sleep(sleeptime);
-    				} catch (InterruptedException e) {
-    					e.printStackTrace();
-    				}
-    			}
-    			// calculate full time needed for the calculation and show it at the label, update progress
-    			time = (long) ((gpuSolver.getEndtime() - gpuSolver.getStarttime()) * 0.000001);
-    			updateTimeLbl();
-    			updateProgress(100);
-
-    			print("============================\n" + gpuSolver.getSolvecounter() + " solutions found for N = " + gpuSolver.getN() + "\n============================", true);
-
-    			// reset buttons
-    			btnStart.setText("START");
-    			btnStart.setEnabled(true);
-
-    			// unlock tabs so that user can switch again between them
-    			unlockTab();
-    			
-    			running = false;
+                unlockTabs();							// unlock tabs so that user can switch again between them
     		}
-        }.start();
+    	}.start();
     }
     
     // save state of running algorithm instance
@@ -725,15 +624,15 @@ public class Gui extends JFrame {
         // store fafprocessdata in path filename
         if( ! filepath.equals("")) {
             FAFProcessData fafprocessdata = new FAFProcessData();
-            IntArrayDeque constellations = cpuSolver.getUncalculatedStartConstellations();
+            ArrayDeque<Integer> constellations = solvers.getUnsolvedStartConstellations();
             int len = constellations.size();
             for(int i = 0; i < len; i++) {
                 fafprocessdata.add(constellations.removeFirst());
             }
-            fafprocessdata.N = cpuSolver.getN();
-            fafprocessdata.solvecounter = cpuSolver.getSolvecounter();
-            fafprocessdata.startConstCount = cpuSolver.getStartConstCount();
-            fafprocessdata.calculatedStartConstCount = cpuSolver.getCalculatedStartConstCount();
+            fafprocessdata.N = solvers.getN();
+            fafprocessdata.solvecounter = solvers.getSolvecounter();
+            fafprocessdata.startConstCount = solvers.getStartConstCount();
+            fafprocessdata.calculatedStartConstCount = solvers.getSolvedStartConstCount();
             fafprocessdata.time = time;
             fafprocessdata.save(filepath);
             
@@ -756,20 +655,20 @@ public class Gui extends JFrame {
             // load FAFProcessData from filepath filename
             FAFProcessData fafprocessdata = FAFProcessData.load(filepath);
             
-            // initialize CpuSolver with the loaded data
+            // initialize CpuSolverAlt with the loaded data
             int threadcount = Integer.parseInt(tfThreadcount.getText());
-            cpuSolver = new CpuSolver(fafprocessdata.N, threadcount);
-            cpuSolver.load(fafprocessdata);
+            solvers.setN(fafprocessdata.N);
+            solvers.setThreadcount(threadcount);
+            solvers.load(fafprocessdata);
             
             // update gui to the loaded values
             sliderN.setValue(fafprocessdata.N);
             tfN.setText(fafprocessdata.N + "");
-            updateProgress(0);
+            updateProgress();
             
             oldtime = fafprocessdata.time;
-            
-            // file loaded
-            load = true;
+            time = oldtime;
+            updateTimeLbl();
             
             print("# Old process was successfully loaded from File " + filechooser.getSelectedFile().getName().toString() + ". ", false);
             print("# Press START to continue it ", true);
@@ -808,24 +707,24 @@ public class Gui extends JFrame {
                     if(input == null) {
                         // back to main gui
                         if(code == 0)
-                            cpuSolver.go();
+                            solvers.go();
                         else
-                            cpuSolver.dontCancel();
+                            solvers.dontCancel();
                         break;
                     } else if ( input.equals(options[0]) ) {
                         // back to main gui
                         if(code == 0)
-                            cpuSolver.go();
+                            solvers.go();
                         else
-                            cpuSolver.dontCancel();
+                            solvers.dontCancel();
                         break;
                     } else if( input.equals(options[1]) ) {
                         // save and back
                         save();
                         if(code == 0)
-                            cpuSolver.go();
+                            solvers.go();
                         else
-                            cpuSolver.dontCancel();
+                            solvers.dontCancel();
                     } else if( input.equals(options[2]) ) {
                         // save and quit
                         save();
@@ -836,7 +735,7 @@ public class Gui extends JFrame {
                     }
                     
                     // if the algorithm responds, close the waiting-dialog
-                    if(cpuSolver.responds()) {
+                    if(solvers.responds()) {
                         if(code == 0) {
                             paused = true;
                             btnStart.setText("Continue");
@@ -847,7 +746,7 @@ public class Gui extends JFrame {
                         break;
                     }
                     // if the algorithm is done, close the dialog
-                    if(cpuSolver.getEndtime() != 0) {
+                    if(solvers.getEndtime() != 0) {
                         paused = false;
                         dialog.dispose();
                         break;
@@ -890,7 +789,7 @@ public class Gui extends JFrame {
                     print("##### Algorithm canceled #####", true);
 
                 // make buttons pressable again
-                if(cpuSolver.getEndtime() == 0) {
+                if(solvers.getEndtime() == 0) {
                     for(Component c : pnlControls.getComponents()) {
                         if(c != btnLoad)
                             c.setEnabled(true);
@@ -898,25 +797,25 @@ public class Gui extends JFrame {
                 }
                 
                 // reset the respond-variables of each CpuSolverThread
-                cpuSolver.resetRespond();
+                solvers.resetRespond();
             }
         }.start();
     }
     
-    private void lockTab() {
-    	if(cbDeviceChooser.getItemCount() > 0) {
-        	if(useCpu)
-        		tabbedPane.setEnabledAt(1, false);
-        	else
-        		tabbedPane.setEnabledAt(0, false);
+    private void lockTabs() {
+    	if(tabbedPane.getTabCount() > 0) {
+    		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+    			if(i != tabbedPane.getSelectedIndex())
+    				tabbedPane.setEnabledAt(i, false);
+    		}
     	}
     }
-    private void unlockTab() {
-    	if(cbDeviceChooser.getItemCount() > 0) {
-        	if(useCpu)
-        		tabbedPane.setEnabledAt(1, true);
-        	else
-        		tabbedPane.setEnabledAt(0, true);
+    private void unlockTabs() {
+    	if(tabbedPane.getTabCount() > 0) {
+    		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+    			if(i != tabbedPane.getSelectedIndex())
+    				tabbedPane.setEnabledAt(i, true);
+    		}
     	}
     }
     
@@ -1019,7 +918,7 @@ public class Gui extends JFrame {
             if (e.getSource() == btnStart) {
                 if(btnStart.getText().equals("Pause")) {
                     // pause
-                    cpuSolver.pause();
+                    solvers.pause();
                     
                     // show dialog for pause-option
                     showWaitingDialog(0);
@@ -1027,65 +926,45 @@ public class Gui extends JFrame {
                     if(paused) {
                         // if paused, continue
                         paused = false;
-                        cpuSolver.go();
+                        solvers.go();
                         btnStart.setText("Pause");
                     } else {
-                    	// lock tab so that the user cant use the other solver while using one
-                    	lockTab();
-                    	
-                        // clean up taOutput
-                    	print("", false);
-                        // reset progressBar
-                        progressUpdateQueue.clear();
+                    	// update gui objects
+                        btnCancel.setEnabled(true);
+                        btnLoad.setEnabled(false);
+                        btnSave.setEnabled(true);
+                    	lockTabs();								// lock tabs so that the user cant use other solvers while using one
+                    	print("", false);						// clean up taOutput
+                        progressUpdateQueue.clear();			// reset progressBar
                         updateProgress(0);
-                    	
-                        running = true;
-                        
-                    	if(useCpu) {
-                    		// start the algorithm and its threads, if they're not already running
-                            btnStart.setText("Pause");
-                            btnLoad.setEnabled(false);
-                            btnSave.setEnabled(true);
-                                                    
-                            // if no file was loaded
-                            // get inputs from the gui and initialize CpuSolver
-                            int threadcount = Integer.parseInt(tfThreadcount.getText());
-                            if(!load) {
-                                int N = Integer.parseInt(tfN.getText());
-                                
-                                // initialize new CpuSolver object
-                                cpuSolver = new CpuSolver(N, threadcount);
-                            }
-                            
-                            
-                            // start all threads
-                            SwingUtilities.invokeLater(new Runnable() {
-                                public void run() {
-                                    startAlgThread();
-                                }
-                            });
-                    	} else {
+
+                        switch(solvers.getMode()) {
+                        case Solvers.USE_CPU:
+                        	btnStart.setText("Pause");
+                        	int threadcount = Integer.parseInt(tfThreadcount.getText());
+                        	solvers.setThreadcount(threadcount);
+                        	break;
+                        case Solvers.USE_GPU:
                             btnStart.setText(". . .");
                             btnStart.setEnabled(false);
-                            
-                            int N = Integer.parseInt(tfN.getText());
-                            // initialize OpenCL-Solver object
-                    		gpuSolver.setN(N);
-                    		gpuSolver.setDevice(cbDeviceChooser.getSelectedIndex());
-                    		
-                    		SwingUtilities.invokeLater(new Runnable() {
-                                public void run() {
-                                    startGpuSolver();
-                                }
-                            });
-                    	}
+                    		solvers.setDevice(cbDeviceChooser.getSelectedIndex());
+                        	break;
+                        }
+                        int N = Integer.parseInt(tfN.getText());
+                        solvers.setN(N);
+                        
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run() {
+                                startSolver();
+                            }
+                        });
                     }
                 }
             }
             else if(e.getSource() == btnCancel) {
-                cpuSolver.cancel();
-                if(cpuSolver.isPaused())
-                    cpuSolver.go();
+                solvers.cancel();
+                if(solvers.isPaused())
+                    solvers.go();
                 
                 // show dialog for cancel-option
                 showWaitingDialog(1);
