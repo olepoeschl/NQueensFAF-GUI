@@ -121,12 +121,6 @@ public class Gui extends JFrame {
         // initialize Solvers
         solvers = new Solvers();
         
-        // initialize GuiAlt
-        initGui();
-        this.pack();
-        Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
-        this.setLocation((int) (screensize.getWidth()/2 - this.getWidth()/2), (int) (screensize.getHeight()/2 - this.getHeight()/2));
-        
         // filefilter for the JFileChooser
         filefilter = new FileFilter() {
             @Override
@@ -149,6 +143,12 @@ public class Gui extends JFrame {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
+            	// initialize GuiAlt
+                initGui();
+                pack();
+                Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
+                setLocation((int) (screensize.getWidth()/2 - getWidth()/2), (int) (screensize.getHeight()/2 - getHeight()/2));
+                
                 startGuiUpdateThread();
             }
         });
@@ -736,11 +736,13 @@ public class Gui extends JFrame {
                     
                     // if the algorithm responds, close the waiting-dialog
                     if(solvers.responds()) {
-                        if(code == 0) {
+                        if(code == 0) {			// successfully paused
                             paused = true;
                             btnStart.setText("Continue");
-                        } else {
+                            progressBar.setForeground(Color.ORANGE);
+                        } else {				// successfully canceled
                             paused = false;
+                            progressBar.setForeground(Color.GRAY);
                         }
                         dialog.dispose();
                         break;
@@ -924,6 +926,7 @@ public class Gui extends JFrame {
                     // show dialog for pause-option
                     showWaitingDialog(0);
                 } else {
+                    progressBar.setForeground(Color.GREEN);				// reset color of progressBar
                     if(paused) {
                         // if paused, continue
                         paused = false;
