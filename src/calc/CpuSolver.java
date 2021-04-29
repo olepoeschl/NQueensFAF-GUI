@@ -33,7 +33,7 @@ class CpuSolver extends Solver {
 			System.err.println("Error: \tInvalid value for number of threads (threadcount): \t" + threadcount);
 			return;
 		}
-		
+
 		// reset all values and start computation
 		if(!restored)
 			reset();
@@ -75,7 +75,7 @@ class CpuSolver extends Solver {
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
-		
+
 		// computation done
 		setEndtime(System.currentTimeMillis());
 		setReady(false);
@@ -88,7 +88,7 @@ class CpuSolver extends Solver {
 		startConstellations = getConstellationsGenerator().genConstellationsCpu(getN());
 		setStartConstCount(startConstellations.size());
 	}
-	
+
 	@Override
 	void reset() {
 		startConstellations = null;
@@ -100,12 +100,12 @@ class CpuSolver extends Solver {
 		setFSolvedStartConstCount(0);
 		System.gc();
 	}
-	
+
 	@Override
 	void save() {
-		
+
 	}
-	
+
 	@Override
 	void load(FAFProcessData filedata) {
 		setN(filedata.N);
@@ -121,7 +121,7 @@ class CpuSolver extends Solver {
 		restored = true;
 		setEndtime(0);
 	}
-	
+
 	@Override
 	void resetLoad() {
 		restored = false;
@@ -162,7 +162,7 @@ class CpuSolver extends Solver {
 			t.go();
 		}
 	}
-	
+
 	void cancel() {
 		for(CpuSolverThread t : threadlist) {
 			t.cancel();
@@ -186,7 +186,7 @@ class CpuSolver extends Solver {
 			t.resetRespond();
 		}
 	}
-	
+
 	// getters
 	@Override
 	long getSolvecounter() {
@@ -196,7 +196,7 @@ class CpuSolver extends Solver {
 		}
 		return solvecounter;
 	}
-	
+
 	@Override
 	int getSolvedStartConstCount() {
 		int counter = getFSolvedStartConstCount();
@@ -207,7 +207,7 @@ class CpuSolver extends Solver {
 		}
 		return counter;
 	}
-	
+
 	ArrayDeque<Integer> getUnsolvedStartConstellations() {
 		ArrayDeque<Integer> unsolvedConstList = new ArrayDeque<Integer>();
 		for(CpuSolverThread t : threadlist) {
@@ -217,11 +217,11 @@ class CpuSolver extends Solver {
 		}
 		return unsolvedConstList;
 	}
-	
+
 	boolean isPaused() {
 		return pause;
 	}
-	
+
 	// setters
 	void setThreadcount(int threadcount) {
 		this.threadcount = threadcount;
