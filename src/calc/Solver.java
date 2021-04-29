@@ -37,7 +37,7 @@ abstract class Solver {
 	abstract ArrayDeque<Integer> getUnsolvedStartConstellations();
 	
 	// methods
-	protected void incFSolvecounter() {
+	void incFSolvecounter() {
 		fSolvecounter++;
 	}
 	
@@ -82,7 +82,7 @@ abstract class Solver {
 		return fSolvedStartconstCount;
 	}
 	
-	protected ConstellationsGenerator getConstellationsGenerator() {
+	ConstellationsGenerator getConstellationsGenerator() {
 		return constGenerator;
 	}
 	
@@ -91,31 +91,31 @@ abstract class Solver {
 		this.N = N;
 	}
 
-	protected void setStarttime(long start) {
+	void setStarttime(long start) {
 		this.start = start;
 	}
 
-	protected void setEndtime(long end) {
+	void setEndtime(long end) {
 		this.end = end;
 	}
 	
-	protected void setStartConstCount(int startConstCount) {
+	void setStartConstCount(int startConstCount) {
 		this.startConstCount = startConstCount;
 	}
 	
-	protected void setReady(boolean ready) {
+	void setReady(boolean ready) {
 		this.ready = ready;
 	}
 
-	protected void setRunning(boolean running) {
+	void setRunning(boolean running) {
 		this.running = running;
 	}
 	
-	protected void setFSolvecounter(long fSolvecounter) {
+	void setFSolvecounter(long fSolvecounter) {
 		this.fSolvecounter = fSolvecounter;
 	}
 	
-	protected void setFSolvedStartConstCount(int rSolvedStartConstCount) {
+	void setFSolvedStartConstCount(int rSolvedStartConstCount) {
 		this.fSolvedStartconstCount = rSolvedStartConstCount;
 	}
 }
