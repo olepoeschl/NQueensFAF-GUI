@@ -98,10 +98,6 @@ abstract class Solver {
 	void setEndtime(long end) {
 		this.end = end;
 	}
-
-	void setStartConstCount(int startConstCount) {
-		this.startConstCount = startConstCount;
-	}
 	
 	void setStartConstCount(int startConstCount) {
 		this.startConstCount = startConstCount;
@@ -115,10 +111,6 @@ abstract class Solver {
 		this.running = running;
 	}
   
-	void setFSolvecounter(long fSolvecounter) {
-		this.fSolvecounter = fSolvecounter;
-	}
-	
 	void setFSolvecounter(long fSolvecounter) {
 		this.fSolvecounter = fSolvecounter;
 	}
