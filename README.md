@@ -64,8 +64,6 @@ unless its stated otherwise, following times are referring to *single-threaded*
       
       - now only 0 - 3 class variables (int) per start constellation instead of int[N-3] and 5 int
       
-      - now using the HPPC-library for primitive type collections (link to the repository can be found below)
-      
       - currently only works for board sizes up to N=23, this will be updated soon
       
       - N = 16 in ~1.35 sec --> broke the 2-second-Barrier!
@@ -127,5 +125,4 @@ Mail: olepoeschl.developing@gmail.com
       
 # Credits
 <a href="http://legacy.lwjgl.org/"> LWJGL 2.x library </a> (Lightweight Java Game Library, enables the use of OpenCL in Java) <br>
-<a href="https://github.com/carrotsearch/hppc">HPPC library</a> (High Performance Primitive Collections) <br>
 Icon by Jojo
