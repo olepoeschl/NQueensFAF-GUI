@@ -131,7 +131,7 @@ public class Gui extends JFrame {
         filefilter = new FileFilter() {
             @Override
             public String getDescription() {
-                return "Fast as fuck - Files (.faf)";
+                return "Fast as f*** - Files (.faf)";
             }
             @Override
             public boolean accept(File f) {
