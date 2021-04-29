@@ -806,19 +806,18 @@ public class Gui extends JFrame {
 	}
 
 	private void lockTabs() {
-		if(tabbedPane.getTabCount() > 0) {
-			for(int i = 0; i < tabbedPane.getTabCount(); i++) {
-				if(i != tabbedPane.getSelectedIndex())
-					tabbedPane.setEnabledAt(i, false);
-			}
+		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+			if(i != tabbedPane.getSelectedIndex())
+				tabbedPane.setEnabledAt(i, false);
 		}
 	}
 	private void unlockTabs() {
-		if(tabbedPane.getTabCount() > 0) {
-			for(int i = 0; i < tabbedPane.getTabCount(); i++) {
-				if(i != tabbedPane.getSelectedIndex())
-					tabbedPane.setEnabledAt(i, true);
-			}
+		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+			if(i != tabbedPane.getSelectedIndex())
+				tabbedPane.setEnabledAt(i, true);
+		}
+		if(cbDeviceChooser.getItemCount() == 0) {
+			tabbedPane.setEnabledAt(1, false);
 		}
 	}
 
