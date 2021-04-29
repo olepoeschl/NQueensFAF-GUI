@@ -81,7 +81,7 @@ abstract class Solver {
 	int getFSolvedStartConstCount() {
 		return fSolvedStartconstCount;
 	}
-
+  
 	ConstellationsGenerator getConstellationsGenerator() {
 		return constGenerator;
 	}
@@ -102,7 +102,11 @@ abstract class Solver {
 	void setStartConstCount(int startConstCount) {
 		this.startConstCount = startConstCount;
 	}
-
+	
+	void setStartConstCount(int startConstCount) {
+		this.startConstCount = startConstCount;
+	}
+	
 	void setReady(boolean ready) {
 		this.ready = ready;
 	}
@@ -110,11 +114,15 @@ abstract class Solver {
 	void setRunning(boolean running) {
 		this.running = running;
 	}
-
+  
 	void setFSolvecounter(long fSolvecounter) {
 		this.fSolvecounter = fSolvecounter;
 	}
-
+	
+	void setFSolvecounter(long fSolvecounter) {
+		this.fSolvecounter = fSolvecounter;
+	}
+	
 	void setFSolvedStartConstCount(int rSolvedStartConstCount) {
 		this.fSolvedStartconstCount = rSolvedStartConstCount;
 	}

@@ -55,16 +55,14 @@ unless its stated otherwise, following times are referring to *single-threaded*
       - included support for GPU's using OpenCL through lwjgl
       
       - insanely fast thanks to optimized parallel programming
-
-      - for performance reasons, there are no progress updates in the "OpenCL" - Tab.
+      
+      - realtime progress updates thanks to OpenCL memory mapping
 ## Version 9:
       - REMARKABLE IMPROVEMENT!!! (~35%)
 
       - implemented case distinction for the different start Constellations in order to get rid of arrays
       
       - now only 0 - 3 class variables (int) per start constellation instead of int[N-3] and 5 int
-      
-      - now using the HPPC-library for primitive type collections (link to the repository can be found below)
       
       - currently only works for board sizes up to N=23, this will be updated soon
       
@@ -127,5 +125,4 @@ Mail: olepoeschl.developing@gmail.com
       
 # Credits
 <a href="http://legacy.lwjgl.org/"> LWJGL 2.x library </a> (Lightweight Java Game Library, enables the use of OpenCL in Java) <br>
-<a href="https://github.com/carrotsearch/hppc">HPPC library</a> (High Performance Primitive Collections) <br>
 Icon by Jojo
