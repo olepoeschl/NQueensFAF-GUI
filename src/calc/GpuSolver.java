@@ -206,7 +206,7 @@ class GpuSolver extends Solver {
 		// result memory
 		CLMem resMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		ByteBuffer resPtr = CL10.clEnqueueMapBuffer(queue, resMem, CL10.CL_TRUE, CL10.CL_MAP_READ | CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
+		ByteBuffer resPtr = CL10.clEnqueueMapBuffer(queue, resMem, CL10.CL_FALSE, CL10.CL_MAP_READ | CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 
 		// progress memory
@@ -219,7 +219,7 @@ class GpuSolver extends Solver {
 		}
 		CL10.clEnqueueUnmapMemObject(queue, progressMem, progressWritePtr, null, null);
 		// map progress memory
-		ByteBuffer progressPtr = CL10.clEnqueueMapBuffer(queue, progressMem, CL10.CL_TRUE, CL10.CL_MAP_READ | CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
+		ByteBuffer progressPtr = CL10.clEnqueueMapBuffer(queue, progressMem, CL10.CL_FALSE, CL10.CL_MAP_READ | CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 
 		// Set the kernel parameters
