@@ -107,7 +107,10 @@ public class Solvers {
 	}
 
 	public long getSolvecounter() {
-		return solvers[mode].getSolvecounter();
+		if(N > NBorder)
+			return solvers[mode].getSolvecounter();
+		else
+			return cpuSolver.getSolvecounter();
 	}
 
 	public int getStartConstCount() {
@@ -127,7 +130,10 @@ public class Solvers {
 	}
 
 	public float getProgress() {
-		return solvers[mode].getProgress();
+		if(N > NBorder)
+			return solvers[mode].getProgress();
+		else
+			return 100f;
 	}
 
 	public boolean isInitialized() {

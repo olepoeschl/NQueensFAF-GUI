@@ -129,6 +129,7 @@ class CpuSolver extends Solver {
 
 	// own methods
 	void cheapSolver() {
+		reset();
 		int mask = (1 << getN()) - 1;
 		nq(0, 0, 0, 0, mask, mask);
 	}
@@ -191,8 +192,10 @@ class CpuSolver extends Solver {
 	@Override
 	long getSolvecounter() {
 		long solvecounter = getFSolvecounter();
-		for(CpuSolverThread t : threadlist) {
-			solvecounter += t.getSolvecounter();
+		if(threadlist != null) {
+			for(CpuSolverThread t : threadlist) {
+				solvecounter += t.getSolvecounter();
+			}
 		}
 		return solvecounter;
 	}
