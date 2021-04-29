@@ -376,6 +376,12 @@ class GpuSolver extends Solver {
 
 	}
 
+	@Override
+	void resetLoad() {
+		restored = false;
+	}
+	
+	// own methods
 	private void solver(int ld, int rd, int col, int row) {
 		if(row == getN()-1) {
 			cpucounter += sym;

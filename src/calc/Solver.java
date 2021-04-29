@@ -30,6 +30,7 @@ abstract class Solver {
 	
 	abstract void save();
 	abstract void load(FAFProcessData d);
+	abstract void resetLoad();
 	
 	abstract long getSolvecounter();
 	abstract int getSolvedStartConstCount();

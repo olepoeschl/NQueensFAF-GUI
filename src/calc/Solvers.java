@@ -51,6 +51,9 @@ public class Solvers {
 		solvers[mode].load(d);
 	}
 	
+	public void resetLoad() {
+		solvers[mode].resetLoad();
+	}
 	// specific methods for mode USE_CPU
 	public void pause() {
 		cpuSolver.pause();

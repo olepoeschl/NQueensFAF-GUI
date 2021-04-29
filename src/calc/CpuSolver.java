@@ -121,8 +121,13 @@ class CpuSolver extends Solver {
 		restored = true;
 		setEndtime(0);
 	}
+	
+	@Override
+	void resetLoad() {
+		restored = false;
+	}
 
-	// util methods
+	// own methods
 	void cheapSolver() {
 		int mask = (1 << getN()) - 1;
 		nq(0, 0, 0, 0, mask, mask);

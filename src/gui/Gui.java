@@ -783,11 +783,15 @@ public class Gui extends JFrame {
                         e.printStackTrace();
                     }
                 }
+
+                // reset the respond-variables of each CpuSolverThread
+                solvers.resetRespond();
                 
                 // print message
-                if(code == 1 && input != null && !input.equals(options[0]) && !input.equals(options[1]))
+                if(code == 1 && input != null && !input.equals(options[0]) && !input.equals(options[1])) {
                     print("##### Algorithm canceled #####", true);
-
+                }
+                
                 // make buttons pressable again
                 if(solvers.getEndtime() == 0) {
                     for(Component c : pnlControls.getComponents()) {
@@ -795,9 +799,6 @@ public class Gui extends JFrame {
                             c.setEnabled(true);
                     }
                 }
-                
-                // reset the respond-variables of each CpuSolverThread
-                solvers.resetRespond();
             }
         }.start();
     }
