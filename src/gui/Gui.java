@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
 
 import javax.swing.JLabel;
@@ -52,6 +53,7 @@ import javax.swing.JScrollPane;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 
 import javax.swing.border.EtchedBorder;
@@ -139,26 +141,27 @@ public class Gui extends JFrame {
 		msgQueue = new ArrayDeque<String>();
 		// Queue displaying the progress
 		progressUpdateQueue = new ArrayDeque<Float>();
-		// start the thread that updates the GuiAlt's components
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				// initialize GuiAlt
+		
+		// initialize the gui and start the thread that updates the Gui's components
+		try {
+			SwingUtilities.invokeAndWait(() -> {
 				initGui();
 				pack();
 				Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
 				setLocation((int) (screensize.getWidth()/2 - getWidth()/2), (int) (screensize.getHeight()/2 - getHeight()/2));
 
 				startGuiUpdateThread();
-			}
-		});
+			});
+		} catch (InvocationTargetException | InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void initGui() {
-		this.setIconImage(iconImg);
-		this.setResizable(false);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.addWindowListener(new WindowListener() {
+		setIconImage(iconImg);
+		setResizable(false);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		addWindowListener(new WindowListener() {
 			@Override
 			public void windowOpened(WindowEvent e) {}
 			@Override
@@ -224,19 +227,19 @@ public class Gui extends JFrame {
 			@Override
 			public void windowDeactivated(WindowEvent e) {}
 		});
-		this.getContentPane().setLayout(new BorderLayout());    
+		getContentPane().setLayout(new BorderLayout());
 
 		// overall + cpu-tab
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setEnabled(false);
 
 		JPanel pnlInput = new JPanel();
-		splitPane.setLeftComponent(pnlInput);
 		pnlInput.setLayout(new BorderLayout(0, 0));
+		splitPane.setLeftComponent(pnlInput);
 
 		JPanel pnlTop = new JPanel();
-		pnlInput.add(pnlTop, BorderLayout.NORTH);
 		pnlTop.setLayout(new BorderLayout(0, 0));
+		pnlInput.add(pnlTop, BorderLayout.NORTH);
 
 		JPanel pnlN = new JPanel();
 		pnlN.setBorder(new TitledBorder(null, "Board size N", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -276,23 +279,26 @@ public class Gui extends JFrame {
 
 		pnlControls = new JPanel();
 		pnlControls.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		BorderLayout controlsLayout = new BorderLayout(0, 0);
+		controlsLayout.setHgap(2);
+		controlsLayout.setVgap(2);
+		pnlControls.setLayout(controlsLayout);
 		pnlInput.add(pnlControls, BorderLayout.CENTER);
-		pnlControls.setLayout(new BorderLayout(0, 0));
 
-		btnSave = new JButton("Save");
+		btnSave = new NQFafButton("Save");
 		btnSave.addActionListener(eventListener);
 		btnSave.setEnabled(false);
 		pnlControls.add(btnSave, BorderLayout.NORTH);
 
-		btnLoad = new JButton("Load from file...");
+		btnLoad = new NQFafButton("Load from file...");
 		btnLoad.addActionListener(eventListener);
 		pnlControls.add(btnLoad, BorderLayout.SOUTH);
 
-		btnStart = new JButton("START");
+		btnStart = new NQFafButton("START");
 		btnStart.addActionListener(eventListener);
 		pnlControls.add(btnStart, BorderLayout.CENTER);
 
-		btnCancel = new JButton("Cancel");
+		btnCancel = new NQFafButton("Cancel");
 		btnCancel.addActionListener(eventListener);
 		btnCancel.setEnabled(false);
 		pnlControls.add(btnCancel, BorderLayout.WEST);
@@ -331,7 +337,7 @@ public class Gui extends JFrame {
 
 		progressBar = new JProgressBar();
 		progressBar.setForeground(Color.GREEN);
-		progressBar.setBackground(new Color(245, 245, 220));
+		progressBar.setBackground(new Color(245, 245, 230));
 		progressBar.setMinimum(0);
 		progressBar.setMaximum(100);
 		TitledBorder border = new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "0%", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0));
@@ -352,7 +358,7 @@ public class Gui extends JFrame {
 
 		// OpenCL-tab
 		cbDeviceChooser = new JComboBox<String>();
-		cbDeviceChooser.setBorder(new TitledBorder(null, "Device - Chooser", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		cbDeviceChooser.setBorder(new TitledBorder(null, "Device", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		try {
 			for(String device_info : solvers.listDevices()) {
 				cbDeviceChooser.addItem(device_info);
@@ -360,6 +366,7 @@ public class Gui extends JFrame {
 		} catch (LWJGLException e1) {
 			e1.printStackTrace();
 		}
+		cbDeviceChooser.setBackground(new Color(243, 243, 247));
 		cbDeviceChooser.setVisible(false);
 		pnlTop.add(cbDeviceChooser, BorderLayout.SOUTH);
 
@@ -391,7 +398,7 @@ public class Gui extends JFrame {
 				}
 			}
 		});
-		this.getContentPane().add(tabbedPane);
+		getContentPane().add(tabbedPane);
 	}
 	private void startGuiUpdateThread() {
 		new Thread() {
@@ -470,7 +477,7 @@ public class Gui extends JFrame {
 
 					// wait short time
 					try {
-						Thread.yield();
+//						Thread.yield();
 						Thread.sleep(sleeptime);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
@@ -537,7 +544,12 @@ public class Gui extends JFrame {
 		return strbuilder.toString();
 	}
 	private void updateTime() {
-		time = System.currentTimeMillis() - solvers.getStarttime() - pausetime + oldtime;
+		// only update if the endtime is not set. Only important for gpu-mode, because there the time is profiled and
+		// for a short moment, the starttime is set but not the endtime. That would cause a confusing time display
+		if(solvers.getEndtime() == 0)
+			time = System.currentTimeMillis() - solvers.getStarttime() - pausetime + oldtime;
+		else
+			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 	}
 	private void updateTimeLbl() {
 		lblTime.setText(getTimeStr());
@@ -582,6 +594,8 @@ public class Gui extends JFrame {
 						e.printStackTrace();
 					}
 				}
+				// reset the cursor
+				setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 				// update gui objects and variables
 				time = solvers.getEndtime() - solvers.getStarttime() - pausetime + oldtime;
 				updateTimeLbl();
@@ -655,7 +669,7 @@ public class Gui extends JFrame {
 			// load FAFProcessData from filepath filename
 			FAFProcessData fafprocessdata = FAFProcessData.load(filepath);
 
-			// initialize CpuSolverAlt with the loaded data
+			// initialize Solver with the loaded data
 			int threadcount = Integer.parseInt(tfThreadcount.getText());
 			solvers.setN(fafprocessdata.N);
 			solvers.setThreadcount(threadcount);
