@@ -287,10 +287,14 @@ public class Gui extends JFrame {
 		pnlControls.setLayout(controlsLayout);
 		pnlInput.add(pnlControls, BorderLayout.CENTER);
 
+		JPanel pnlControlsTop = new JPanel();
+		pnlControlsTop.setLayout(new BorderLayout());
+		pnlControls.add(pnlControlsTop, BorderLayout.NORTH);
+		
 		btnSave = new NQFafButton("Save");
 		btnSave.addActionListener(eventListener);
 		btnSave.setEnabled(false);
-		pnlControls.add(btnSave, BorderLayout.NORTH);
+		pnlControlsTop.add(btnSave, BorderLayout.SOUTH);
 
 		btnLoad = new NQFafButton("Load from file...");
 		btnLoad.addActionListener(eventListener);
@@ -308,7 +312,7 @@ public class Gui extends JFrame {
 		cbCancelable = new JCheckBox("Cancelable (Slower)");
 		cbCancelable.setSelected(true);
 		cbCancelable.setVisible(false);
-		pnlControls.add(cbCancelable, BorderLayout.NORTH);
+		pnlControlsTop.add(cbCancelable, BorderLayout.NORTH);
 
 		JPanel pnlTime = new JPanel();
 		pnlTime.setBorder(new TitledBorder(null, "Time", TitledBorder.LEADING, TitledBorder.TOP, null, null));
