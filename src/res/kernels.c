@@ -184,9 +184,10 @@ __kernel void runCancelable(global int *ld_arr, global int *rd_arr, global int *
 	// other variables
 	uint diff = 1;
 	int direction = 1;
+	int tmpSignal = 0;
 
 	// iterative loop representing the recursive setqueen-function
-	while(row >= start && *signal == 0){
+	while(row >= start && tmpSignal == 0){
 		direction = (temp != 0);
 		row += (direction) ? 1 : -1;
 		if(direction) {																	// if bit is on board
@@ -244,10 +245,13 @@ __kernel void runCancelable(global int *ld_arr, global int *rd_arr, global int *
 		temp = (row == k && direction) ? L : temp;
 
 		bits[row][l_id] = temp;
+
+		// check for signal
+		tmpSignal = *signal;
 	}
 	result[g_id] = solvecounter;
 
 	// dont set the progress indicator if the process got canceled
-	if(*signal == 0)
+	if(tmpSignal == 0)
 		progress[g_id] = 1;
 }
