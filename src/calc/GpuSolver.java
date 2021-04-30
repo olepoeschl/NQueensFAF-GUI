@@ -43,6 +43,7 @@ class GpuSolver extends Solver {
 	private List<CLDevice> devices;
 	private CLDevice device;
 	private CLCommandQueue xqueue, memqueue;
+	private CLMem signalMem;
 
 	// OpenCL variables
 	private final int BLOCK_SIZE = 64;
@@ -54,11 +55,15 @@ class GpuSolver extends Solver {
 	private int cpuSolvedStartConstCount;
 
 	// other variables
-	private boolean gpuRunning = false, restored = false;
+	private boolean gpuRunning, restored, cancelable;
 
 	// constructor from superclass
 	GpuSolver() {
 		super();
+		
+		gpuRunning = false;
+		restored = false;
+		cancelable = false;
 	}
 	// initialize lwjgl libraries
 	void init() {
@@ -116,7 +121,11 @@ class GpuSolver extends Solver {
 		int error = CL10.clBuildProgram(sqProgram, device, options, null);
 		Util.checkCLError(error);
 		// Create kernel
-		CLKernel sqKernel = CL10.clCreateKernel(sqProgram, "run", null);
+		CLKernel sqKernel;
+		if(cancelable)
+			sqKernel = CL10.clCreateKernel(sqProgram, "runCancelable", null);
+		else
+			sqKernel = CL10.clCreateKernel(sqProgram, "run", null);
 
 		// preparation for cpu-solver
 		mask = (1 << getN()) - 1;
@@ -223,7 +232,7 @@ class GpuSolver extends Solver {
 		CL10.clEnqueueUnmapMemObject(memqueue, resMem, resWritePtr, null, null);
 		IntBuffer resBuff = BufferUtils.createIntBuffer(globalWorkSize);
 
-		// progress memory
+		// progress indicator memory
 		CLMem progressMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		ByteBuffer progressWritePtr = CL10.clEnqueueMapBuffer(memqueue, progressMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
@@ -244,6 +253,17 @@ class GpuSolver extends Solver {
 		sqKernel.setArg(6, startMem);
 		sqKernel.setArg(7, resMem);
 		sqKernel.setArg(8, progressMem);
+
+		if(cancelable) {
+			// signal memory
+			signalMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, 4, errorBuff);
+			Util.checkCLError(errorBuff.get(0));
+			paramPtr = CL10.clEnqueueMapBuffer(memqueue, signalMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, 4, null, null, errorBuff);
+			Util.checkCLError(errorBuff.get(0));
+			paramPtr.putInt(0);
+			CL10.clEnqueueUnmapMemObject(memqueue, signalMem, paramPtr, null, null);
+			sqKernel.setArg(9, signalMem);
+		}
 
 		// create buffer of pointers defining the multi-dimensional size of the number of work units to execute
 		final int dimensions = 1;
@@ -399,6 +419,15 @@ class GpuSolver extends Solver {
 	void resetLoad() {
 		restored = false;
 	}
+	
+	@Override
+	void cancel() {
+		IntBuffer errorBuff = BufferUtils.createIntBuffer(1);
+		ByteBuffer ptr = CL10.clEnqueueMapBuffer(memqueue, signalMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, 4, null, null, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		ptr.putInt(1);
+		CL10.clEnqueueUnmapMemObject(memqueue, signalMem, ptr, null, null);
+	}
 
 	// own methods
 	private void solver(int ld, int rd, int col, int row) {
@@ -416,7 +445,7 @@ class GpuSolver extends Solver {
 			solver((ld|bit) << 1, (rd|bit) >>> 1, col|bit, row+1);
 		}
 	}
-
+	
 	// OpenCl stuff
 	public ArrayDeque<String> listDevices() throws LWJGLException {
 		devices.clear();
@@ -569,5 +598,9 @@ class GpuSolver extends Solver {
 	void setDevice(int index) {
 		device = devices.get(index);
 		platform = device.getPlatform();
+	}
+	
+	void setCancelable(boolean cancelable) {
+		this.cancelable = cancelable;
 	}
 }

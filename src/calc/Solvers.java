@@ -21,6 +21,7 @@ public class Solvers {
 	// variables
 	private int N;
 	private int mode;
+	private boolean canceled;
 
 	public Solvers() {
 		solvers = new Solver[2];
@@ -30,9 +31,12 @@ public class Solvers {
 		solvers[USE_GPU] = gpuSolver;
 
 		gpuSolver.init();
+		
+		canceled = false;
 	}
 
 	public void solve() {
+		canceled = false;
 		if(N > NBorder) {
 			solvers[mode].setN(N);
 			solvers[mode].compute();
@@ -65,10 +69,12 @@ public class Solvers {
 	}
 
 	public void cancel() {
-		cpuSolver.cancel();
+		solvers[mode].cancel();
+		canceled = true;
 	}
 	public void dontCancel() {
 		cpuSolver.dontCancel();
+		canceled = false;
 	}
 
 	public boolean responds() {
@@ -82,7 +88,11 @@ public class Solvers {
 	public ArrayDeque<String> listDevices() throws LWJGLException {
 		return gpuSolver.listDevices();
 	}
-
+	
+	public void setCancelable(boolean cancelable) {
+		gpuSolver.setCancelable(cancelable);
+	}
+	
 	// getters
 	public int getN() {
 		return N;
@@ -98,6 +108,10 @@ public class Solvers {
 
 	public boolean isRunning() {
 		return solvers[mode].isRunning();
+	}
+	
+	public boolean isCanceled() {
+		return canceled;
 	}
 
 	public long getStarttime() {
