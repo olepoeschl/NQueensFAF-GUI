@@ -459,7 +459,7 @@ public class Gui extends JFrame {
 
 							// output
 							if((int)value >= tempvalue + 5 || (int) value < tempvalue) {
-								print((int)value + "% calculated      \t[ " + solvers.getSolvedStartConstCount() + " of " + solvers.getStartConstCount() + " in " + getTimeStr() + " ]", true);
+								print((int)value + "% done      \t[ " + solvers.getSolvedStartConstCount() + " of " + solvers.getStartConstCount() + " in " + getTimeStr() + " ]", true);
 								tempvalue = (int) value;
 							}
 
@@ -817,7 +817,7 @@ public class Gui extends JFrame {
 
 				// print message
 				if(code == 1 && input != null && !input.equals(options[0]) && !input.equals(options[1])) {
-					print("##### Algorithm canceled #####", true);
+					print("> canceled ", true);
 				}
 
 				// make buttons pressable again
@@ -1002,6 +1002,7 @@ public class Gui extends JFrame {
 						showWaitingDialog(1);
 					} else if(solvers.getMode() == Solvers.USE_GPU) {
 						progressBar.setForeground(Color.GRAY);
+						print("> canceled ", true);
 					}
 				}
 			}

@@ -29,6 +29,7 @@ import org.lwjgl.opencl.CLPlatform;
 import org.lwjgl.opencl.CLProgram;
 import org.lwjgl.opencl.Util;
 
+import gui.Gui;
 import util.FAFProcessData;
 
 class GpuSolver extends Solver {
@@ -136,7 +137,10 @@ class GpuSolver extends Solver {
 		// set global work size
 		computeUnits = device.getInfoInt(CL10.CL_DEVICE_MAX_COMPUTE_UNITS);
 		int globalWorkSize = getStartConstCount() - (getStartConstCount() % (BLOCK_SIZE * computeUnits));
-
+		Gui.print(String.format("%d constellations found", getStartConstCount()), true);
+		if(globalWorkSize != getStartConstCount()) {
+			Gui.print(String.format("> remaining %d constellations have to be solved using CPU", getStartConstCount()-globalWorkSize), true);
+		}
 		int[] ldArr = new int[globalWorkSize];
 		int[] rdArr = new int[globalWorkSize];
 		int[] colArr = new int[globalWorkSize];
@@ -282,29 +286,6 @@ class GpuSolver extends Solver {
 		setReady(true);
 		setStarttime(System.currentTimeMillis());
 
-		// solve the rest using CPU
-		int a = getConstellationsGenerator().getld_list().size(), ld, rd, col, start_idx;
-		for(int i = 0; i < a; i++) {
-			sym = getConstellationsGenerator().getsym_list().removeFirst();
-			kl = getConstellationsGenerator().getkl_list().removeFirst();
-			LD = getConstellationsGenerator().getLD_list().removeFirst();
-			RD = getConstellationsGenerator().getRD_list().removeFirst();
-			k = kl >>> 8;
-			l = kl & 255;
-			kbit = (1 << (getN()-k-1));
-			lbit = (1 << l);	
-			ld = getConstellationsGenerator().getld_list().removeFirst();
-			rd = getConstellationsGenerator().getrd_list().removeFirst();
-			col = getConstellationsGenerator().getcol_list().removeFirst();
-			start_idx = getConstellationsGenerator().getstart_list().removeFirst();
-
-			solver(ld, rd, col, start_idx);
-	
-			solvedStartConstCount++;
-			currSolvecounter = cpucounter;
-		}
-		cpuSolvedStartConstCount = solvedStartConstCount;
-
 		// continously update progress
 		gpuRunning = true;
 		new Thread() {
@@ -333,6 +314,29 @@ class GpuSolver extends Solver {
 				gpuRunning = true;
 			}
 		}.start();
+		
+		// solve the rest using CPU
+		int a = getConstellationsGenerator().getld_list().size(), ld, rd, col, start_idx;
+		for(int i = 0; i < a; i++) {
+			sym = getConstellationsGenerator().getsym_list().removeFirst();
+			kl = getConstellationsGenerator().getkl_list().removeFirst();
+			LD = getConstellationsGenerator().getLD_list().removeFirst();
+			RD = getConstellationsGenerator().getRD_list().removeFirst();
+			k = kl >>> 8;
+			l = kl & 255;
+			kbit = (1 << (getN()-k-1));
+			lbit = (1 << l);	
+			ld = getConstellationsGenerator().getld_list().removeFirst();
+			rd = getConstellationsGenerator().getrd_list().removeFirst();
+			col = getConstellationsGenerator().getcol_list().removeFirst();
+			start_idx = getConstellationsGenerator().getstart_list().removeFirst();
+
+			solver(ld, rd, col, start_idx);
+	
+			cpuSolvedStartConstCount++;
+			currSolvecounter = cpucounter;
+		}
+		Gui.print("CPU has finished", true);
 
 		CL10.clFinish(xqueue);			// wait till the task is complete
 		//		CL10.clWaitForEvents(eventBuff);
@@ -424,11 +428,13 @@ class GpuSolver extends Solver {
 	
 	@Override
 	void cancel() {
-		IntBuffer errorBuff = BufferUtils.createIntBuffer(1);
-		ByteBuffer ptr = CL10.clEnqueueMapBuffer(memqueue, signalMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, 4, null, null, errorBuff);
-		Util.checkCLError(errorBuff.get(0));
-		ptr.putInt(1);
-		CL10.clEnqueueUnmapMemObject(memqueue, signalMem, ptr, null, null);
+		if(gpuRunning) {
+			IntBuffer errorBuff = BufferUtils.createIntBuffer(1);
+			ByteBuffer ptr = CL10.clEnqueueMapBuffer(memqueue, signalMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, 4, null, null, errorBuff);
+			Util.checkCLError(errorBuff.get(0));
+			ptr.putInt(1);
+			CL10.clEnqueueUnmapMemObject(memqueue, signalMem, ptr, null, null);
+		}
 	}
 
 	// own methods
