@@ -994,17 +994,18 @@ public class Gui extends JFrame {
 				}
 			}
 			else if(e.getSource() == btnCancel) {
-				solvers.cancel();
-				if(solvers.getMode() == Solvers.USE_CPU) {
-					if(solvers.isPaused())
-						solvers.go();
-					// show dialog for cancel-option
-					showWaitingDialog(1);
-				} else if(solvers.getMode() == Solvers.USE_GPU) {
-					temp = solvers.getProgress();
-					progressBar.setForeground(Color.GRAY);
+				if(solvers.isReady()) {
+					solvers.cancel();
+					if(solvers.getMode() == Solvers.USE_CPU) {
+						if(solvers.isPaused())
+							solvers.go();
+						// show dialog for cancel-option
+						showWaitingDialog(1);
+					} else if(solvers.getMode() == Solvers.USE_GPU) {
+						temp = solvers.getProgress();
+						progressBar.setForeground(Color.GRAY);
+					}
 				}
-
 			}
 			else if(e.getSource() == btnSave){
 				new Thread() {
