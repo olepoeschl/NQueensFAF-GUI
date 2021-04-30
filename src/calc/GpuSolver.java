@@ -43,7 +43,7 @@ class GpuSolver extends Solver {
 	private CLPlatform platform;
 	private List<CLDevice> devices;
 	private CLDevice device;
-	private CLCommandQueue xqueue, memqueue;
+	private CLCommandQueue xqueue, memqueue, signalqueue;
 	private CLMem signalMem;
 
 	// OpenCL variables
@@ -108,10 +108,12 @@ class GpuSolver extends Solver {
 		}
 
 		// Create queues
-		memqueue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuff);
-		Util.checkCLError(errorBuff.get(0)); 
 		xqueue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuff);
-		Util.checkCLError(errorBuff.get(0)); 
+		Util.checkCLError(errorBuff.get(0));
+		memqueue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
+		signalqueue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuff);
+		Util.checkCLError(errorBuff.get(0));
 
 		// Create program and store it on the specified device
 		CLProgram sqProgram;
@@ -430,7 +432,7 @@ class GpuSolver extends Solver {
 	void cancel() {
 		if(gpuRunning) {
 			IntBuffer errorBuff = BufferUtils.createIntBuffer(1);
-			ByteBuffer ptr = CL10.clEnqueueMapBuffer(memqueue, signalMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, 4, null, null, errorBuff);
+			ByteBuffer ptr = CL10.clEnqueueMapBuffer(signalqueue, signalMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, 4, null, null, errorBuff);
 			Util.checkCLError(errorBuff.get(0));
 			ptr.putInt(1);
 			CL10.clEnqueueUnmapMemObject(memqueue, signalMem, ptr, null, null);

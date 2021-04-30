@@ -1001,8 +1001,9 @@ public class Gui extends JFrame {
 						// show dialog for cancel-option
 						showWaitingDialog(1);
 					} else if(solvers.getMode() == Solvers.USE_GPU) {
+						if(progressBar.getForeground() != Color.GRAY)
+							print("> canceled ", true);
 						progressBar.setForeground(Color.GRAY);
-						print("> canceled ", true);
 					}
 				}
 			}
