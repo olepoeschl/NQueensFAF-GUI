@@ -246,5 +246,8 @@ __kernel void runCancelable(global int *ld_arr, global int *rd_arr, global int *
 		bits[row][l_id] = temp;
 	}
 	result[g_id] = solvecounter;
-	progress[g_id] = 1;
+
+	// dont set the progress indicator if the process got canceled
+	if(*signal == 0)
+		progress[g_id] = 1;
 }

@@ -353,13 +353,15 @@ class GpuSolver extends Solver {
 		}
 		gpuRunning = false;
 		
-		// read from the result memory buffer
+		// read from the result and progress memory buffers
 		CL10.clEnqueueReadBuffer(memqueue, resMem, CL10.CL_TRUE, 0, resBuff, null, null);
+		CL10.clEnqueueReadBuffer(memqueue, progressMem, CL10.CL_TRUE, 0, progressBuff, null, null);
 		currSolvecounter = cpucounter;
+		solvedStartConstCount = cpuSolvedStartConstCount;
 		for(int i = 0; i < globalWorkSize; i++) {
 			currSolvecounter += resBuff.get(i) *  symArr[i];
+			solvedStartConstCount += progressBuff.get(i);
 		}
-		solvedStartConstCount = getStartConstCount();
 
 		// Destroy our kernel and program
 		CL10.clReleaseKernel(sqKernel);

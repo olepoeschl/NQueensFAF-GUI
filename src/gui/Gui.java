@@ -102,7 +102,6 @@ public class Gui extends JFrame {
 	private long time = 0, pausetime = 0, oldtime = 0;
 	private boolean paused = false;
 	private int updateTime = 0;
-	private float temp;
 
 	// FileFilter
 	private FileFilter filefilter;
@@ -610,10 +609,6 @@ public class Gui extends JFrame {
 				pausetime = 0;
 				oldtime = 0;
 				updateProgress();
-				if(solvers.isCanceled() && solvers.getMode() == Solvers.USE_GPU) {
-					updateProgress(temp);
-					temp = 0;
-				}
 				
 				print("============================\n" + solvers.getSolvecounter() + " solutions found for N = " + solvers.getN() + "\n============================", true);
 
@@ -1002,7 +997,6 @@ public class Gui extends JFrame {
 						// show dialog for cancel-option
 						showWaitingDialog(1);
 					} else if(solvers.getMode() == Solvers.USE_GPU) {
-						temp = solvers.getProgress();
 						progressBar.setForeground(Color.GRAY);
 					}
 				}
