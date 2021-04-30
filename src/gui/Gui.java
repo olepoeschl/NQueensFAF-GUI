@@ -35,12 +35,14 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.font.TextAttribute;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
+import java.util.Collections;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -309,10 +311,17 @@ public class Gui extends JFrame {
 		btnCancel.setEnabled(false);
 		pnlControls.add(btnCancel, BorderLayout.WEST);
 		
-		cbCancelable = new JCheckBox("Cancelable (Slower)");
+		cbCancelable = new JCheckBox("cancelable (slower)");
 		cbCancelable.setSelected(true);
 		cbCancelable.setVisible(false);
 		pnlControlsTop.add(cbCancelable, BorderLayout.NORTH);
+		
+		JLabel lblCanceling = new JLabel("<html><font size='3'> Cancel might not work on your device </font></html>");
+		Font font = lblCanceling.getFont();
+		font = font.deriveFont(Collections.singletonMap(TextAttribute.WEIGHT, TextAttribute.WEIGHT_REGULAR));
+		lblCanceling.setFont(font);
+		lblCanceling.setVisible(false);
+		pnlControlsTop.add(lblCanceling, BorderLayout.CENTER);
 
 		JPanel pnlTime = new JPanel();
 		pnlTime.setBorder(new TitledBorder(null, "Time", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -398,6 +407,7 @@ public class Gui extends JFrame {
 					btnSave.setVisible(true);
 					btnLoad.setVisible(true);
 					cbCancelable.setVisible(false);
+					lblCanceling.setVisible(false);
 				} else if(tabbedPane.getSelectedIndex() == 1) {
 					solvers.setMode(Solvers.USE_GPU);
 					// hide unnessesary gui-components
@@ -406,6 +416,7 @@ public class Gui extends JFrame {
 					btnSave.setVisible(false);
 					btnLoad.setVisible(false);
 					cbCancelable.setVisible(true);
+					lblCanceling.setVisible(true);
 				}
 			}
 		});
