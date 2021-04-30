@@ -21,6 +21,7 @@ import calc.Solvers;
 import util.FAFProcessData;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -80,11 +81,12 @@ public class Gui extends JFrame {
 	private JSlider sliderN, sliderThreadcount;
 	private JPanel pnlControls;
 	private JButton btnSave, btnLoad, btnStart, btnCancel;
+	private JCheckBox cbCancelable;
 	private JLabel lblTime;
 	private JTextArea taOutput; 
 	private JProgressBar progressBar;
 	// OpenCL-tab
-	private JComboBox<String> cbDeviceChooser;
+	private JComboBox<String> cboxDeviceChooser;
 
 	// components for the waiting-dialog
 	private JOptionPane optionPane;
@@ -100,6 +102,7 @@ public class Gui extends JFrame {
 	private long time = 0, pausetime = 0, oldtime = 0;
 	private boolean paused = false;
 	private int updateTime = 0;
+	private float temp;
 
 	// FileFilter
 	private FileFilter filefilter;
@@ -302,6 +305,11 @@ public class Gui extends JFrame {
 		btnCancel.addActionListener(eventListener);
 		btnCancel.setEnabled(false);
 		pnlControls.add(btnCancel, BorderLayout.WEST);
+		
+		cbCancelable = new JCheckBox("Cancelable (Slower)");
+		cbCancelable.setSelected(true);
+		cbCancelable.setVisible(false);
+		pnlControls.add(cbCancelable, BorderLayout.NORTH);
 
 		JPanel pnlTime = new JPanel();
 		pnlTime.setBorder(new TitledBorder(null, "Time", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -357,24 +365,24 @@ public class Gui extends JFrame {
 		optionPane.add(waitlbl);
 
 		// OpenCL-tab
-		cbDeviceChooser = new JComboBox<String>();
-		cbDeviceChooser.setBorder(new TitledBorder(null, "Device", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		cboxDeviceChooser = new JComboBox<String>();
+		cboxDeviceChooser.setBorder(new TitledBorder(null, "Device", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		try {
 			for(String device_info : solvers.listDevices()) {
-				cbDeviceChooser.addItem(device_info);
+				cboxDeviceChooser.addItem(device_info);
 			}
 		} catch (LWJGLException e1) {
 			e1.printStackTrace();
 		}
-		cbDeviceChooser.setBackground(new Color(243, 243, 247));
-		cbDeviceChooser.setVisible(false);
-		pnlTop.add(cbDeviceChooser, BorderLayout.SOUTH);
+		cboxDeviceChooser.setBackground(new Color(243, 243, 247));
+		cboxDeviceChooser.setVisible(false);
+		pnlTop.add(cboxDeviceChooser, BorderLayout.SOUTH);
 
 		// other
 		tabbedPane = new JTabbedPane();
 		tabbedPane.addTab(" CPU ", splitPane);
 		tabbedPane.addTab(" OpenCL ", null);
-		if(cbDeviceChooser.getItemCount() == 0)						// if no opencl-devices are available, disbale the OpenCL-tab
+		if(cboxDeviceChooser.getItemCount() == 0)						// if no opencl-devices are available, disbale the OpenCL-tab
 			tabbedPane.setEnabledAt(1, false);
 		tabbedPane.addChangeListener(new ChangeListener() {
 			@Override
@@ -382,19 +390,19 @@ public class Gui extends JFrame {
 				if(tabbedPane.getSelectedIndex() == 0) {
 					solvers.setMode(Solvers.USE_CPU);
 					// show important gui-components
-					cbDeviceChooser.setVisible(false);
+					cboxDeviceChooser.setVisible(false);
 					pnlThreadcount.setVisible(true);
 					btnSave.setVisible(true);
 					btnLoad.setVisible(true);
-					btnCancel.setVisible(true);
+					cbCancelable.setVisible(false);
 				} else if(tabbedPane.getSelectedIndex() == 1) {
 					solvers.setMode(Solvers.USE_GPU);
 					// hide unnessesary gui-components
-					cbDeviceChooser.setVisible(true);
+					cboxDeviceChooser.setVisible(true);
 					pnlThreadcount.setVisible(false);
 					btnSave.setVisible(false);
 					btnLoad.setVisible(false);
-					btnCancel.setVisible(false);
+					cbCancelable.setVisible(true);
 				}
 			}
 		});
@@ -602,13 +610,18 @@ public class Gui extends JFrame {
 				pausetime = 0;
 				oldtime = 0;
 				updateProgress();
-
+				if(solvers.isCanceled() && solvers.getMode() == Solvers.USE_GPU) {
+					updateProgress(temp);
+					temp = 0;
+				}
+				
 				print("============================\n" + solvers.getSolvecounter() + " solutions found for N = " + solvers.getN() + "\n============================", true);
 
 				// reset gui objects
 				btnStart.setText("START");
 				btnStart.setEnabled(true);
 				btnCancel.setEnabled(false);
+				cbCancelable.setEnabled(true);
 				btnSave.setEnabled(false);
 				btnLoad.setEnabled(true);
 				unlockTabs();							// unlock tabs so that user can switch again between them
@@ -830,7 +843,7 @@ public class Gui extends JFrame {
 			if(i != tabbedPane.getSelectedIndex())
 				tabbedPane.setEnabledAt(i, true);
 		}
-		if(cbDeviceChooser.getItemCount() == 0) {
+		if(cboxDeviceChooser.getItemCount() == 0) {
 			tabbedPane.setEnabledAt(1, false);
 		}
 	}
@@ -947,7 +960,8 @@ public class Gui extends JFrame {
 						btnStart.setText("Pause");
 					} else {
 						// update gui objects
-						btnCancel.setEnabled(true);
+						btnCancel.setEnabled(solvers.getMode() == Solvers.USE_CPU || (solvers.getMode() == Solvers.USE_GPU && cbCancelable.isSelected()));
+						cbCancelable.setEnabled(false);
 						btnLoad.setEnabled(false);
 						btnSave.setEnabled(true);
 						lockTabs();								// lock tabs so that the user cant use other solvers while using one
@@ -964,7 +978,8 @@ public class Gui extends JFrame {
 						case Solvers.USE_GPU:
 							btnStart.setText(". . .");
 							btnStart.setEnabled(false);
-							solvers.setDevice(cbDeviceChooser.getSelectedIndex());
+							solvers.setDevice(cboxDeviceChooser.getSelectedIndex());
+							solvers.setCancelable(cbCancelable.isSelected());
 							break;
 						}
 						int N = Integer.parseInt(tfN.getText());
@@ -980,11 +995,16 @@ public class Gui extends JFrame {
 			}
 			else if(e.getSource() == btnCancel) {
 				solvers.cancel();
-				if(solvers.isPaused())
-					solvers.go();
+				if(solvers.getMode() == Solvers.USE_CPU) {
+					if(solvers.isPaused())
+						solvers.go();
+					// show dialog for cancel-option
+					showWaitingDialog(1);
+				} else if(solvers.getMode() == Solvers.USE_GPU) {
+					temp = solvers.getProgress();
+					progressBar.setForeground(Color.GRAY);
+				}
 
-				// show dialog for cancel-option
-				showWaitingDialog(1);
 			}
 			else if(e.getSource() == btnSave){
 				new Thread() {

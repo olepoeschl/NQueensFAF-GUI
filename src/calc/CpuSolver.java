@@ -166,6 +166,7 @@ class CpuSolver extends Solver {
 		}
 	}
 
+	@Override
 	void cancel() {
 		for(CpuSolverThread t : threadlist) {
 			t.cancel();
