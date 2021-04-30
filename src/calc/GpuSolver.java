@@ -42,7 +42,7 @@ class GpuSolver extends Solver {
 	private CLPlatform platform;
 	private List<CLDevice> devices;
 	private CLDevice device;
-	private CLCommandQueue queue;
+	private CLCommandQueue xqueue, memqueue;
 
 	// OpenCL variables
 	private final int BLOCK_SIZE = 64;
@@ -65,6 +65,13 @@ class GpuSolver extends Solver {
 		// load lwjgl-native
 		loadLwjglNative();
 		devices = new ArrayList<CLDevice>();
+		
+		// Create OpenCL
+		try {
+			CL.create();
+		} catch (LWJGLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	// methods inherited from superclass (not including getters and setters)
@@ -94,13 +101,15 @@ class GpuSolver extends Solver {
 			e.printStackTrace();
 		}
 
-		// Create a command queue
-		queue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuff);
+		// Create queues
+		memqueue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuff);
+		Util.checkCLError(errorBuff.get(0)); 
+		xqueue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuff);
 		Util.checkCLError(errorBuff.get(0)); 
 
 		// Create program and store it on the specified device
 		CLProgram sqProgram;
-		sqProgram = CL10.clCreateProgramWithSource(context, loadText("res/setqueen_kernel.c"), null);
+		sqProgram = CL10.clCreateProgramWithSource(context, loadText("res/kernels.c"), null);
 
 		// build program and define N and preRows as a macro for the kernel
 		String options = "-D N="+getN() + " -D BLOCK_SIZE="+BLOCK_SIZE + " -cl-mad-enable";
@@ -142,85 +151,82 @@ class GpuSolver extends Solver {
 		// ld
 		CLMem ldMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		ByteBuffer paramPtr = CL10.clEnqueueMapBuffer(queue, ldMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
+		ByteBuffer paramPtr = CL10.clEnqueueMapBuffer(memqueue, ldMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, ldArr[i]);
 		}
-		CL10.clEnqueueUnmapMemObject(queue, ldMem, paramPtr, null, null);
+		CL10.clEnqueueUnmapMemObject(memqueue, ldMem, paramPtr, null, null);
 		// rd
 		CLMem rdMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(queue, rdMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, rdMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, rdArr[i]);
 		}
-		CL10.clEnqueueUnmapMemObject(queue, rdMem, paramPtr, null, null);
+		CL10.clEnqueueUnmapMemObject(memqueue, rdMem, paramPtr, null, null);
 		// col
 		CLMem colMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(queue, colMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, colMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, colArr[i]);
 		}
-		CL10.clEnqueueUnmapMemObject(queue, colMem, paramPtr, null, null);
+		CL10.clEnqueueUnmapMemObject(memqueue, colMem, paramPtr, null, null);
 		// LD
 		CLMem LDMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(queue, LDMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, LDMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, LDArr[i]);
 		}
-		CL10.clEnqueueUnmapMemObject(queue, LDMem, paramPtr, null, null);
+		CL10.clEnqueueUnmapMemObject(memqueue, LDMem, paramPtr, null, null);
 		// RD
 		CLMem RDMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(queue, RDMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, RDMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, RDArr[i]);
 		}
-		CL10.clEnqueueUnmapMemObject(queue, RDMem, paramPtr, null, null);
+		CL10.clEnqueueUnmapMemObject(memqueue, RDMem, paramPtr, null, null);
 		// kl
 		CLMem klMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(queue, klMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, klMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, klArr[i]);
 		}
-		CL10.clEnqueueUnmapMemObject(queue, klMem, paramPtr, null, null);
+		CL10.clEnqueueUnmapMemObject(memqueue, klMem, paramPtr, null, null);
 		// start
 		CLMem startMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(queue, startMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, startMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, startArr[i]);
 		}
-		CL10.clEnqueueUnmapMemObject(queue, startMem, paramPtr, null, null);
+		CL10.clEnqueueUnmapMemObject(memqueue, startMem, paramPtr, null, null);
 
 		// result memory
 		CLMem resMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		ByteBuffer resPtr = CL10.clEnqueueMapBuffer(queue, resMem, CL10.CL_FALSE, CL10.CL_MAP_READ | CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
-		Util.checkCLError(errorBuff.get(0));
+		IntBuffer resBuff = BufferUtils.createIntBuffer(globalWorkSize);
 
 		// progress memory
 		CLMem progressMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		ByteBuffer progressWritePtr = CL10.clEnqueueMapBuffer(queue, progressMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
+		ByteBuffer progressWritePtr = CL10.clEnqueueMapBuffer(memqueue, progressMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			progressWritePtr.putInt(i*4, 0);
 		}
-		CL10.clEnqueueUnmapMemObject(queue, progressMem, progressWritePtr, null, null);
-		// map progress memory
-		ByteBuffer progressPtr = CL10.clEnqueueMapBuffer(queue, progressMem, CL10.CL_FALSE, CL10.CL_MAP_READ | CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null,null, errorBuff);
-		Util.checkCLError(errorBuff.get(0));
+		CL10.clEnqueueUnmapMemObject(memqueue, progressMem, progressWritePtr, null, null);
+		IntBuffer progressBuff = BufferUtils.createIntBuffer(globalWorkSize);
 
 		// Set the kernel parameters
 		sqKernel.setArg(0, ldMem);
@@ -240,13 +246,10 @@ class GpuSolver extends Solver {
 		PointerBuffer localWorkSize = BufferUtils.createPointerBuffer(dimensions);
 		localWorkSize.put(0, BLOCK_SIZE);
 
-		// wait for the queue to finish all preparations
-		CL10.clFlush(queue);
-
 		// run kernel and profile time
 		final PointerBuffer eventBuff = BufferUtils.createPointerBuffer(1);		// buffer for event that is used for measuring the execution time
-		CL10.clEnqueueNDRangeKernel(queue, sqKernel, dimensions, null, globalWorkers, localWorkSize, null, eventBuff);	// Run the specified number of work units using our OpenCL program kernel
-		CL10.clFlush(queue);
+		CL10.clEnqueueNDRangeKernel(xqueue, sqKernel, dimensions, null, globalWorkers, localWorkSize, null, eventBuff);	// Run the specified number of work units using our OpenCL program kernel
+		CL10.clFlush(xqueue);
 		//		System.out.println("> Started " + globalWorkSize  + " threads");
 
 		// set pseudo starttime
@@ -286,9 +289,11 @@ class GpuSolver extends Solver {
 					// calculate current sovlecounter
 					tempcounter = cpucounter;
 					tempCalcConstCount = cpuSolvedStartConstCount;
+					CL10.clEnqueueReadBuffer(memqueue, resMem, CL10.CL_TRUE, 0, resBuff, null, null);
+					CL10.clEnqueueReadBuffer(memqueue, progressMem, CL10.CL_TRUE, 0, progressBuff, null, null);
 					for(int i = 0; i < globalWorkSize; i++) {
-						tempcounter += resPtr.getInt(i*4) * symArr[i];
-						tempCalcConstCount += progressPtr.getInt(i*4);
+						tempcounter += resBuff.get(i) * symArr[i];
+						tempCalcConstCount += progressBuff.get(i);
 					}
 					solvedStartConstCount = tempCalcConstCount;
 					currSolvecounter = tempcounter;
@@ -303,12 +308,12 @@ class GpuSolver extends Solver {
 			}
 		}.start();
 
-		CL10.clFinish(queue);			// wait till the task is complete
+		CL10.clFinish(xqueue);			// wait till the task is complete
 		//		CL10.clWaitForEvents(eventBuff);
 		gpuRunning = false;
 
 		// get time values using the clEvent, print time
-		final CLEvent event = queue.getCLEvent(eventBuff.get(0));
+		final CLEvent event = xqueue.getCLEvent(eventBuff.get(0));
 		setStarttime(event.getProfilingInfoLong(CL10.CL_PROFILING_COMMAND_START) / 1000000);
 		setEndtime(event.getProfilingInfoLong(CL10.CL_PROFILING_COMMAND_END) / 1000000);
 
@@ -321,16 +326,14 @@ class GpuSolver extends Solver {
 			}
 		}
 		gpuRunning = false;
+		
 		// read from the result memory buffer
+		CL10.clEnqueueReadBuffer(memqueue, resMem, CL10.CL_TRUE, 0, resBuff, null, null);
 		currSolvecounter = cpucounter;
 		for(int i = 0; i < globalWorkSize; i++) {
-			currSolvecounter += resPtr.getInt(i*4) *  symArr[i];
+			currSolvecounter += resBuff.get(i) *  symArr[i];
 		}
 		solvedStartConstCount = getStartConstCount();
-
-		// unmap pointers for results and progress
-		CL10.clEnqueueUnmapMemObject(queue, resMem, resPtr, null, null);
-		CL10.clEnqueueUnmapMemObject(queue, progressMem, progressPtr, null, null);
 
 		// Destroy our kernel and program
 		CL10.clReleaseKernel(sqKernel);
@@ -409,10 +412,7 @@ class GpuSolver extends Solver {
 	}
 
 	// OpenCl stuff
-	public ArrayDeque<String> listDevices() throws LWJGLException { 
-		// Create OpenCL
-		CL.create();
-
+	public ArrayDeque<String> listDevices() throws LWJGLException {
 		devices.clear();
 
 		// a list that contains vendors and names of all available devices
@@ -447,7 +447,7 @@ class GpuSolver extends Solver {
 	}
 	private void destroyCL() {
 		// Finish destroying anything we created
-		CL10.clReleaseCommandQueue(queue);
+		CL10.clReleaseCommandQueue(xqueue);
 		CL10.clReleaseContext(context);
 		// And release OpenCL, after this method call we cannot use OpenCL unless we re-initialize it
 		CL.destroy();
