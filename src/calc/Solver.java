@@ -2,14 +2,12 @@ package calc;
 
 import java.util.ArrayDeque;
 
-import util.FAFProcessData;
-
 abstract class Solver {
 
 	private int N, startConstCount;
 	private long start, end;
 	private boolean ready, running;
-	private long fSolvecounter;
+	private long fSolvecounter, fTime;
 	private int fSolvedStartconstCount;
 	private ConstellationsGenerator constGenerator;
 
@@ -27,10 +25,11 @@ abstract class Solver {
 	abstract void compute();
 	abstract void genConstellations();
 	abstract void reset();
+	abstract void resetRestoration();
 
-	abstract void save();
-	abstract void load(FAFProcessData d);
-	abstract void resetLoad();
+//	abstract void save();
+	abstract void restore(ProgressBackup pb);
+	
 	abstract void cancel();
 
 	abstract long getSolvecounter();
@@ -48,7 +47,7 @@ abstract class Solver {
 	}
 
 	long getStarttime() {
-		return start;
+		return start - fTime;
 	}
 
 	long getEndtime() {
@@ -79,10 +78,14 @@ abstract class Solver {
 		return fSolvecounter;
 	}
 
+	long getFTime() {
+		return fTime;
+	}
+
 	int getFSolvedStartConstCount() {
 		return fSolvedStartconstCount;
 	}
-  
+	
 	ConstellationsGenerator getConstellationsGenerator() {
 		return constGenerator;
 	}
@@ -114,6 +117,10 @@ abstract class Solver {
   
 	void setFSolvecounter(long fSolvecounter) {
 		this.fSolvecounter = fSolvecounter;
+	}
+	
+	void setFTime(long fTime) {
+		this.fTime = fTime;
 	}
 	
 	void setFSolvedStartConstCount(int rSolvedStartConstCount) {

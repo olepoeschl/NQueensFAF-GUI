@@ -18,7 +18,6 @@ import javax.swing.text.DefaultCaret;
 import org.lwjgl.LWJGLException;
 
 import calc.Solvers;
-import util.FAFProcessData;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -35,14 +34,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.awt.font.TextAttribute;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayDeque;
-import java.util.Collections;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -311,17 +308,10 @@ public class Gui extends JFrame {
 		btnCancel.setEnabled(false);
 		pnlControls.add(btnCancel, BorderLayout.WEST);
 		
-		cbCancelable = new JCheckBox("cancelable (slower)");
+		cbCancelable = new JCheckBox("cancelable (slower) (unstable)");
 		cbCancelable.setSelected(true);
 		cbCancelable.setVisible(false);
 		pnlControlsTop.add(cbCancelable, BorderLayout.NORTH);
-		
-		JLabel lblCanceling = new JLabel("<html><font size='3'> Cancel might not work on your device </font></html>");
-		Font font = lblCanceling.getFont();
-		font = font.deriveFont(Collections.singletonMap(TextAttribute.WEIGHT, TextAttribute.WEIGHT_REGULAR));
-		lblCanceling.setFont(font);
-		lblCanceling.setVisible(false);
-		pnlControlsTop.add(lblCanceling, BorderLayout.CENTER);
 
 		JPanel pnlTime = new JPanel();
 		pnlTime.setBorder(new TitledBorder(null, "Time", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -405,18 +395,16 @@ public class Gui extends JFrame {
 					cboxDeviceChooser.setVisible(false);
 					pnlThreadcount.setVisible(true);
 					btnSave.setVisible(true);
-					btnLoad.setVisible(true);
+//					btnLoad.setVisible(true);
 					cbCancelable.setVisible(false);
-					lblCanceling.setVisible(false);
 				} else if(tabbedPane.getSelectedIndex() == 1) {
 					solvers.setMode(Solvers.USE_GPU);
 					// hide unnessesary gui-components
 					cboxDeviceChooser.setVisible(true);
 					pnlThreadcount.setVisible(false);
 					btnSave.setVisible(false);
-					btnLoad.setVisible(false);
+//					btnLoad.setVisible(false);
 					cbCancelable.setVisible(true);
-					lblCanceling.setVisible(true);
 				}
 			}
 		});
@@ -442,9 +430,10 @@ public class Gui extends JFrame {
 						}
 					} else {
 						pausestart = 0;
-						if(updateTime == 1 && !paused) {
+						if(updateTime == 1) {
 							// display and update time
-							updateTime();
+							if(solvers.isReady())
+								updateTime();
 						} else {
 							updateTime = 0;
 						}
@@ -628,13 +617,23 @@ public class Gui extends JFrame {
 				print("============================\n" + solvers.getSolvecounter() + " solutions found for N = " + solvers.getN() + "\n============================", true);
 
 				// reset gui objects
+				sliderN.setEnabled(true);
+				tfN.setEditable(true);
+				sliderThreadcount.setEnabled(true);
+				tfThreadcount.setEditable(true);
+				cboxDeviceChooser.setEnabled(true);
 				btnStart.setText("START");
 				btnStart.setEnabled(true);
 				btnCancel.setEnabled(false);
 				cbCancelable.setEnabled(true);
-				btnSave.setEnabled(false);
+				if(solvers.isCanceled()) {
+					btnSave.setEnabled(true);
+				} else {
+					btnSave.setEnabled(false);
+				}
 				btnLoad.setEnabled(true);
 				unlockTabs();							// unlock tabs so that user can switch again between them
+				solvers.resetRestoration();
 			}
 		}.start();
 	}
@@ -660,20 +659,9 @@ public class Gui extends JFrame {
 
 		// store fafprocessdata in path filename
 		if( ! filepath.equals("")) {
-			FAFProcessData fafprocessdata = new FAFProcessData();
-			ArrayDeque<Integer> constellations = solvers.getUnsolvedStartConstellations();
-			int len = constellations.size();
-			for(int i = 0; i < len; i++) {
-				fafprocessdata.add(constellations.removeFirst());
-			}
-			fafprocessdata.N = solvers.getN();
-			fafprocessdata.solvecounter = solvers.getSolvecounter();
-			fafprocessdata.startConstCount = solvers.getStartConstCount();
-			fafprocessdata.calculatedStartConstCount = solvers.getSolvedStartConstCount();
-			fafprocessdata.time = time;
-			fafprocessdata.save(filepath);
+			solvers.save(filepath, time);
 
-			print("# Current process was successfully saved in file " + filename + ".", true);
+			print("> Progress successfully saved in file '" + filename + "'.", true);
 		}
 	}
 	// load state of old algorithm instance
@@ -689,28 +677,24 @@ public class Gui extends JFrame {
 		if(filechooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 			filepath = filechooser.getSelectedFile().getAbsolutePath();
 
-			// load FAFProcessData from filepath filename
-			FAFProcessData fafprocessdata = FAFProcessData.load(filepath);
+			// restore progress
+			solvers.restore(filepath);
 
-			// initialize Solver with the loaded data
-			int threadcount = Integer.parseInt(tfThreadcount.getText());
-			solvers.setN(fafprocessdata.N);
-			solvers.setThreadcount(threadcount);
-			solvers.load(fafprocessdata);
-
-			// update gui to the loaded values
-			sliderN.setValue(fafprocessdata.N);
-			tfN.setText(fafprocessdata.N + "");
+			// update gui to the restored values
+			sliderN.setValue(solvers.getN());
+			tfN.setText(solvers.getN() + "");
 			updateProgress();
+			sliderN.setEnabled(false);
+			tfN.setEditable(false);
 
-			oldtime = fafprocessdata.time;
-			time = oldtime;
+			//oldtime = fafprocessdata.time;
+			time = solvers.getFTime();
 			updateTimeLbl();
 
-			print("# Old process was successfully loaded from File " + filechooser.getSelectedFile().getName().toString() + ". ", false);
-			print("# Press START to continue it ", true);
+			print("> Progress successfully restored from file '" + filechooser.getSelectedFile().getName().toString() + "'. ", false);
+			progressBar.setForeground(Color.GREEN);
 		} else {
-			print("# Loading file was canceled ", true);
+			// nothing
 		}
 	}
 
@@ -857,6 +841,7 @@ public class Gui extends JFrame {
 			tabbedPane.setEnabledAt(1, false);
 		}
 	}
+	
 
 	private class EventListener implements ChangeListener, KeyListener, FocusListener, ActionListener {
 		//ChangeListener
@@ -970,6 +955,11 @@ public class Gui extends JFrame {
 						btnStart.setText("Pause");
 					} else {
 						// update gui objects
+						sliderN.setEnabled(false);
+						tfN.setEditable(false);
+						sliderThreadcount.setEnabled(false);
+						tfThreadcount.setEditable(false);
+						cboxDeviceChooser.setEnabled(false);
 						btnCancel.setEnabled(solvers.getMode() == Solvers.USE_CPU || (solvers.getMode() == Solvers.USE_GPU && cbCancelable.isSelected()));
 						cbCancelable.setEnabled(false);
 						btnLoad.setEnabled(false);
@@ -988,6 +978,7 @@ public class Gui extends JFrame {
 						case Solvers.USE_GPU:
 							btnStart.setText(". . .");
 							btnStart.setEnabled(false);
+							btnSave.setEnabled(false);
 							solvers.setDevice(cboxDeviceChooser.getSelectedIndex());
 							solvers.setCancelable(cbCancelable.isSelected());
 							break;
