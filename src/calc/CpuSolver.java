@@ -7,8 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import util.FAFProcessData;
-
 class CpuSolver extends Solver {
 
 	private HashSet<Integer> startConstellations;
@@ -96,35 +94,29 @@ class CpuSolver extends Solver {
 		setStartConstCount(0);
 		setStarttime(0);
 		setEndtime(0);
+		setFTime(0);
 		setFSolvecounter(0);
 		setFSolvedStartConstCount(0);
+		restored = false;
 		System.gc();
 	}
 
 	@Override
-	void save() {
-
+	void resetRestoration() {
+		restored = false;
 	}
-
+	
 	@Override
-	void load(FAFProcessData filedata) {
-		setN(filedata.N);
-		int len = filedata.size();
-		startConstellations = new HashSet<Integer>();
-		for(int i = 0; i < len; i++) {
-			startConstellations.add(filedata.removeFirst());
-		}
-		setFSolvecounter(filedata.solvecounter);
-		setStartConstCount(filedata.startConstCount);
-		setFSolvedStartConstCount(filedata.calculatedStartConstCount);
+	void restore(ProgressBackup pb) {
+		setN(pb.N);
+		setFSolvecounter(pb.solvecounter);
+		setStartConstCount(pb.startConstCount);
+		setFSolvedStartConstCount(pb.startConstCount - pb.remainingConstellations.size());
+		startConstellations = new HashSet<Integer>(pb.remainingConstellations);
 
 		restored = true;
 		setEndtime(0);
-	}
-
-	@Override
-	void resetLoad() {
-		restored = false;
+		setFTime(pb.time);
 	}
 
 	// own methods

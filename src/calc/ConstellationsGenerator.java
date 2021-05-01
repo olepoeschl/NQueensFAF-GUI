@@ -185,6 +185,8 @@ class ConstellationsGenerator {
 				}
 			}
 		}
+
+		sortConstellations();
 		
 //		System.out.println("Gefundene Startkonstellationen: " + ld_list.size());
 		
@@ -225,6 +227,101 @@ class ConstellationsGenerator {
 //		System.out.println("Solutions: \t" + solvecounter);
 //		System.out.println("IterSolutions: \t" + solvecounter2);
 //		System.out.println("Time in ms: " + (-starttime + endtime));
+	}
+	
+	void genConstellationsGpu(int N, HashSet<Integer> ijkls) {
+		ld_list = new ArrayDeque<Integer>();
+		rd_list = new ArrayDeque<Integer>();
+		col_list = new ArrayDeque<Integer>();
+		LD_list = new ArrayDeque<Integer>();
+		RD_list = new ArrayDeque<Integer>();
+		kl_list = new ArrayDeque<Integer>();
+		sym_list = new ArrayDeque<Integer>();
+		start_list = new ArrayDeque<Integer>();
+		
+		int ld, rd, col, kl, i, j, k, l;
+		L = (1 << (N-1));
+		mask = (L << 1) - 1;
+		notmask = ~mask;
+		kmask = mask - L;	// hält nur ganz links frei für die dame
+		lmask = mask - 1;	// ganz rechts das gleiche
+		bits = new int[N];
+		klcounter = new int[N][N];
+		
+		// set N, halfN half of N rounded up, collection of startConstellations
+		this.N = N;
+		
+		for(int ijkl : ijkls) {
+			i = geti(ijkl);
+			j = getj(ijkl);
+			k = getk(ijkl);
+			l = getl(ijkl);
+			
+			// 3 queens
+			if(i == k) {
+				ld = 0;
+				rd = (L >>> 1) | (1 << (l-1));
+				col = 1 | L | (L >>> j);
+				LD = (L >>> j) | (L >>> l);
+				RD = (L >>> j) | 1;
+				
+				bits[0] = L;
+				bits[l] = 1;
+				bits[N-1] = L >>> j;
+				
+				counter = 0;
+				sym = 8;
+				kbit = (1 << (N-0-1));
+				lbit = (1 << l);
+				sq5(ld, rd, col, 0, l, 1, 3);
+				kl = (k << 8) | l;
+				
+				LD = (L >>> j);
+				RD = (L >>> j);
+				
+				for(int a = 0; a < counter; a++) {
+					LD_list.add(LD);
+					RD_list.add(RD);
+					kl_list.add(kl);
+					sym_list.add(8);
+					klcounter[k][l]++;
+				}
+			}
+			// 4 queens
+			else {
+				ld = (L >>> (i-1)) | (1 << (N-k));
+				rd = (L >>> (i+1)) | (1 << (l-1));
+				col = 1 | L | (L >>> j) | (L >>> i);
+				LD = (L >>> j) | (L >>> l);
+				RD = (L >>> j) | (1 << k);
+				
+				bits[0] = L >>> i;
+				bits[N-1] = L >>> j;
+				bits[k] = L;
+				bits[l] = 1;
+
+				kbit = (1 << (N-k-1));
+				lbit = (1 << l);				// nach zeile start verschieben müssen wir es noch (das kopierte war für zeile 1 und ich hab es noch start-1 anch unten egschoben
+				
+				counter = 0;
+				sym = symmetry(toijkl(i, j, k, l));
+				sq5(ld, rd, col, k, l, 1, 4);
+				kl = (k << 8) | l;
+				
+				RD = (L >>> j);
+				LD = (L >>> j);
+				
+				for(int a = 0; a < counter; a++) {
+					LD_list.add(LD);
+					RD_list.add(RD);
+					kl_list.add(kl);
+					sym_list.add(symmetry(toijkl(i, j , k, l)));
+					klcounter[k][l]++;
+				}
+			}
+		}
+		
+		sortConstellations();
 	}
 	
 	void sortConstellations() {

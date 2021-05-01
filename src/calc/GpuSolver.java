@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.lwjgl.BufferUtils;
@@ -30,7 +31,6 @@ import org.lwjgl.opencl.CLProgram;
 import org.lwjgl.opencl.Util;
 
 import gui.Gui;
-import util.FAFProcessData;
 
 class GpuSolver extends Solver {
 
@@ -93,7 +93,6 @@ class GpuSolver extends Solver {
 		if(!restored)
 			reset();
 		setRunning(true);
-		setStarttime(System.currentTimeMillis());
 		if(!restored)
 			genConstellations();
 
@@ -138,7 +137,7 @@ class GpuSolver extends Solver {
 
 		// set global work size
 		computeUnits = device.getInfoInt(CL10.CL_DEVICE_MAX_COMPUTE_UNITS);
-		int globalWorkSize = getStartConstCount() - (getStartConstCount() % (BLOCK_SIZE * computeUnits));
+		int globalWorkSize = (restored) ? (globalWorkSize = getConstellationsGenerator().getld_list().size()) : (getStartConstCount() - (getStartConstCount() % (BLOCK_SIZE * computeUnits)));
 		Gui.print(String.format("%d constellations found", getStartConstCount()), true);
 		if(globalWorkSize != getStartConstCount()) {
 			Gui.print(String.format("> remaining %d constellations have to be solved using CPU", getStartConstCount()-globalWorkSize), true);
@@ -161,15 +160,12 @@ class GpuSolver extends Solver {
 			startArr[i] = getConstellationsGenerator().getstart_list().removeFirst();
 			symArr[i] = getConstellationsGenerator().getsym_list().removeFirst();
 		}
-
-		// events for every data transfer
-		final PointerBuffer memEventsBuff = BufferUtils.createPointerBuffer(10);
 		
 		// OpenCL-Memory Objects for the kernel arguments
 		// ld
 		CLMem ldMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		ByteBuffer paramPtr = CL10.clEnqueueMapBuffer(memqueue, ldMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, memEventsBuff, errorBuff);
+		ByteBuffer paramPtr = CL10.clEnqueueMapBuffer(memqueue, ldMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, ldArr[i]);
@@ -178,7 +174,7 @@ class GpuSolver extends Solver {
 		// rd
 		CLMem rdMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(memqueue, rdMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, memEventsBuff, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, rdMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, rdArr[i]);
@@ -187,7 +183,7 @@ class GpuSolver extends Solver {
 		// col
 		CLMem colMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(memqueue, colMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, memEventsBuff, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, colMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, colArr[i]);
@@ -196,7 +192,7 @@ class GpuSolver extends Solver {
 		// LD
 		CLMem LDMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(memqueue, LDMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, memEventsBuff, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, LDMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, LDArr[i]);
@@ -205,7 +201,7 @@ class GpuSolver extends Solver {
 		// RD
 		CLMem RDMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(memqueue, RDMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, memEventsBuff, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, RDMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, RDArr[i]);
@@ -214,7 +210,7 @@ class GpuSolver extends Solver {
 		// kl
 		CLMem klMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(memqueue, klMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, memEventsBuff, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, klMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, klArr[i]);
@@ -223,7 +219,7 @@ class GpuSolver extends Solver {
 		// start
 		CLMem startMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		paramPtr = CL10.clEnqueueMapBuffer(memqueue, startMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, memEventsBuff, errorBuff);
+		paramPtr = CL10.clEnqueueMapBuffer(memqueue, startMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			paramPtr.putInt(i*4, startArr[i]);
@@ -233,7 +229,7 @@ class GpuSolver extends Solver {
 		// result memory
 		CLMem resMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		ByteBuffer resWritePtr = CL10.clEnqueueMapBuffer(memqueue, resMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, memEventsBuff, errorBuff);
+		ByteBuffer resWritePtr = CL10.clEnqueueMapBuffer(memqueue, resMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			resWritePtr.putInt(i*4, 0);
@@ -244,7 +240,7 @@ class GpuSolver extends Solver {
 		// progress indicator memory
 		CLMem progressMem = CL10.clCreateBuffer(context, CL10.CL_MEM_READ_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, globalWorkSize*4, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		ByteBuffer progressWritePtr = CL10.clEnqueueMapBuffer(memqueue, progressMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, memEventsBuff, errorBuff);
+		ByteBuffer progressWritePtr = CL10.clEnqueueMapBuffer(memqueue, progressMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, globalWorkSize*4, null, null, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
 		for(int i = 0; i < globalWorkSize; i++) {
 			progressWritePtr.putInt(i*4, 0);
@@ -267,7 +263,7 @@ class GpuSolver extends Solver {
 			// signal memory
 			signalMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, 4, errorBuff);
 			Util.checkCLError(errorBuff.get(0));
-			paramPtr = CL10.clEnqueueMapBuffer(memqueue, signalMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, 4, null, memEventsBuff, errorBuff);
+			paramPtr = CL10.clEnqueueMapBuffer(memqueue, signalMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, 4, null, null, errorBuff);
 			Util.checkCLError(errorBuff.get(0));
 			paramPtr.putInt(0);
 			CL10.clEnqueueUnmapMemObject(memqueue, signalMem, paramPtr, null, null);
@@ -280,9 +276,6 @@ class GpuSolver extends Solver {
 		globalWorkers.put(0, globalWorkSize);
 		PointerBuffer localWorkSize = BufferUtils.createPointerBuffer(dimensions);
 		localWorkSize.put(0, BLOCK_SIZE);
-
-		// wait for all memory transfers to finish
-		CL10.clEnqueueWaitForEvents(xqueue, memEventsBuff);
 		
 		// run kernel and profile time
 		final PointerBuffer xEventBuff = BufferUtils.createPointerBuffer(1);		// buffer for event that is used for measuring the execution time
@@ -291,8 +284,8 @@ class GpuSolver extends Solver {
 		//		System.out.println("> Started " + globalWorkSize  + " threads");
 
 		// set pseudo starttime
-		setReady(true);
 		setStarttime(System.currentTimeMillis());
+		setReady(true);
 
 		// continously update progress
 		gpuRunning = true;
@@ -400,7 +393,6 @@ class GpuSolver extends Solver {
 	@Override
 	void genConstellations() {
 		getConstellationsGenerator().genConstellationsGpu(getN());
-		getConstellationsGenerator().sortConstellations();
 		setStartConstCount(getConstellationsGenerator().getld_list().size());
 	}
 
@@ -414,34 +406,46 @@ class GpuSolver extends Solver {
 		setStartConstCount(0);
 		setStarttime(0);
 		setEndtime(0);
+		setFTime(0);
 		setFSolvecounter(0);
 		setFSolvedStartConstCount(0);
+		restored = false;
 		System.gc();
 	}
-
+	
 	@Override
-	void save() {
-
-	}
-
-	@Override
-	void load(FAFProcessData d) {
-
-	}
-
-	@Override
-	void resetLoad() {
+	void resetRestoration() {
 		restored = false;
+	}
+
+	@Override
+	void restore(ProgressBackup pb) {
+		setN(pb.N);
+		setFSolvecounter(pb.solvecounter);
+		
+		getConstellationsGenerator().genConstellationsGpu(pb.N);
+		setStartConstCount(getConstellationsGenerator().getld_list().size());
+		HashSet<Integer> constellations = new HashSet<Integer>(pb.remainingConstellations);
+		getConstellationsGenerator().genConstellationsGpu(pb.N, constellations);
+		setFSolvedStartConstCount(getStartConstCount() - getConstellationsGenerator().getld_list().size());
+		
+		restored = true;
+		setEndtime(0);
+		setFTime(pb.time);
 	}
 	
 	@Override
 	void cancel() {
 		if(gpuRunning) {
-			IntBuffer errorBuff = BufferUtils.createIntBuffer(1);
-			ByteBuffer ptr = CL10.clEnqueueMapBuffer(signalqueue, signalMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, 4, null, null, errorBuff);
-			Util.checkCLError(errorBuff.get(0));
-			ptr.putInt(1);
-			CL10.clEnqueueUnmapMemObject(signalqueue, signalMem, ptr, null, null);
+//			IntBuffer errorBuff = BufferUtils.createIntBuffer(1);
+//			ByteBuffer ptr = CL10.clEnqueueMapBuffer(signalqueue, signalMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, 4, null, null, errorBuff);
+//			Util.checkCLError(errorBuff.get(0));
+//			ptr.putInt(1);
+//			CL10.clEnqueueUnmapMemObject(signalqueue, signalMem, ptr, null, null);
+			
+			IntBuffer sigBuff = BufferUtils.createIntBuffer(1);
+			sigBuff.put(0, 1);
+			CL10.clEnqueueWriteBuffer(signalqueue, signalMem, CL10.CL_FALSE, 0, sigBuff, null, null);
 		}
 	}
 
@@ -597,12 +601,12 @@ class GpuSolver extends Solver {
 	// getters
 	@Override
 	long getSolvecounter() {
-		return currSolvecounter;
+		return currSolvecounter + getFSolvecounter();
 	}
 
 	@Override
 	int getSolvedStartConstCount() {
-		return solvedStartConstCount;
+		return solvedStartConstCount + getFSolvedStartConstCount();
 	}
 
 	@Override

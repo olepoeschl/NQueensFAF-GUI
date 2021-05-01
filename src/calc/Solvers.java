@@ -4,8 +4,6 @@ import java.util.ArrayDeque;
 
 import org.lwjgl.LWJGLException;
 
-import util.FAFProcessData;
-
 public class Solvers {
 
 	// constants
@@ -48,18 +46,27 @@ public class Solvers {
 		}
 	}
 	
-	public void save() {
-		
+	public void resetRestoration() {
+		for(Solver solver : solvers) {
+			solver.resetRestoration();
+		}
+	}
+	
+	public void save(String path, long fTime) {
+		solvers[mode].setFTime(fTime);
+		ProgressBackup pb = new ProgressBackup(solvers[mode]);
+		pb.save(path);
 	}
 
-	public void load(FAFProcessData d) {
-		solvers[mode].reset();
-		solvers[mode].load(d);
+	public void restore(String path) {
+		ProgressBackup pb = ProgressBackup.restore(path);
+		for(Solver solver : solvers) {
+			solver.reset();
+			solver.restore(pb);
+		}
+		setN(pb.N);
 	}
-
-	public void resetLoad() {
-		solvers[mode].resetLoad();
-	}
+	
 	// specific methods for mode USE_CPU
 	public void pause() {
 		cpuSolver.pause();
@@ -102,6 +109,10 @@ public class Solvers {
 		return mode;
 	}
 
+	public Solver getActiveSolver() {
+		return solvers[mode];
+	}
+	
 	public boolean isReady() {
 		return solvers[mode].isReady();
 	}
@@ -122,6 +133,10 @@ public class Solvers {
 		return solvers[mode].getEndtime();
 	}
 
+	public long getFTime() {
+		return solvers[mode].getFTime();
+	}
+	
 	public long getSolvecounter() {
 		if(N > NBorder)
 			return solvers[mode].getSolvecounter();
