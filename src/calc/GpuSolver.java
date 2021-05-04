@@ -43,8 +43,7 @@ class GpuSolver extends Solver {
 	private CLPlatform platform;
 	private List<CLDevice> devices;
 	private CLDevice device;
-	private CLCommandQueue xqueue, memqueue, signalqueue;
-	private CLMem signalMem;
+	private CLCommandQueue xqueue, memqueue;
 
 	// OpenCL variables
 	private final int BLOCK_SIZE = 64;
@@ -56,7 +55,7 @@ class GpuSolver extends Solver {
 	private int cpuSolvedStartConstCount;
 
 	// other variables
-	private boolean gpuRunning, restored, cancelable;
+	private boolean gpuRunning, restored;
 
 	// constructor from superclass
 	GpuSolver() {
@@ -64,7 +63,8 @@ class GpuSolver extends Solver {
 		
 		gpuRunning = false;
 		restored = false;
-		cancelable = false;
+		
+		init();
 	}
 	// initialize lwjgl libraries
 	void init() {
@@ -111,8 +111,6 @@ class GpuSolver extends Solver {
 		Util.checkCLError(errorBuff.get(0));
 		memqueue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuff);
 		Util.checkCLError(errorBuff.get(0));
-		signalqueue = CL10.clCreateCommandQueue(context, device, CL10.CL_QUEUE_PROFILING_ENABLE, errorBuff);
-		Util.checkCLError(errorBuff.get(0));
 
 		// Create program and store it on the specified device
 		CLProgram sqProgram;
@@ -123,11 +121,7 @@ class GpuSolver extends Solver {
 		int error = CL10.clBuildProgram(sqProgram, device, options, null);
 		Util.checkCLError(error);
 		// Create kernel
-		CLKernel sqKernel;
-		if(cancelable)
-			sqKernel = CL10.clCreateKernel(sqProgram, "runCancelable", null);
-		else
-			sqKernel = CL10.clCreateKernel(sqProgram, "run", null);
+		CLKernel sqKernel = CL10.clCreateKernel(sqProgram, "run", null);
 
 		// preparation for cpu-solver
 		mask = (1 << getN()) - 1;
@@ -258,17 +252,6 @@ class GpuSolver extends Solver {
 		sqKernel.setArg(6, startMem);
 		sqKernel.setArg(7, resMem);
 		sqKernel.setArg(8, progressMem);
-
-		if(cancelable) {
-			// signal memory
-			signalMem = CL10.clCreateBuffer(context, CL10.CL_MEM_WRITE_ONLY | CL10.CL_MEM_ALLOC_HOST_PTR, 4, errorBuff);
-			Util.checkCLError(errorBuff.get(0));
-			paramPtr = CL10.clEnqueueMapBuffer(memqueue, signalMem, CL10.CL_TRUE, CL10.CL_MAP_WRITE, 0, 4, null, null, errorBuff);
-			Util.checkCLError(errorBuff.get(0));
-			paramPtr.putInt(0);
-			CL10.clEnqueueUnmapMemObject(memqueue, signalMem, paramPtr, null, null);
-			sqKernel.setArg(9, signalMem);
-		}
 
 		// create buffer of pointers defining the multi-dimensional size of the number of work units to execute
 		final int dimensions = 1;
@@ -436,17 +419,7 @@ class GpuSolver extends Solver {
 	
 	@Override
 	void cancel() {
-		if(gpuRunning) {
-//			IntBuffer errorBuff = BufferUtils.createIntBuffer(1);
-//			ByteBuffer ptr = CL10.clEnqueueMapBuffer(signalqueue, signalMem, CL10.CL_FALSE, CL10.CL_MAP_WRITE, 0, 4, null, null, errorBuff);
-//			Util.checkCLError(errorBuff.get(0));
-//			ptr.putInt(1);
-//			CL10.clEnqueueUnmapMemObject(signalqueue, signalMem, ptr, null, null);
-			
-			IntBuffer sigBuff = BufferUtils.createIntBuffer(1);
-			sigBuff.put(0, 1);
-			CL10.clEnqueueWriteBuffer(signalqueue, signalMem, CL10.CL_FALSE, 0, sigBuff, null, null);
-		}
+		
 	}
 
 	// own methods
@@ -618,9 +591,5 @@ class GpuSolver extends Solver {
 	void setDevice(int index) {
 		device = devices.get(index);
 		platform = device.getPlatform();
-	}
-	
-	void setCancelable(boolean cancelable) {
-		this.cancelable = cancelable;
 	}
 }

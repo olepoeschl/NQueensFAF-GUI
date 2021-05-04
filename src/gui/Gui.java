@@ -20,7 +20,6 @@ import org.lwjgl.LWJGLException;
 import calc.Solvers;
 
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -80,7 +79,6 @@ public class Gui extends JFrame {
 	private JSlider sliderN, sliderThreadcount;
 	private JPanel pnlControls;
 	private JButton btnSave, btnLoad, btnStart, btnCancel;
-	private JCheckBox cbCancelable;
 	private JLabel lblTime;
 	private JTextArea taOutput; 
 	private JProgressBar progressBar;
@@ -89,7 +87,6 @@ public class Gui extends JFrame {
 
 	// components for the waiting-dialog
 	private JOptionPane optionPane;
-	private JLabel waitlbl;
 	private String[] options = {"Back", "Save and Back", "Save and quit instead", "Only quit"};
 	private JDialog dialog;
 	private Object input;
@@ -307,11 +304,6 @@ public class Gui extends JFrame {
 		btnCancel.addActionListener(eventListener);
 		btnCancel.setEnabled(false);
 		pnlControls.add(btnCancel, BorderLayout.WEST);
-		
-		cbCancelable = new JCheckBox("cancelable (slower) (unstable)");
-		cbCancelable.setSelected(true);
-		cbCancelable.setVisible(false);
-		pnlControlsTop.add(cbCancelable, BorderLayout.NORTH);
 
 		JPanel pnlTime = new JPanel();
 		pnlTime.setBorder(new TitledBorder(null, "Time", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -363,9 +355,6 @@ public class Gui extends JFrame {
 		optionPane.setOptionType(JOptionPane.YES_NO_CANCEL_OPTION);
 		optionPane.setValue(JOptionPane.YES_OPTION);
 
-		waitlbl = new JLabel();
-		optionPane.add(waitlbl);
-
 		// OpenCL-tab
 		cboxDeviceChooser = new JComboBox<String>();
 		cboxDeviceChooser.setBorder(new TitledBorder(null, "Device", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -395,16 +384,16 @@ public class Gui extends JFrame {
 					cboxDeviceChooser.setVisible(false);
 					pnlThreadcount.setVisible(true);
 					btnSave.setVisible(true);
-//					btnLoad.setVisible(true);
-					cbCancelable.setVisible(false);
+					btnLoad.setVisible(true);
+					btnCancel.setVisible(true);
 				} else if(tabbedPane.getSelectedIndex() == 1) {
 					solvers.setMode(Solvers.USE_GPU);
 					// hide unnessesary gui-components
 					cboxDeviceChooser.setVisible(true);
 					pnlThreadcount.setVisible(false);
 					btnSave.setVisible(false);
-//					btnLoad.setVisible(false);
-					cbCancelable.setVisible(true);
+					btnLoad.setVisible(false);
+					btnCancel.setVisible(false);
 				}
 			}
 		});
@@ -625,7 +614,6 @@ public class Gui extends JFrame {
 				btnStart.setText("START");
 				btnStart.setEnabled(true);
 				btnCancel.setEnabled(false);
-				cbCancelable.setEnabled(true);
 				if(solvers.isCanceled()) {
 					btnSave.setEnabled(true);
 				} else {
@@ -704,13 +692,9 @@ public class Gui extends JFrame {
 		// show Dialog
 		new Thread() {
 			public void run() {
-
-				dialog = optionPane.createDialog(null, "Waiting for the Algorithm to finish current start-constellation...");
+				dialog = optionPane.createDialog(null, "Waiting for the solver to finish the current constellation...");
 				dialog.setLocation(context.getX() + context.getWidth()/2 - dialog.getWidth()/2, context.getY() + context.getHeight()/2 - dialog.getHeight()/2);
 				input = JOptionPane.UNINITIALIZED_VALUE;
-
-				// for hte loading animation
-				int counter = 0, countertemp = 0;
 
 				new Thread() {
 					public void run() {
@@ -765,40 +749,17 @@ public class Gui extends JFrame {
 							paused = false;
 							progressBar.setForeground(Color.GRAY);
 						}
-						dialog.dispose();
 						break;
 					}
 					// if the algorithm is done, close the dialog
 					if(solvers.getEndtime() != 0) {
 						paused = false;
-						dialog.dispose();
 						break;
 					}
 
 					if(input != JOptionPane.UNINITIALIZED_VALUE) {
-						dialog.dispose();
 						break;
 					}
-
-					// waiting animation on the waitLbl
-					waitlbl.setText("");
-					countertemp = counter % 24;
-					for(int i = 0; i < 20; i++) {
-						if(i == countertemp) {
-							waitlbl.setText(waitlbl.getText() + ") ");
-						} else if(i == countertemp-1) {
-							waitlbl.setText(waitlbl.getText() + "? ");
-						} else if(i == countertemp-2) {
-							waitlbl.setText(waitlbl.getText() + "? ");
-						} else if(i == countertemp-3) {
-							waitlbl.setText(waitlbl.getText() + "? ");
-						} else if(i == countertemp-4) {
-							waitlbl.setText(waitlbl.getText() + "( ");
-						} else {
-							waitlbl.setText(waitlbl.getText() + "_ ");
-						}
-					}
-					counter++;
 
 					try {
 						Thread.sleep(sleeptime);
@@ -806,6 +767,8 @@ public class Gui extends JFrame {
 						e.printStackTrace();
 					}
 				}
+				dialog.dispose();
+				dialog = null;
 
 				// reset the respond-variables of each CpuSolverThread
 				solvers.resetRespond();
@@ -960,8 +923,7 @@ public class Gui extends JFrame {
 						sliderThreadcount.setEnabled(false);
 						tfThreadcount.setEditable(false);
 						cboxDeviceChooser.setEnabled(false);
-						btnCancel.setEnabled(solvers.getMode() == Solvers.USE_CPU || (solvers.getMode() == Solvers.USE_GPU && cbCancelable.isSelected()));
-						cbCancelable.setEnabled(false);
+						btnCancel.setEnabled(true);
 						btnLoad.setEnabled(false);
 						btnSave.setEnabled(true);
 						lockTabs();								// lock tabs so that the user cant use other solvers while using one
@@ -980,7 +942,6 @@ public class Gui extends JFrame {
 							btnStart.setEnabled(false);
 							btnSave.setEnabled(false);
 							solvers.setDevice(cboxDeviceChooser.getSelectedIndex());
-							solvers.setCancelable(cbCancelable.isSelected());
 							break;
 						}
 						int N = Integer.parseInt(tfN.getText());
