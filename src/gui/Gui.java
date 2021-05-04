@@ -352,7 +352,6 @@ public class Gui extends JFrame {
 		optionPane.setMessageType(JOptionPane.PLAIN_MESSAGE);
 		optionPane.setMessage("Things you can do instead of waiting:");
 		optionPane.setOptions(options);
-		optionPane.setOptionType(JOptionPane.YES_NO_CANCEL_OPTION);
 		optionPane.setValue(JOptionPane.YES_OPTION);
 
 		// OpenCL-tab
@@ -369,7 +368,7 @@ public class Gui extends JFrame {
 		cboxDeviceChooser.setVisible(false);
 		pnlTop.add(cboxDeviceChooser, BorderLayout.SOUTH);
 
-		// other
+		// tabbedPane
 		tabbedPane = new JTabbedPane();
 		tabbedPane.addTab(" CPU ", splitPane);
 		tabbedPane.addTab(" OpenCL ", null);
@@ -627,7 +626,7 @@ public class Gui extends JFrame {
 	}
 
 	// save state of running algorithm instance
-	private void save() {
+	private boolean save() {
 		// choose file path
 		String filepath = "", filename = "";
 		JFileChooser filechooser = new JFileChooser();
@@ -645,12 +644,14 @@ public class Gui extends JFrame {
 			}
 		}
 
-		// store fafprocessdata in path filename
+		// store progress data in path filename
 		if( ! filepath.equals("")) {
 			solvers.save(filepath, time);
 
 			print("> Progress successfully saved in file '" + filename + "'.", true);
+			return true;
 		}
+		return false;
 	}
 	// load state of old algorithm instance
 	private void load() {
@@ -732,8 +733,8 @@ public class Gui extends JFrame {
 							solvers.dontCancel();
 					} else if( input.equals(options[2]) ) {
 						// save and quit
-						save();
-						System.exit(0);
+						if(save())
+							System.exit(0);
 					} else if( input.equals(options[3]) ) {
 						// only quit
 						System.exit(0);
