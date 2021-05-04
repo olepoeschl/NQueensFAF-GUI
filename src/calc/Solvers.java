@@ -27,8 +27,6 @@ public class Solvers {
 		gpuSolver = new GpuSolver();
 		solvers[USE_CPU] = cpuSolver;
 		solvers[USE_GPU] = gpuSolver;
-
-		gpuSolver.init();
 		
 		canceled = false;
 	}
@@ -94,10 +92,6 @@ public class Solvers {
 	// specific methods for mode USE_GPU
 	public ArrayDeque<String> listDevices() throws LWJGLException {
 		return gpuSolver.listDevices();
-	}
-	
-	public void setCancelable(boolean cancelable) {
-		gpuSolver.setCancelable(cancelable);
 	}
 	
 	// getters
