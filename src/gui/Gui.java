@@ -82,7 +82,7 @@ public class Gui extends JFrame {
 	private JLabel lblTime;
 	private JTextArea taOutput; 
 	private JProgressBar progressBar;
-	// OpenCL-tab
+	// gpu-tab
 	private JComboBox<String> cboxDeviceChooser;
 
 	// components for the waiting-dialog
@@ -354,7 +354,7 @@ public class Gui extends JFrame {
 		optionPane.setOptions(options);
 		optionPane.setValue(JOptionPane.YES_OPTION);
 
-		// OpenCL-tab
+		// gpu-tab
 		cboxDeviceChooser = new JComboBox<String>();
 		cboxDeviceChooser.setBorder(new TitledBorder(null, "Device", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		try {
@@ -371,7 +371,7 @@ public class Gui extends JFrame {
 		// tabbedPane
 		tabbedPane = new JTabbedPane();
 		tabbedPane.addTab(" CPU ", splitPane);
-		tabbedPane.addTab(" OpenCL ", null);
+		tabbedPane.addTab(" GPU ", null);
 		if(cboxDeviceChooser.getItemCount() == 0)						// if no opencl-devices are available, disbale the OpenCL-tab
 			tabbedPane.setEnabledAt(1, false);
 		tabbedPane.addChangeListener(new ChangeListener() {

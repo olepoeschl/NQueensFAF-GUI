@@ -10,8 +10,6 @@ import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 
-import gui.Gui;
-
 public class ProgressBackup implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
