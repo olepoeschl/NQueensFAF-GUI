@@ -93,6 +93,7 @@ class GpuSolver extends Solver {
 		if(!restored)
 			reset();
 		setRunning(true);
+		Gui.print("> Preparing GPU kernel...", true);
 		if(!restored)
 			genConstellations();
 
@@ -132,7 +133,7 @@ class GpuSolver extends Solver {
 		// set global work size
 		computeUnits = device.getInfoInt(CL10.CL_DEVICE_MAX_COMPUTE_UNITS);
 		int globalWorkSize = (restored) ? (globalWorkSize = getConstellationsGenerator().getld_list().size()) : (getStartConstCount() - (getStartConstCount() % (BLOCK_SIZE * computeUnits)));
-		Gui.print(String.format("%d constellations found", getStartConstCount()), true);
+		Gui.print(String.format("> %d constellations found", getStartConstCount()), true);
 		if(globalWorkSize != getStartConstCount()) {
 			Gui.print(String.format("> remaining %d constellations have to be solved using CPU", getStartConstCount()-globalWorkSize), true);
 		}
@@ -264,7 +265,7 @@ class GpuSolver extends Solver {
 		final PointerBuffer xEventBuff = BufferUtils.createPointerBuffer(1);		// buffer for event that is used for measuring the execution time
 		CL10.clEnqueueNDRangeKernel(xqueue, sqKernel, dimensions, null, globalWorkers, localWorkSize, null, xEventBuff);	// Run the specified number of work units using our OpenCL program kernel
 		CL10.clFlush(xqueue);
-		//		System.out.println("> Started " + globalWorkSize  + " threads");
+//		System.out.println("> Started " + globalWorkSize  + " threads");
 
 		// set pseudo starttime
 		setStarttime(System.currentTimeMillis());
@@ -277,7 +278,7 @@ class GpuSolver extends Solver {
 				long tempcounter;
 				int tempCalcConstCount;
 				while(gpuRunning) {
-					// calculate current sovlecounter
+					// calculate current solvecounter
 					tempcounter = cpucounter;
 					tempCalcConstCount = cpuSolvedStartConstCount;
 					CL10.clEnqueueReadBuffer(memqueue, resMem, CL10.CL_TRUE, 0, resBuff, null, null);
