@@ -23,7 +23,7 @@ For lower Java JDK versions than 15, you have to edit the build path and the com
 |   __multi-threaded__  |      0.25s      |   1.75s   |   12.5s   |   1:35m   |    13:05m    |     1:52h    |     16:18h   |  not measured  |
 |        __GPU__        |      0.03s      |   0.18s   |   1.05s   |   7.35s   |      56s     |     7:50m    |     1:07h    |     10:25h     |
 
-CPU: *i5-9300h @4GHz undervolted* <br>
+CPU: *i5-9300h @4GHz undervolted (8 logical cores)* <br>
 GPU: GTX-1650 (Laptop) <br>
 (Attention: when testing times on GPU, your graphics card may go into another power state. To avoid this, you can use a tool such as "nvidiainfo". Also, for some nvidia cards there is a big startup time for the kernel, depending also on the boardsize N. )
 
