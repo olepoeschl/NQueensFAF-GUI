@@ -19,7 +19,7 @@ For lower Java JDK versions than 15, you have to edit the build path and the com
 
 |      Board size N     |        16       |     17    |     18    |     19    |      20      |      21      |      22      |       23       |
 |      :----------:     |       :-:       |    :-:    |    :-:    |    :-:    |      :-:     |      :-:     |      :-:     |       :-:      |
-|  __single-threaded__  |      1.32s      |   8.95s   |   1:05m   |   8:20m   |    1:10m     | not measured | not measured |  not measured  |
+|  __single-threaded__  |      1.32s      |   8.95s   |   1:05m   |   8:20m   |     1:10h    | not measured | not measured |  not measured  |
 |   __multi-threaded__  |      0.25s      |   1.75s   |   12.5s   |   1:35m   |    13:05m    |     1:52h    |     16:18h   |  not measured  |
 |        __GPU__        |      0.03s      |   0.18s   |   1.05s   |   7.35s   |      56s     |     7:50m    |     1:07h    |     10:25h     |
 
