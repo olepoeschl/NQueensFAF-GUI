@@ -14,6 +14,14 @@ class CpuSolver extends Solver {
 	private ArrayList<CpuSolverThread> threadlist;
 	private boolean pause, restored = false;
 
+	public static void main(String[] args) {
+		CpuSolver s = new CpuSolver();
+		s.setN(16);
+		s.setThreadcount(1);
+		s.compute();
+		System.out.println(s.getEndtime() - s.getStarttime());
+		System.out.println(s.getSolvecounter());
+	}
 	// constructor from superclass
 	CpuSolver() {
 		super();
@@ -47,7 +55,7 @@ class CpuSolver extends Solver {
 		}
 		int i = 0;
 		for(int constellation : startConstellations) {
-			threadConstellations.get((i++) % threadcount).addLast(constellation);
+			threadConstellations.get((i++) % threadcount).addFirst(constellation);
 		}
 
 		// start the threads and wait until they are all finished
