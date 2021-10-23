@@ -53,8 +53,13 @@ unless its stated otherwise, following times are referring to *single-threaded*
 
       - thus revise the distribution of workloads (computational power varies a lot between different CPU's and GPU's)
  
-      - Stay tuned!
-      
+      - due to new ideas and requirements, we started again from zero and reprogram the whole application; 
+        this is gonna take some time till a final version is released, but the strategy behind the program already exists
+        
+      - there will be a website with a ranking of all participants and the current progress of the project when it runs
+     
+We are very excited!
+
 ## Version 10:
       - included support for GPU's using OpenCL through lwjgl
       
