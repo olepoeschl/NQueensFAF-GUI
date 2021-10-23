@@ -65,7 +65,7 @@ We are very excited!
       
       - insanely fast thanks to optimized parallel programming
       
-      - realtime progress updates thanks to OpenCL memory mapping
+      - realtime progress updates using OpenCL read operations
 ## Version 9:
       - REMARKABLE IMPROVEMENT!!! (~35%)
 
