@@ -8,9 +8,12 @@ import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -26,6 +29,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.text.DefaultCaret;
 
 import de.nqueensfaf.Solver;
@@ -49,18 +53,37 @@ public class Gui extends JFrame {
 	private JProgressBar progressBar;
 	// gpu-tab
 	private JComboBox<String> cboxDeviceChooser;
+	// other
+	private FileFilter filefilter;
 
 	// Solvers
 	private CpuSolver cpuSolver;
 	private GpuSolver gpuSolver;
 	private Solver solver;
+	// for printing a msg each 10 %
+	private int lastPercentageStep; 
 	
 	public Gui() {
 		super("NQueensFAF - Superfast N-Queens-problem solver");
 		
 		cpuSolver = new CpuSolver();
 		gpuSolver = new GpuSolver();
-		
+		solver = cpuSolver;
+
+		// filefilter for the JFileChooser
+		filefilter = new FileFilter() {
+			@Override
+			public String getDescription() {
+				return "Fast as fuck - Files (.faf)";
+			}
+			@Override
+			public boolean accept(File f) {
+				if(f.isDirectory() || f.getName().endsWith(".faf"))
+					return true;
+				return false;
+			}
+		};
+
 		initGui();
 		pack();
 		Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -263,19 +286,71 @@ public class Gui extends JFrame {
 	}
 
 	private void store() {
-		// TODO
+		// choose file path
+		String filepath = "", filename = "";
+		JFileChooser filechooser = new JFileChooser();
+		filechooser.setMultiSelectionEnabled(false);
+		filechooser.setCurrentDirectory(null);
+		filechooser.setAcceptAllFileFilterUsed(false);
+		filechooser.addChoosableFileFilter(filefilter);
+		filechooser.setFileFilter(filefilter);
+		if(filechooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+			filepath = filechooser.getSelectedFile().getAbsolutePath();
+			filename = filechooser.getSelectedFile().getName().toString();
+			if( ! filepath.endsWith(".faf") ) {
+				filepath = filepath + ".faf";
+				filename = filename + ".faf";
+			}
+		}
+
+		// store progress data in path filename
+		if(!filepath.equals("")) {
+			try {
+				solver.store(filepath);
+			} catch (IOException e) {
+				print("! unable to restore Solver from file '" + filepath + "': " + e.getMessage() + " !");
+				return;
+			}
+			print("> Progress successfully saved in file '" + filename + "'.");
+		}
 	}
-	
+
 	private void restore() {
-		// TODO
+		// choose filepath
+		String filepath = "";
+		JFileChooser filechooser = new JFileChooser();
+		filechooser.setMultiSelectionEnabled(false);
+		filechooser.setCurrentDirectory(null);
+		filechooser.setAcceptAllFileFilterUsed(false);
+		filechooser.addChoosableFileFilter(filefilter);
+		filechooser.setFileFilter(filefilter);
+		if(filechooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+			filepath = filechooser.getSelectedFile().getAbsolutePath();
+			// restore progress
+			try {
+				solver.restore(filepath);
+			} catch (ClassNotFoundException | IOException e) {
+				print("! unable to restore Solver from file '" + filepath + "': " + e.getMessage() + " !");
+				return;
+			}
+			// update gui to the restored values
+			sliderN.setValue(solver.getN());
+			tfN.setText(solver.getN() + "");
+			progressBar.setValue((int) solver.getProgress());
+			String progressText = "Progress: " + (((int)(solver.getProgress()*100*10000)) / 10000f) + "%    ";
+			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
+			progressBar.repaint();
+			sliderN.setEnabled(false);
+			tfN.setEditable(false);
+			print("> Progress successfully restored from file '" + filechooser.getSelectedFile().getName().toString() + "'. ", true);
+		}
 	}
 	
 	private void start() {
 		if(!cpuSolver.isIdle() || !gpuSolver.isIdle())
 			return;
-		// disable the tab that is not selected
-		tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, false);
 		
+		lastPercentageStep = 0;
 		solver.reset();
 		solver.setN(sliderN.getValue()).setOnTimeUpdateCallback((duration) -> {
 			lblTime.setText(getTimeStr(duration));
@@ -284,7 +359,13 @@ public class Gui extends JFrame {
 			String progressText = "Progress: " + (((int)(progress*100*10000)) / 10000f) + "%    ";
 			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
 			progressBar.repaint();
+			if((int) progress >= lastPercentageStep + 10) {
+				lastPercentageStep = (int) (Math.round(progress / 10.0) * 10);
+				print("Completed " + lastPercentageStep + "% in " + getTimeStr(solver.getDuration()));
+			}
 		}).addInitializationCallback(() -> {
+			// disable the tab that is not selected
+			tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, false);
 			sliderN.setEnabled(false);
 			sliderThreadcount.setEnabled(false);
 			cboxDeviceChooser.setEnabled(false);
@@ -298,6 +379,8 @@ public class Gui extends JFrame {
 			btnStart.setEnabled(true);
 			btnStore.setEnabled(false);
 			btnRestore.setEnabled(true);
+			// enable the other tab again
+			tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, true);
 		});
 		
 		if(tabbedPane.getSelectedIndex() == 0) {			// CPU-Tab is selected
@@ -349,5 +432,17 @@ public class Gui extends JFrame {
 		}
 
 		return strh + ":" + strm + ":" + strs + "." + strms;
+	}
+
+	private void print(String msg, boolean clear) {
+		if(clear) {
+			taOutput.setText(msg + "\n");
+		} else {
+			taOutput.setText(taOutput.getText() + msg + "\n");
+		}
+	}
+	
+	private void print(String msg) {
+		print(msg, false);
 	}
 }
