@@ -6,7 +6,7 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="externLib/lwjgl2.9.3/lwjgl.jar"/>
-	<classpathentry kind="lib" path="externLib/lwjgl2.9.3/lwjgl-opencl.jar"/>
+	<classpathentry kind="lib" path="dependencies/lwjgl2.9.3/lwjgl.jar"/>
+	<classpathentry kind="lib" path="dependencies/NQueensFAF library.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
