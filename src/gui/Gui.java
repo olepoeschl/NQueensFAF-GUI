@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayDeque;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -61,13 +62,62 @@ public class Gui extends JFrame {
 	private GpuSolver gpuSolver;
 	private Solver solver;
 	// for printing a msg each 10 %
-	private int lastPercentageStep; 
+	private float lastPercentageStep;
+	// for printing all messages in the correct order
+	private ArrayDeque<Message>msgQueue;
 	
 	public Gui() {
 		super("NQueensFAF - Superfast N-Queens-problem solver");
 		
 		cpuSolver = new CpuSolver();
+		cpuSolver.setThreadcount(1);
 		gpuSolver = new GpuSolver();
+		gpuSolver.setDevice(0);
+		// initialize solver callbacks
+		var solvers = new Solver[2];
+		solvers[0] = cpuSolver;
+		solvers[1] = gpuSolver;
+		for(Solver solver : solvers) {
+			solver.setOnTimeUpdateCallback((duration) -> {
+				lblTime.setText(getTimeStr(duration));
+			}).setOnProgressUpdateCallback((progress, solutions) -> {
+				progressBar.setValue((int) (progress * 100));
+				String progressText = "progress: " + (((int)(progress*100*10000)) / 10000f) + "%    solutions: " + getSolutionsStr(solver.getSolutions());
+				((TitledBorder) progressBar.getBorder()).setTitle(progressText);
+				progressBar.repaint();
+				if(progress < 1.0 && progress >= lastPercentageStep+0.1) {
+					lastPercentageStep = (float) (Math.round(progress / 0.1) * 0.1);
+					print("Completed " + ((int) (lastPercentageStep*100)) + "% in " + getTimeStr(solver.getDuration()));
+				}
+			}).addInitializationCallback(() -> {
+				// disable the tab that is not selected
+				tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, false);
+				if(solver == cpuSolver)
+					print("Starting CPU-Solver for N=" + solver.getN() + "...", true);
+				else if(solver == gpuSolver)
+					print("Starting GPU-Solver for N=" + solver.getN() + "...", true);
+				sliderN.setEnabled(false);
+				sliderThreadcount.setEnabled(false);
+				tfN.setEditable(false);
+				tfThreadcount.setEditable(false);
+				cboxDeviceChooser.setEnabled(false);
+				btnStart.setEnabled(false);
+				btnStore.setEnabled(true);
+				btnRestore.setEnabled(false);
+			}).addTerminationCallback(() -> {
+				sliderN.setEnabled(true);
+				sliderThreadcount.setEnabled(true);
+				tfN.setEditable(true);
+				tfThreadcount.setEditable(true);
+				cboxDeviceChooser.setEnabled(true);
+				btnStart.setEnabled(true);
+				btnStore.setEnabled(false);
+				btnRestore.setEnabled(true);
+				print("============================\n" + solver.getSolutions() + " solutions found for N = " + solver.getN() + "\n============================");
+				// enable the other tab again
+				tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, true);	
+			});
+		}
 		solver = cpuSolver;
 
 		// filefilter for the JFileChooser
@@ -88,6 +138,26 @@ public class Gui extends JFrame {
 		pack();
 		Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
 		setLocation((int) (screensize.getWidth()/2 - getWidth()/2), (int) (screensize.getHeight()/2 - getHeight()/2));
+		
+		// for printing all messages in order
+		msgQueue = new ArrayDeque<Message>();
+		new Thread(() -> {
+			while(true) {
+				if(msgQueue.size() > 0) {
+					Message msg = msgQueue.removeFirst();
+					if(msg.clear) {
+						taOutput.setText(msg.msg + "\n");
+					} else {
+						taOutput.setText(taOutput.getText() + msg.msg + "\n");
+					}
+				}
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
 	}
 	
 	private void initGui() {
@@ -96,7 +166,7 @@ public class Gui extends JFrame {
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		getContentPane().setLayout(new BorderLayout());
-
+		
 		// overall + cpu-tab
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setEnabled(false);
@@ -258,6 +328,13 @@ public class Gui extends JFrame {
 		}
 		cboxDeviceChooser.setBackground(new Color(243, 243, 247));
 		cboxDeviceChooser.setVisible(false);
+		cboxDeviceChooser.addItemListener((e) -> {
+			if(e.getSource() == cboxDeviceChooser.getItemAt(0)) {
+				gpuSolver.setDevice(0);
+			} else if(e.getSource() == cboxDeviceChooser.getItemAt(1)) {
+				gpuSolver.setDevice(0);
+			}
+		});
 		pnlTop.add(cboxDeviceChooser, BorderLayout.SOUTH);
 
 		// tabbedPane
@@ -282,7 +359,7 @@ public class Gui extends JFrame {
 				}
 			}
 		});
-		getContentPane().add(tabbedPane);
+		getContentPane().add(tabbedPane, BorderLayout.CENTER);
 	}
 
 	private void store() {
@@ -306,7 +383,9 @@ public class Gui extends JFrame {
 		// store progress data in path filename
 		if(!filepath.equals("")) {
 			try {
+				showLoadingAnimation();
 				solver.store(filepath);
+				hideLoadingAnimation();
 			} catch (IOException e) {
 				print("! unable to restore Solver from file '" + filepath + "': " + e.getMessage() + " !");
 				return;
@@ -329,6 +408,9 @@ public class Gui extends JFrame {
 			// restore progress
 			try {
 				solver.restore(filepath);
+			} catch(ClassCastException e) {
+				print("! can not restore CPU-Solver using GPU-Solver-file and vice versa !");
+				return;
 			} catch (ClassNotFoundException | IOException e) {
 				print("! unable to restore Solver from file '" + filepath + "': " + e.getMessage() + " !");
 				return;
@@ -336,10 +418,11 @@ public class Gui extends JFrame {
 			// update gui to the restored values
 			sliderN.setValue(solver.getN());
 			tfN.setText(solver.getN() + "");
-			progressBar.setValue((int) solver.getProgress());
-			String progressText = "Progress: " + (((int)(solver.getProgress()*100*10000)) / 10000f) + "%    ";
+			progressBar.setValue((int) (solver.getProgress() * 100));
+			String progressText = "progress: " + (((int)(solver.getProgress()*100*10000)) / 10000f) + "%    solutions: " + getSolutionsStr(solver.getSolutions());
 			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
 			progressBar.repaint();
+			lblTime.setText(getTimeStr(solver.getDuration()));
 			sliderN.setEnabled(false);
 			tfN.setEditable(false);
 			print("> Progress successfully restored from file '" + filechooser.getSelectedFile().getName().toString() + "'. ", true);
@@ -347,49 +430,22 @@ public class Gui extends JFrame {
 	}
 	
 	private void start() {
-		if(!cpuSolver.isIdle() || !gpuSolver.isIdle())
-			return;
+		if(!solver.isRestored())
+			solver.reset();
+		lastPercentageStep = (float) (Math.round(solver.getProgress() / 0.1) * 0.1);
 		
-		lastPercentageStep = 0;
-		solver.reset();
-		solver.setN(sliderN.getValue()).setOnTimeUpdateCallback((duration) -> {
-			lblTime.setText(getTimeStr(duration));
-		}).setOnProgressUpdateCallback((progress, solutions) -> {
-			progressBar.setValue((int) (progress * 100));
-			String progressText = "Progress: " + (((int)(progress*100*10000)) / 10000f) + "%    ";
-			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
-			progressBar.repaint();
-			if((int) progress >= lastPercentageStep + 10) {
-				lastPercentageStep = (int) (Math.round(progress / 10.0) * 10);
-				print("Completed " + lastPercentageStep + "% in " + getTimeStr(solver.getDuration()));
-			}
-		}).addInitializationCallback(() -> {
-			// disable the tab that is not selected
-			tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, false);
-			sliderN.setEnabled(false);
-			sliderThreadcount.setEnabled(false);
-			cboxDeviceChooser.setEnabled(false);
-			btnStart.setEnabled(false);
-			btnStore.setEnabled(true);
-			btnRestore.setEnabled(false);
-		}).addTerminationCallback(() -> {
-			sliderN.setEnabled(true);
-			sliderThreadcount.setEnabled(true);
-			cboxDeviceChooser.setEnabled(true);
-			btnStart.setEnabled(true);
-			btnStore.setEnabled(false);
-			btnRestore.setEnabled(true);
-			// enable the other tab again
-			tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, true);
-		});
-		
+		solver.setN(sliderN.getValue());
 		if(tabbedPane.getSelectedIndex() == 0) {			// CPU-Tab is selected
 			cpuSolver.setThreadcount(sliderThreadcount.getValue());
 		} else if(tabbedPane.getSelectedIndex() == 1) {		// GPU-Tab is selected
 			gpuSolver.setDevice(cboxDeviceChooser.getSelectedIndex());
 		}
 		
-		solver.solveAsync();
+		try {
+			solver.solveAsync();
+		} catch (Exception e) {
+			print("! " + e.getMessage() + " !");
+		}
 	}
 	
 	// utility methods
@@ -433,16 +489,42 @@ public class Gui extends JFrame {
 
 		return strh + ":" + strm + ":" + strs + "." + strms;
 	}
-
+	
+	private String getSolutionsStr(long solvecounter) {
+		StringBuilder strbuilder = new StringBuilder(Long.toString(solvecounter));
+		int len = strbuilder.length();
+		for(int i = len-3; i > 0; i -= 3) {
+			strbuilder.insert(i, ".");
+		}
+		return strbuilder.toString();
+	}
+	
+	private void showLoadingAnimation() {
+		// TODO
+	}
+	
+	private void hideLoadingAnimation() {
+		// TODO
+	}
+	
 	private void print(String msg, boolean clear) {
-		if(clear) {
-			taOutput.setText(msg + "\n");
-		} else {
-			taOutput.setText(taOutput.getText() + msg + "\n");
+		synchronized(msgQueue){
+			msgQueue.addLast(new Message(msg, clear));
 		}
 	}
 	
 	private void print(String msg) {
-		print(msg, false);
+		synchronized(msgQueue){
+			msgQueue.addLast(new Message(msg, false));
+		}
+	}
+	
+	private class Message {
+		String msg;
+		boolean clear;
+		public Message(String msg, boolean clear) {
+			this.msg = msg;
+			this.clear = clear;
+		}
 	}
 }
