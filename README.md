@@ -50,6 +50,12 @@ unless its stated otherwise, following times are referring to *single-threaded*
      
 We are very excited!
 
+## Version 11:
+      - refactored the program to use the NQueensFAF library
+      - the GPU solver now rounds the global work size up to the next matching number of constellations 
+        and solves all constellations using GPU instead of solving remaing constellations using CPU
+        (take a look at the NQueensFAF library)
+      - code (especially of the Gui class) is much cleaner now
 ## Version 10:
       - included support for GPU's using OpenCL through lwjgl
       
