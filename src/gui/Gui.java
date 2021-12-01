@@ -315,7 +315,7 @@ public class Gui extends JFrame {
 		progressBar.setBackground(new Color(245, 245, 230));
 		progressBar.setMinimum(0);
 		progressBar.setMaximum(100);
-		TitledBorder border = new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "0%", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0));
+		TitledBorder border = new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "0.0%", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0));
 		border.setBorder(new LineBorder(border.getTitleColor(), 0));
 		progressBar.setBorder(border);
 		pnlOutput.add(progressBar, BorderLayout.SOUTH);
@@ -415,6 +415,8 @@ public class Gui extends JFrame {
 				print("! unable to restore Solver from file '" + filepath + "': " + e.getMessage() + " !");
 				return;
 			}
+			// disable the tab that is not selected
+			tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, false);
 			// update gui to the restored values
 			sliderN.setValue(solver.getN());
 			tfN.setText(solver.getN() + "");
@@ -430,8 +432,14 @@ public class Gui extends JFrame {
 	}
 	
 	private void start() {
-		if(!solver.isRestored())
+		if(!solver.isRestored()) {
 			solver.reset();
+			// reset progress
+			progressBar.setValue(0);
+			String progressText = "progress: 0.0%    solutions: 0";
+			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
+			progressBar.repaint();
+		}
 		lastPercentageStep = (float) (Math.round(solver.getProgress() / 0.1) * 0.1);
 		
 		solver.setN(sliderN.getValue());
