@@ -5,13 +5,7 @@ A really fast and highly optimized Gui-Program for calculating the number of sol
 <br>Supports CPU multithreading and GPU.
 
 ### Download
-See the "Release" section for the latest stable build. <br>
-Download the latest nightly build (may be unstable):     
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.student.hs-mittweida.de/~opoeschl/executables/NQueensFaf.jar"> NQueensFaf.jar (Java 15) </a>
-<br>&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.student.hs-mittweida.de/~opoeschl/executables/NQueensFaf_Java8.jar"> NQueensFaf_Java8.jar (Java 8) </a>
-<br>(if you don't already have Java, download it <a href="https://www.java.com/en/download/manual.jsp">here</a> or use the version below)
-<br>&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.student.hs-mittweida.de/~opoeschl/executables/NQueensFaf_x64.exe"> (Self contained executable) NQueensFaf.exe </a>
- 
+See the "Release" section for the latest stable build.
 <br> It's an eclipse project, so you can clone it, import it into eclipse and run it.
 For lower Java JDK versions than 15, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
@@ -35,10 +29,6 @@ This solution is based on two methods:
 - calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://github.com/preusser/q27">implementation by the TU Dresden</a> (a very good description of this method can be found <a href="http://www.nqueens.de/sub/SearchAlgoUseSymm.en.html">here</a>)
 
 The program copies the needed lwjgl-binaries to the temp-folder of the system and tries to delete it later when the program is done. This function is done using self-deleting scripts and is successsfully tested for windows and linux. If you recognize that the temporary folder (named "NQueensFaf*") is still existing later than 10 seconds after the program is closed (not crashed!), feel free to open an issue. If the program crashes, it's obviously not able to delete the folder. However, this is not a problem because the program deletes not only one, but all folders in your temp-directory whose names start with "NQueensFaf".
-
-# Todo
- - rewrite the whole program to use the newly created [NQueensFAF library](https://github.com/olepoeschl/NQueensFAF-Library).
-   <br>That will make the code a lot more clean and less spaghetti like, especially in the Gui class
 
 # Versions
 unless its stated otherwise, following times are referring to *single-threaded*
