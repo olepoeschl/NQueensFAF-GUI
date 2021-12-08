@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
@@ -47,13 +49,15 @@ public class Gui extends JFrame {
 	// cpu-tab
 	private JTextField tfN, tfThreadcount;
 	private JSlider sliderN, sliderThreadcount;
-	private JPanel pnlControls;
-	private JButton btnStore, btnRestore, btnStart;
-	private JLabel lblTime;
+	private JPanel pnlControls, pnlStatus;
+	private JButton btnStore, btnRestore, btnStart, btnPause, btnCancel;
+	private JLabel lblTime, lblStatus;
 	private JTextArea taOutput; 
 	private JProgressBar progressBar;
 	// gpu-tab
 	private JComboBox<String> cboxDeviceChooser;
+	// colors
+	private Color clrRunning, clrPausing, clrPaused, clrCanceling, clrCanceled, clrFinished, clrRestored;
 	// other
 	private FileFilter filefilter;
 
@@ -68,9 +72,24 @@ public class Gui extends JFrame {
 	
 	public Gui() {
 		super("NQueensFAF - Superfast N-Queens-problem solver");
+
+		// initialize colors
+		clrRunning = Color.YELLOW;
+		clrPausing = new Color(230, 220, 100);
+		clrPaused = Color.ORANGE;
+		clrCanceling = new Color(220, 130, 130);
+		clrCanceled = Color.RED;
+		clrFinished = Color.GREEN;
+		clrRestored = Color.CYAN;
 		
+		// initialize solvers
 		cpuSolver = new CpuSolver();
 		cpuSolver.setThreadcount(1);
+		cpuSolver.addOnPauseCallback(() -> {
+			progressBar.setForeground(clrPaused);
+			pnlStatus.setBackground(clrPaused);
+			lblStatus.setText("paused");
+		});
 		gpuSolver = new GpuSolver();
 		gpuSolver.setDevice(0);
 		// initialize solver callbacks
@@ -90,6 +109,9 @@ public class Gui extends JFrame {
 					print("Completed " + ((int) (lastPercentageStep*100)) + "% in " + getTimeStr(solver.getDuration()));
 				}
 			}).addInitializationCallback(() -> {
+				pnlStatus.setBackground(clrRunning);
+				lblStatus.setText("running .  .  .");
+				progressBar.setForeground(clrRunning);
 				// disable the tab that is not selected
 				tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, false);
 				if(solver == cpuSolver)
@@ -104,7 +126,12 @@ public class Gui extends JFrame {
 				btnStart.setEnabled(false);
 				btnStore.setEnabled(true);
 				btnRestore.setEnabled(false);
+				btnPause.setEnabled(true);
+				btnCancel.setEnabled(true);
 			}).addTerminationCallback(() -> {
+				progressBar.setForeground(clrFinished);
+				pnlStatus.setBackground(clrFinished);
+				lblStatus.setText("finished");
 				sliderN.setEnabled(true);
 				sliderThreadcount.setEnabled(true);
 				tfN.setEditable(true);
@@ -113,9 +140,26 @@ public class Gui extends JFrame {
 				btnStart.setEnabled(true);
 				btnStore.setEnabled(false);
 				btnRestore.setEnabled(true);
+				btnPause.setEnabled(false);
+				btnPause.setText("Pause");
+				btnCancel.setEnabled(false);
+				if(solver == cpuSolver) {
+					if(cpuSolver.wasCanceled()) {
+						progressBar.setForeground(clrCanceled);
+						pnlStatus.setBackground(clrCanceled);
+						lblStatus.setText("canceled");
+					}
+				}
+				// print finishing message
 				print("============================\n" + solver.getSolutions() + " solutions found for N = " + solver.getN() + "\n============================");
 				// enable the other tab again
-				tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, true);	
+				tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, true);
+				// show final values in gui
+				progressBar.setValue((int) (solver.getProgress() * 100));
+				String progressText = "progress: " + (((int)(solver.getProgress()*100*10000)) / 10000f) + "%    solutions: " + getSolutionsStr(solver.getSolutions());
+				((TitledBorder) progressBar.getBorder()).setTitle(progressText);
+				progressBar.repaint();
+				lblTime.setText(getTimeStr(solver.getDuration()));
 			});
 		}
 		solver = cpuSolver;
@@ -133,7 +177,7 @@ public class Gui extends JFrame {
 				return false;
 			}
 		};
-
+		
 		initGui();
 		pack();
 		Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -205,6 +249,17 @@ public class Gui extends JFrame {
 				try {
 					//if tfN contains Integer, update the slider
 					sliderN.setValue(Integer.parseInt(tfN.getText()));
+				} catch(NumberFormatException nfe) {}
+			}
+		});
+		tfN.addFocusListener(new FocusListener() {
+			@Override
+			public void focusGained(FocusEvent e) {}
+			@Override
+			public void focusLost(FocusEvent e) {
+				try {
+					//if tfN contains Integer, update the slider
+					sliderN.setValue(Integer.parseInt(tfN.getText()));
 				} catch(NumberFormatException nfe) {
 					// if not, insert the slider value
 					tfN.setText(sliderN.getValue() + "");
@@ -238,6 +293,17 @@ public class Gui extends JFrame {
 			public void keyReleased(KeyEvent e) {
 				try {
 					//if tfThreadcount contains Integer, update the slider
+					sliderThreadcount.setValue(Integer.parseInt(tfThreadcount.getText()));
+				} catch(NumberFormatException nfe) {}
+			}
+		});
+		tfN.addFocusListener(new FocusListener() {
+			@Override
+			public void focusGained(FocusEvent e) {}
+			@Override
+			public void focusLost(FocusEvent e) {
+				try {
+					//if tfN contains Integer, update the slider
 					sliderThreadcount.setValue(Integer.parseInt(tfThreadcount.getText()));
 				} catch(NumberFormatException nfe) {
 					// if not, insert the slider value
@@ -278,13 +344,42 @@ public class Gui extends JFrame {
 		});
 		pnlControls.add(btnStart, BorderLayout.CENTER);
 
+		btnPause = new NQFafButton("Pause");
+		btnPause.addActionListener((e) -> {
+			if(btnPause.getText().equals("Pause")) {
+				pause();
+			} else if (btnPause.getText().equals("Resume")) {
+				resume();
+			}
+		});
+		btnPause.setEnabled(false);
+		pnlControls.add(btnPause, BorderLayout.WEST);
+
+		btnCancel = new NQFafButton("Cancel");
+		btnCancel.addActionListener((e) -> {
+			cancel();
+		});
+		btnCancel.setEnabled(false);
+		pnlControls.add(btnCancel, BorderLayout.EAST);
+		
+		JPanel pnlBottom = new JPanel();
+		pnlBottom.setLayout(new BorderLayout());
+		pnlInput.add(pnlBottom, BorderLayout.SOUTH);
+
 		JPanel pnlTime = new JPanel();
 		pnlTime.setBorder(new TitledBorder(null, "Time", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		pnlInput.add(pnlTime, BorderLayout.SOUTH);
-
+		pnlBottom.add(pnlTime, BorderLayout.NORTH);
+		
 		lblTime = new JLabel("00:00:00.000");
 		lblTime.setFont(new Font("Tahoma", Font.BOLD, 20));
-		pnlTime.add(lblTime);
+		pnlTime.add(lblTime, BorderLayout.CENTER);
+
+		pnlStatus = new JPanel();
+		pnlStatus.setBorder(new TitledBorder(null, "Status", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		pnlBottom.add(pnlStatus, BorderLayout.SOUTH);
+		
+		lblStatus = new JLabel(".  .  .");
+		pnlStatus.add(lblStatus, BorderLayout.SOUTH);
 
 		JPanel pnlOutput = new JPanel();
 		splitPane.setRightComponent(pnlOutput);
@@ -347,14 +442,18 @@ public class Gui extends JFrame {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				if(tabbedPane.getSelectedIndex() == 0) {
-					// show important gui-components
+					// show cpu gui-components
 					cboxDeviceChooser.setVisible(false);
 					pnlThreadcount.setVisible(true);
+					btnPause.setVisible(true);
+					btnCancel.setVisible(true);
 					solver = cpuSolver;
 				} else if(tabbedPane.getSelectedIndex() == 1) {
-					// hide unnessesary gui-components
+					// show gpu gui-components
 					cboxDeviceChooser.setVisible(true);
 					pnlThreadcount.setVisible(false);
+					btnPause.setVisible(false);
+					btnCancel.setVisible(false);
 					solver = gpuSolver;
 				}
 			}
@@ -383,9 +482,7 @@ public class Gui extends JFrame {
 		// store progress data in path filename
 		if(!filepath.equals("")) {
 			try {
-				showLoadingAnimation();
 				solver.store(filepath);
-				hideLoadingAnimation();
 			} catch (IOException e) {
 				print("! unable to restore Solver from file '" + filepath + "': " + e.getMessage() + " !");
 				return;
@@ -421,6 +518,9 @@ public class Gui extends JFrame {
 			sliderN.setValue(solver.getN());
 			tfN.setText(solver.getN() + "");
 			progressBar.setValue((int) (solver.getProgress() * 100));
+			progressBar.setForeground(clrRestored);
+			pnlStatus.setBackground(clrRestored);
+			lblStatus.setText("restored");
 			String progressText = "progress: " + (((int)(solver.getProgress()*100*10000)) / 10000f) + "%    solutions: " + getSolutionsStr(solver.getSolutions());
 			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
 			progressBar.repaint();
@@ -432,6 +532,8 @@ public class Gui extends JFrame {
 	}
 	
 	private void start() {
+		if(!solver.isIdle())
+			return;
 		if(!solver.isRestored()) {
 			solver.reset();
 			// reset progress
@@ -454,6 +556,46 @@ public class Gui extends JFrame {
 		} catch (Exception e) {
 			print("! " + e.getMessage() + " !");
 		}
+	}
+	
+	private void pause() {
+		if(solver != cpuSolver)
+			return;
+		if(!solver.isRunning()) {
+			return;
+		}
+		progressBar.setForeground(clrPausing);
+		btnPause.setText("Resume");
+		pnlStatus.setBackground(clrPausing);
+		lblStatus.setText("pausing .  .  .");
+		cpuSolver.pause();
+	}
+	
+	private void resume() {
+		if(solver != cpuSolver)
+			return;
+		if(!solver.isRunning()) {
+			return;
+		}
+		progressBar.setForeground(clrRunning);
+		btnPause.setText("Pause");
+		btnCancel.setEnabled(true);
+		pnlStatus.setBackground(clrRunning);
+		lblStatus.setText("running .  .  .");
+		cpuSolver.resume();
+	}
+	
+	private void cancel() {
+		if(solver != cpuSolver)
+			return;
+		if(!solver.isRunning()) {
+			return;
+		}
+		btnPause.setText("Resume");
+		btnCancel.setEnabled(false);
+		pnlStatus.setBackground(clrCanceling);
+		lblStatus.setText("canceling .  .  .");
+		cpuSolver.cancel();
 	}
 	
 	// utility methods
@@ -505,14 +647,6 @@ public class Gui extends JFrame {
 			strbuilder.insert(i, ".");
 		}
 		return strbuilder.toString();
-	}
-	
-	private void showLoadingAnimation() {
-		// TODO
-	}
-	
-	private void hideLoadingAnimation() {
-		// TODO
 	}
 	
 	private void print(String msg, boolean clear) {
