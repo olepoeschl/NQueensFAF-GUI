@@ -57,7 +57,7 @@ public class Gui extends JFrame {
 	// gpu-tab
 	private JComboBox<String> cboxDeviceChooser;
 	// colors
-	private Color clrRunning, clrPausing, clrPaused, clrCanceling, clrCanceled, clrFinished, clrRestored;
+	private Color clrRunning, clrPausing, clrPaused, clrCanceling, clrCanceled, clrRestored, clrProgress;
 	// other
 	private FileFilter filefilter;
 
@@ -78,15 +78,14 @@ public class Gui extends JFrame {
 		clrPausing = new Color(230, 220, 100);
 		clrPaused = Color.ORANGE;
 		clrCanceling = new Color(220, 130, 130);
-		clrCanceled = Color.RED;
-		clrFinished = Color.GREEN;
+		clrCanceled = new Color(255, 40, 40);
 		clrRestored = Color.CYAN;
 		
 		// initialize solvers
 		cpuSolver = new CpuSolver();
 		cpuSolver.setThreadcount(1);
 		cpuSolver.addOnPauseCallback(() -> {
-			progressBar.setForeground(clrPaused);
+//			progressBar.setForeground(clrPaused);
 			pnlStatus.setBackground(clrPaused);
 			lblStatus.setText("paused");
 		});
@@ -107,6 +106,12 @@ public class Gui extends JFrame {
 				if(progress < 1.0 && progress >= lastPercentageStep+0.1) {
 					lastPercentageStep = (float) (Math.round(progress / 0.1) * 0.1);
 					print("Completed " + ((int) (lastPercentageStep*100)) + "% in " + getTimeStr(solver.getDuration()));
+				}
+				// update color of the progressBar
+				if(!cpuSolver.wasCanceled()) {
+					clrProgress = getProgressColor(progress);
+					pnlStatus.setBackground(clrProgress);
+					progressBar.setForeground(clrProgress);
 				}
 			}).addInitializationCallback(() -> {
 				pnlStatus.setBackground(clrRunning);
@@ -129,8 +134,6 @@ public class Gui extends JFrame {
 				btnPause.setEnabled(true);
 				btnCancel.setEnabled(true);
 			}).addTerminationCallback(() -> {
-				progressBar.setForeground(clrFinished);
-				pnlStatus.setBackground(clrFinished);
 				lblStatus.setText("finished");
 				sliderN.setEnabled(true);
 				sliderThreadcount.setEnabled(true);
@@ -599,6 +602,14 @@ public class Gui extends JFrame {
 	}
 	
 	// utility methods
+	private Color getProgressColor(double progress) {
+	    double H = progress * 0.3; // Hue (note 0.4 = Green, see huge chart below)
+	    double S = 0.9; // Saturation
+	    double B = 0.9; // Brightness
+
+	    return Color.getHSBColor((float)H, (float)S, (float)B);
+	}
+
 	private String getTimeStr(long time) {
 		long h = time/1000/60/60;
 		long m = time/1000/60%60;
