@@ -34,10 +34,7 @@ The program copies the needed lwjgl-binaries to the temp-folder of the system an
 # Versions
 unless its stated otherwise, following times are referring to *single-threaded* and the CPU mentioned above
 
-## Version X (yet to come):
-      - definitely N = 16 in < 1 sec
-      
-## Distributed
+## Distributed (yet to come):
       - test using board size 23 was successfull!
       
       - currently: including GPU computation into the client
@@ -51,7 +48,10 @@ unless its stated otherwise, following times are referring to *single-threaded* 
      
 We are very excited!
 
-## Version 11:
+## Version X (yet to come):
+      - definitely N = 16 in < 1 sec
+       
+## Version 11 (latest):
       - splitted into the Gui program (this) and the computing library (link above) 
       - refactored the program to use the newly created NQueensFAF library
       - the GPU solver now rounds the global work size up to the next matching number of constellations 
