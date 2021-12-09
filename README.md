@@ -8,7 +8,7 @@ A really fast and highly optimized Gui-Program for calculating the number of sol
 ### Download
 See the "Release" section for the latest stable build.
 <br> It's an eclipse project, so you can clone it, import it into eclipse and run it.
-For lower Java JDK versions than 15, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
+For lower Java JDK versions than 16, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
 # Current Times
 
