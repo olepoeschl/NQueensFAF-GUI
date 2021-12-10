@@ -52,8 +52,7 @@ We are very excited!
       - definitely N = 16 in < 1 sec
        
 ## Version 11 (latest):
-      - splitted into the Gui program (this) and the computing library (link above) 
-      - refactored the program to use the newly created NQueensFAF library
+      - splitted into the Gui program (this) and the NQueensFAF library (link above) 
       - the GPU solver now rounds the global work size up to the next matching number of constellations 
         and solves all constellations using GPU instead of solving remaing constellations using CPU
         (take a look at the NQueensFAF library)
