@@ -133,6 +133,22 @@ public class Gui extends JFrame {
 				btnRestore.setEnabled(false);
 				btnPause.setEnabled(true);
 				btnCancel.setEnabled(true);
+				// print global work size if gpuSolver is sued
+				if(solver == gpuSolver) {
+					new Thread(() -> {
+						while(true) {
+							if(gpuSolver.getGlobalWorkSize() != 0) {
+								print("Enqueued " + gpuSolver.getGlobalWorkSize() + " work-items");
+								break;
+							}
+							try {
+								Thread.sleep(50);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+					}).start();
+				}
 			}).addTerminationCallback(() -> {
 				lblStatus.setText("finished");
 				sliderN.setEnabled(true);
