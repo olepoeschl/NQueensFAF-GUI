@@ -91,6 +91,7 @@ public class Gui extends JFrame {
 		});
 		gpuSolver = new GpuSolver();
 		gpuSolver.setDevice(0);
+		gpuSolver.setUpdatesEnabled(false);
 		// initialize solver callbacks
 		var solvers = new Solver[2];
 		solvers[0] = cpuSolver;
