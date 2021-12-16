@@ -47,6 +47,7 @@ public class Gui extends JFrame {
 	// gui-components
 	private Image iconImg;
 	private JTabbedPane tabbedPane;
+	private NQFafConfigPanel pnlConfig;
 	// cpu-tab
 	private JTextField tfN, tfThreadcount;
 	private JSlider sliderN, sliderThreadcount;
@@ -462,7 +463,7 @@ public class Gui extends JFrame {
 		pnlTop.add(cboxDeviceChooser, BorderLayout.SOUTH);
 
 		// config tab
-		NQFafConfigPanel pnlConfig = new NQFafConfigPanel();
+		pnlConfig = new NQFafConfigPanel();
 		// fill the config panel inputs with the current config values
 		for(var cb : pnlConfig.cboxes) {
 			cb.setSelected((boolean) Config.getValue(cb.getName()));
@@ -603,13 +604,41 @@ public class Gui extends JFrame {
 
 		// apply config values
 		solver.setProgressUpdatesEnabled((boolean) Config.getValue("progressUpdatesEnabled"));
-		solver.setTimeUpdateDelay((long) Config.getValue("timeUpdateDelay"));
-		solver.setProgressUpdateDelay((long) Config.getValue("progressUpdateDelay"));
+		try {
+			solver.setTimeUpdateDelay((long) Config.getValue("timeUpdateDelay"));
+		} catch(IllegalArgumentException e) {
+			long defaultVal = (long) Config.getDefaultValue("timeUpdateDelay");
+			solver.setTimeUpdateDelay(defaultVal);
+			pnlConfig.inputTimeUpdateDelay.txtField.setText("" + defaultVal);
+			Config.resetValue("timeUpdateDelay");
+		}
+		try {
+			solver.setProgressUpdateDelay((long) Config.getValue("progressUpdateDelay"));
+		} catch(IllegalArgumentException e) {
+			long defaultVal = (long) Config.getDefaultValue("progressUpdateDelay");
+			solver.setProgressUpdateDelay(defaultVal);
+			pnlConfig.inputProgressUpdateDelay.txtField.setText("" + defaultVal);
+			Config.resetValue("progressUpdateDelay");
+		}
 		solver.setAutoSaveEnabled((boolean) Config.getValue("autoSaveEnabled"));
-		solver.setAutoSavePercentageStep((int) Config.getValue("autoSavePercentageStep"));
+		try {
+			solver.setAutoSavePercentageStep((int) Config.getValue("autoSavePercentageStep"));
+		} catch(IllegalArgumentException e) {
+			int defaultVal = (int) Config.getDefaultValue("autoSavePercentageStep");
+			solver.setAutoSavePercentageStep(defaultVal);
+			pnlConfig.inputAutoSavePercentageStep.txtField.setText("" + defaultVal);
+			Config.resetValue("autoSavePercentageStep");
+		}
 		solver.setAutoSaveFilename((String) Config.getValue("autoSaveFilename"));
 		solver.setAutoDeleteEnabled((boolean) Config.getValue("autoDeleteEnabled"));
-		gpuSolver.setWorkgroupSize((int) Config.getValue("gpuWorkgroupSize"));
+		try {
+			gpuSolver.setWorkgroupSize((int) Config.getValue("gpuWorkgroupSize"));
+		} catch(IllegalArgumentException e) {
+			int defaultVal = (int) Config.getDefaultValue("gpuWorkgroupSize");
+			gpuSolver.setWorkgroupSize(defaultVal);
+			pnlConfig.inputGpuWorkgroupSize.txtField.setText("" + defaultVal);
+			Config.resetValue("gpuWorkgroupSize");
+		}
 		
 		solver.setN(sliderN.getValue());
 		if(tabbedPane.getSelectedIndex() == 0) {			// CPU-Tab is selected

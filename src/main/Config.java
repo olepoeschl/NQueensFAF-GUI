@@ -198,4 +198,10 @@ public class Config {
 		}
 		configs.put(key, value);
 	}
+	
+	public static void resetValue(String key) {
+		if(!datatypes.keySet().contains(key))
+			throw new IllegalArgumentException("Invalid config key: '" + key + "'");
+		configs.put(key, defaultConfigs.get(key));
+	}
 }
