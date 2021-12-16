@@ -37,24 +37,22 @@ public class Config {
 	private static HashMap<String, Object> configs;
 	
 	public static void readConfigFile() throws FileNotFoundException, IOException {
+		configs = new HashMap<String, Object>();
 		Properties props = new Properties();
 		try (FileInputStream fis = new FileInputStream(filename)) {
 		    props.load(fis);
 		} catch (FileNotFoundException ex) {
-			configs = defaultConfigs;
+			loadDefaultValues();
 			throw ex;
 		} catch (IOException ex) {
-			configs = defaultConfigs;
+			loadDefaultValues();
 			throw new IOException("Error while loading values from nqueensfaf.properties file", ex);
 		}
-		if(props.keySet().size() == 0) {
-			configs = defaultConfigs;
-			try {
-				new File(filename).delete();
-			} catch (SecurityException e) {}
+		if(props.keySet().size() == 0) {	// delete config file if it is empty
+			loadDefaultValues();
+			deleteConfigFile();
 			return;
 		}
-		configs = new HashMap<String, Object>();
 		loop: for(var key : props.keySet()) {
 			configs.put(key.toString(), defaultConfigs.get(key));
 			if(!props.keySet().contains((String) key))
@@ -106,6 +104,12 @@ public class Config {
 		}
 	}
 
+	public static void deleteConfigFile() {
+		try {
+			new File(filename).delete();
+		} catch (SecurityException e) {}
+	}
+	
 	public static boolean changed() {
 		for(var k : defaultConfigs.keySet()) {
 			if(!configs.get(k).equals(defaultConfigs.get(k))) {
@@ -113,6 +117,31 @@ public class Config {
 			}
 		}
 		return false;
+	}
+	
+	public static void loadDefaultValues() {
+		configs.clear();
+		for(var key : defaultConfigs.keySet()) {
+			configs.put(key.toString(), defaultConfigs.get(key));
+		}
+	}
+	
+	public static Object getDefaultValue(String key) {
+		if(!defaultConfigs.keySet().contains(key))
+			throw new IllegalArgumentException("Invalid config key: '" + key + "'");
+		switch(datatypes.get(key)) {
+		case "boolean":
+			boolean b = Boolean.parseBoolean(defaultConfigs.get(key).toString());
+			return b;
+		case "long":
+			long l = Long.parseLong(defaultConfigs.get(key).toString());
+			return l;
+		case "int":
+			int i = Integer.parseInt(defaultConfigs.get(key).toString());
+			return i;
+		default:
+			return defaultConfigs.get(key);
+		}
 	}
 	
 	public static Object getValue(String key) {

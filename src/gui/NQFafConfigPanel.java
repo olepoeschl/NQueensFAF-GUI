@@ -3,6 +3,7 @@ package gui;
 import java.awt.Dimension;
 
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -25,6 +26,19 @@ public class NQFafConfigPanel extends JPanel {
 	
 	public NQFafConfigPanel() {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		
+		// add button for restoring all default values
+		JButton btnReset = new JButton("Restore default values");
+		btnReset.addActionListener((e) -> {
+			for(var cb : cboxes) {
+				cb.setSelected((boolean) Config.getDefaultValue(cb.getName()));
+			}
+			for(var input : inputs) {
+				input.txtField.setText(Config.getDefaultValue(input.getName()).toString());
+			}
+			Config.loadDefaultValues();
+		});
+		add(btnReset);
 		
 		// add inputs for all existent configs
 		cboxProgressUpdatesEnabled = new JCheckBox("enable progress updates");
@@ -77,9 +91,19 @@ public class NQFafConfigPanel extends JPanel {
 		for(var input : inputs) {
 			input.txtField.getDocument().addDocumentListener(new DocumentListener() {
 				@Override
-				public void insertUpdate(DocumentEvent e) {}
+				public void insertUpdate(DocumentEvent e) {
+					if(input.txtField.getText().length() > 0)
+						try {
+							Config.setValue(input.getName(), input.txtField.getText());
+						} catch (IllegalArgumentException e1) {}
+				}
 				@Override
-				public void removeUpdate(DocumentEvent e) {}
+				public void removeUpdate(DocumentEvent e) {
+					if(input.txtField.getText().length() > 0)
+						try {
+							Config.setValue(input.getName(), input.txtField.getText());
+						} catch (IllegalArgumentException e1) {}
+				}
 				@Override
 				public void changedUpdate(DocumentEvent e) {
 					if(input.txtField.getText().length() > 0)
