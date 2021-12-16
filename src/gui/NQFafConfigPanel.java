@@ -43,7 +43,7 @@ public class NQFafConfigPanel extends JPanel {
 		inputAutoSavePercentageStep = new LabelWithTxtInput("percentage step trigger for auto saving: ");
 		inputAutoSavePercentageStep.setName("autoSavePercentageStep");
 		add(inputAutoSavePercentageStep);
-		inputAutoSaveFileName = new LabelWithTxtInput("filename for auto saving ({N}=actual N): ");
+		inputAutoSaveFileName = new LabelWithTxtInput("filename for auto saving (#N#=actual N): ");
 		inputAutoSaveFileName.setName("autoSaveFilename");
 		add(inputAutoSaveFileName);
 		cboxAutoDeleteEnabled = new JCheckBox("enable automatic deletion of auto save files when the solver is done");
