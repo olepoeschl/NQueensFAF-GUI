@@ -20,6 +20,18 @@ public class Main {
 			initialized = true;
 			gui.print("! Invalid content of nqueensfaf.properties file !");
 		}
+		// save the configs at end of program, if needed
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			if(Config.changed()) {
+				try {
+					Config.writeConfigFile();
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}));
 		
 		if(!initialized)
 			gui.init();
