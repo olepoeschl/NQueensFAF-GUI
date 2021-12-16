@@ -38,6 +38,7 @@ import javax.swing.text.DefaultCaret;
 import de.nqueensfaf.Solver;
 import de.nqueensfaf.compute.CpuSolver;
 import de.nqueensfaf.compute.GpuSolver;
+import main.Config;
 
 public class Gui extends JFrame {
 
@@ -72,7 +73,9 @@ public class Gui extends JFrame {
 	
 	public Gui() {
 		super("NQueensFAF - Superfast N-Queens-problem solver");
-
+	}
+	
+	public void init() {
 		// initialize colors
 		clrRunning = Color.YELLOW;
 		clrPausing = new Color(230, 220, 100);
@@ -85,13 +88,11 @@ public class Gui extends JFrame {
 		cpuSolver = new CpuSolver();
 		cpuSolver.setThreadcount(1);
 		cpuSolver.addOnPauseCallback(() -> {
-//			progressBar.setForeground(clrPaused);
 			pnlStatus.setBackground(clrPaused);
 			lblStatus.setText("paused");
 		});
 		gpuSolver = new GpuSolver();
 		gpuSolver.setDevice(0);
-//		gpuSolver.setUpdatesEnabled(false);
 		// initialize solver callbacks
 		var solvers = new Solver[2];
 		solvers[0] = cpuSolver;
@@ -181,6 +182,16 @@ public class Gui extends JFrame {
 				progressBar.repaint();
 				lblTime.setText(getTimeStr(solver.getDuration()));
 			});
+			solver.setUpdatesEnabled((boolean) Config.getValue("updatesEnabled"));
+			solver.setTimeUpdateDelay((long) Config.getValue("timeUpdateDelay"));
+			solver.setProgressUpdateDelay((long) Config.getValue("progressUpdateDelay"));
+//			solver.setAutoSaveEnabled((boolean) Config.getValue("autoSaveEnabled"));
+			solver.setAutoSaveEnabled(true);
+//			solver.setAutoSavePercentageStep((int) Config.getValue("autoSavePercentageStep"));
+			solver.setAutoSavePercentageStep(5);
+//			solver.setAutoSaveFilename((String) Config.getValue("autoSaveFilename"));
+			solver.setAutoSaveFilename("N#N#");
+			solver.setAutoDeleteEnabled((boolean) Config.getValue("autoDeleteEnabled"));
 		}
 		solver = cpuSolver;
 
@@ -188,7 +199,7 @@ public class Gui extends JFrame {
 		filefilter = new FileFilter() {
 			@Override
 			public String getDescription() {
-				return "Fast as fuck - Files (.faf)";
+				return "NQueensFAF - Files (.faf)";
 			}
 			@Override
 			public boolean accept(File f) {
@@ -486,7 +497,7 @@ public class Gui extends JFrame {
 		String filepath = "", filename = "";
 		JFileChooser filechooser = new JFileChooser();
 		filechooser.setMultiSelectionEnabled(false);
-		filechooser.setCurrentDirectory(null);
+		filechooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
 		filechooser.setAcceptAllFileFilterUsed(false);
 		filechooser.addChoosableFileFilter(filefilter);
 		filechooser.setFileFilter(filefilter);
@@ -516,7 +527,7 @@ public class Gui extends JFrame {
 		String filepath = "";
 		JFileChooser filechooser = new JFileChooser();
 		filechooser.setMultiSelectionEnabled(false);
-		filechooser.setCurrentDirectory(null);
+		filechooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
 		filechooser.setAcceptAllFileFilterUsed(false);
 		filechooser.addChoosableFileFilter(filefilter);
 		filechooser.setFileFilter(filefilter);
@@ -677,13 +688,13 @@ public class Gui extends JFrame {
 		return strbuilder.toString();
 	}
 	
-	private void print(String msg, boolean clear) {
+	public void print(String msg, boolean clear) {
 		synchronized(msgQueue){
 			msgQueue.addLast(new Message(msg, clear));
 		}
 	}
 	
-	private void print(String msg) {
+	public void print(String msg) {
 		synchronized(msgQueue){
 			msgQueue.addLast(new Message(msg, false));
 		}
