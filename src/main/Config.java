@@ -26,8 +26,8 @@ public class Config {
 	private static final HashMap<String, Object> defaultConfigs = new HashMap<String, Object>();
 	static {
 		defaultConfigs.put("progressUpdatesEnabled", 		true			);
-		defaultConfigs.put("timeUpdateDelay",				0				);
-		defaultConfigs.put("progressUpdateDelay", 			0				);
+		defaultConfigs.put("timeUpdateDelay",				128				);
+		defaultConfigs.put("progressUpdateDelay", 			128				);
 		defaultConfigs.put("autoSaveEnabled", 				false			);
 		defaultConfigs.put("autoSavePercentageStep", 		10				);
 		defaultConfigs.put("autoSaveFilename", 				"nqueensfaf#N#"	);
