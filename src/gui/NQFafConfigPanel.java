@@ -44,27 +44,27 @@ public class NQFafConfigPanel extends JPanel {
 		cboxProgressUpdatesEnabled = new JCheckBox("enable progress updates");
 		cboxProgressUpdatesEnabled.setName("progressUpdatesEnabled");
 		add(cboxProgressUpdatesEnabled);
-		inputTimeUpdateDelay = new LabelWithTxtInput("delay between time updates: ");
+		inputTimeUpdateDelay = new LabelWithTxtInput("delay between time updates: ", "ms");
 		inputTimeUpdateDelay.setName("timeUpdateDelay");
 		add(inputTimeUpdateDelay);
-		inputProgressUpdateDelay = new LabelWithTxtInput("delay between progress updates: ");
+		inputProgressUpdateDelay = new LabelWithTxtInput("delay between progress updates: ", "ms");
 		inputProgressUpdateDelay.setName("progressUpdateDelay");
 		add(inputProgressUpdateDelay);
 
 		cboxAutoSaveEnabled = new JCheckBox("enable automatic saving of solvers at progress specifc progress steps");
 		cboxAutoSaveEnabled.setName("autoSaveEnabled");
 		add(cboxAutoSaveEnabled);
-		inputAutoSavePercentageStep = new LabelWithTxtInput("percentage step trigger for auto saving: ");
+		inputAutoSavePercentageStep = new LabelWithTxtInput("percentage step trigger for auto saving: ", "%");
 		inputAutoSavePercentageStep.setName("autoSavePercentageStep");
 		add(inputAutoSavePercentageStep);
-		inputAutoSaveFileName = new LabelWithTxtInput("filename for auto saving (#N#=actual N): ");
+		inputAutoSaveFileName = new LabelWithTxtInput("filename for auto saving (#N#=actual N): ", "");
 		inputAutoSaveFileName.setName("autoSaveFilename");
 		add(inputAutoSaveFileName);
 		cboxAutoDeleteEnabled = new JCheckBox("enable automatic deletion of auto save files when the solver is done");
 		cboxAutoDeleteEnabled.setName("autoDeleteEnabled");
 		add(cboxAutoDeleteEnabled);
 
-		inputGpuWorkgroupSize = new LabelWithTxtInput("workgroup size used by the GPU");
+		inputGpuWorkgroupSize = new LabelWithTxtInput("workgroup size used by the GPU", "");
 		inputGpuWorkgroupSize.setName("gpuWorkgroupSize");
 		add(inputGpuWorkgroupSize);
 		
@@ -118,10 +118,10 @@ public class NQFafConfigPanel extends JPanel {
 	class LabelWithTxtInput extends JPanel {
 		private static final long serialVersionUID = 1L;
 		
-		JLabel lbl;
+		JLabel lbl, lblUnit;
 		JTextField txtField;
 		
-		public LabelWithTxtInput(String lblText) {
+		public LabelWithTxtInput(String lblText, String unit) {
 			setLayout(null);
 			setMaximumSize(new Dimension(1200, 20));
 			
@@ -131,8 +131,12 @@ public class NQFafConfigPanel extends JPanel {
 			txtField.setBounds(250, 0, 150, 20);
 			txtField.setHorizontalAlignment(JTextField.RIGHT);
 			lbl.setLabelFor(txtField);
+			lblUnit = new JLabel(unit);
+			lblUnit.setBounds(400, 0, 100, 20);
+			
 			add(lbl);
 			add(txtField);
+			add(lblUnit);
 		}
 	}
 }
