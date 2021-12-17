@@ -51,7 +51,11 @@ We are very excited!
 ## Version X (yet to come):
       - definitely N = 16 in < 1 sec
        
-## Version 11 (latest):
+## Version 12 (latest):
+      - the OpenCL workgroup size used by the GpuSolver is now editable
+      - some small changes to the Gpu Solver with little improvement
+      - some new Gui features
+## Version 11:
       - splitted into the Gui program (this) and the NQueensFAF library (link above) 
       - the GPU solver now rounds the global work size up to the next matching number of constellations 
         and solves all constellations using GPU instead of solving remaing constellations using CPU
