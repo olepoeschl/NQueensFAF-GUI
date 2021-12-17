@@ -38,6 +38,7 @@ import javax.swing.text.DefaultCaret;
 import de.nqueensfaf.Solver;
 import de.nqueensfaf.compute.CpuSolver;
 import de.nqueensfaf.compute.GpuSolver;
+import main.Config;
 
 public class Gui extends JFrame {
 
@@ -46,6 +47,7 @@ public class Gui extends JFrame {
 	// gui-components
 	private Image iconImg;
 	private JTabbedPane tabbedPane;
+	private NQFafConfigPanel pnlConfig;
 	// cpu-tab
 	private JTextField tfN, tfThreadcount;
 	private JSlider sliderN, sliderThreadcount;
@@ -69,10 +71,16 @@ public class Gui extends JFrame {
 	private float lastPercentageStep;
 	// for printing all messages in the correct order
 	private ArrayDeque<Message>msgQueue;
+	// for determining if last used tab was the config tab
+	private boolean configTabActive = false;
+	// for determining if gpu is enabled or not
+	private boolean gpuEnabled = true;
 	
 	public Gui() {
 		super("NQueensFAF - Superfast N-Queens-problem solver");
-
+	}
+	
+	public void init() {
 		// initialize colors
 		clrRunning = Color.YELLOW;
 		clrPausing = new Color(230, 220, 100);
@@ -85,13 +93,11 @@ public class Gui extends JFrame {
 		cpuSolver = new CpuSolver();
 		cpuSolver.setThreadcount(1);
 		cpuSolver.addOnPauseCallback(() -> {
-//			progressBar.setForeground(clrPaused);
 			pnlStatus.setBackground(clrPaused);
 			lblStatus.setText("paused");
 		});
 		gpuSolver = new GpuSolver();
 		gpuSolver.setDevice(0);
-//		gpuSolver.setUpdatesEnabled(false);
 		// initialize solver callbacks
 		var solvers = new Solver[2];
 		solvers[0] = cpuSolver;
@@ -118,8 +124,8 @@ public class Gui extends JFrame {
 				pnlStatus.setBackground(clrRunning);
 				lblStatus.setText("running .  .  .");
 				progressBar.setForeground(clrRunning);
-				// disable the tab that is not selected
-				tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, false);
+				// disable the tabs that are not selected
+				lockTabs();
 				if(solver == cpuSolver)
 					print("Starting CPU-Solver for N=" + solver.getN() + "...", true);
 				else if(solver == gpuSolver)
@@ -172,8 +178,8 @@ public class Gui extends JFrame {
 				}
 				// print finishing message
 				print("============================\n" + solver.getSolutions() + " solutions found for N = " + solver.getN() + "\n============================");
-				// enable the other tab again
-				tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, true);
+				// enable the other tabs again
+				unlockTabs();
 				// show final values in gui
 				progressBar.setValue((int) (solver.getProgress() * 100));
 				String progressText = "progress: " + (((int)(solver.getProgress()*100*10000)) / 10000f) + "%    solutions: " + getSolutionsStr(solver.getSolutions());
@@ -188,7 +194,7 @@ public class Gui extends JFrame {
 		filefilter = new FileFilter() {
 			@Override
 			public String getDescription() {
-				return "Fast as fuck - Files (.faf)";
+				return "NQueensFAF - Files (.faf)";
 			}
 			@Override
 			public boolean accept(File f) {
@@ -231,9 +237,13 @@ public class Gui extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		getContentPane().setLayout(new BorderLayout());
 		
-		// overall + cpu-tab
+		// overall
+		JPanel pnlContent = new JPanel();
+		pnlContent.setLayout(new BorderLayout());
+		
 		JSplitPane splitPane = new JSplitPane();
 		splitPane.setEnabled(false);
+		pnlContent.add(splitPane, BorderLayout.CENTER);
 
 		JPanel pnlInput = new JPanel();
 		pnlInput.setLayout(new BorderLayout(0, 0));
@@ -452,16 +462,34 @@ public class Gui extends JFrame {
 		});
 		pnlTop.add(cboxDeviceChooser, BorderLayout.SOUTH);
 
+		// config tab
+		pnlConfig = new NQFafConfigPanel();
+		// fill the config panel inputs with the current config values
+		for(var cb : pnlConfig.cboxes) {
+			cb.setSelected((boolean) Config.getValue(cb.getName()));
+		}
+		for(var input : pnlConfig.inputs) {
+			input.txtField.setText(Config.getValue(input.getName()).toString());
+		}
+		
 		// tabbedPane
 		tabbedPane = new JTabbedPane();
-		tabbedPane.addTab(" CPU ", splitPane);
+		tabbedPane.addTab(" CPU ", pnlContent);
 		tabbedPane.addTab(" GPU ", null);
-		if(cboxDeviceChooser.getItemCount() == 0)						// if no GPUs are available, disable the GPU-tab
+		tabbedPane.addTab(" Config ", null);
+		if(cboxDeviceChooser.getItemCount() == 0) {						// if no GPUs are available, disable the GPU-tab
 			tabbedPane.setEnabledAt(1, false);
+			gpuEnabled = false;
+		}
 		tabbedPane.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				if(tabbedPane.getSelectedIndex() == 0) {
+					if(configTabActive) {
+						pnlContent.remove(pnlConfig);
+						pnlContent.add(splitPane);
+						configTabActive = false;
+					}
 					// show cpu gui-components
 					cboxDeviceChooser.setVisible(false);
 					pnlThreadcount.setVisible(true);
@@ -469,12 +497,22 @@ public class Gui extends JFrame {
 					btnCancel.setVisible(true);
 					solver = cpuSolver;
 				} else if(tabbedPane.getSelectedIndex() == 1) {
+					if(configTabActive) {
+						pnlContent.remove(pnlConfig);
+						pnlContent.add(splitPane);
+						configTabActive = false;
+					}
 					// show gpu gui-components
 					cboxDeviceChooser.setVisible(true);
 					pnlThreadcount.setVisible(false);
 					btnPause.setVisible(false);
 					btnCancel.setVisible(false);
 					solver = gpuSolver;
+				} else {
+					// show config panel
+					pnlContent.remove(splitPane);
+					pnlContent.add(pnlConfig);
+					configTabActive = true;
 				}
 			}
 		});
@@ -486,7 +524,7 @@ public class Gui extends JFrame {
 		String filepath = "", filename = "";
 		JFileChooser filechooser = new JFileChooser();
 		filechooser.setMultiSelectionEnabled(false);
-		filechooser.setCurrentDirectory(null);
+		filechooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
 		filechooser.setAcceptAllFileFilterUsed(false);
 		filechooser.addChoosableFileFilter(filefilter);
 		filechooser.setFileFilter(filefilter);
@@ -516,7 +554,7 @@ public class Gui extends JFrame {
 		String filepath = "";
 		JFileChooser filechooser = new JFileChooser();
 		filechooser.setMultiSelectionEnabled(false);
-		filechooser.setCurrentDirectory(null);
+		filechooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
 		filechooser.setAcceptAllFileFilterUsed(false);
 		filechooser.addChoosableFileFilter(filefilter);
 		filechooser.setFileFilter(filefilter);
@@ -533,7 +571,7 @@ public class Gui extends JFrame {
 				return;
 			}
 			// disable the tab that is not selected
-			tabbedPane.setEnabledAt((tabbedPane.getSelectedIndex()-1)*-1, false);
+			lockTabs();
 			// update gui to the restored values
 			sliderN.setValue(solver.getN());
 			tfN.setText(solver.getN() + "");
@@ -563,6 +601,44 @@ public class Gui extends JFrame {
 			progressBar.repaint();
 		}
 		lastPercentageStep = (float) (Math.round(solver.getProgress() / 0.1) * 0.1);
+
+		// apply config values
+		solver.setProgressUpdatesEnabled((boolean) Config.getValue("progressUpdatesEnabled"));
+		try {
+			solver.setTimeUpdateDelay((long) Config.getValue("timeUpdateDelay"));
+		} catch(IllegalArgumentException e) {
+			long defaultVal = (long) Config.getDefaultValue("timeUpdateDelay");
+			solver.setTimeUpdateDelay(defaultVal);
+			pnlConfig.inputTimeUpdateDelay.txtField.setText("" + defaultVal);
+			Config.resetValue("timeUpdateDelay");
+		}
+		try {
+			solver.setProgressUpdateDelay((long) Config.getValue("progressUpdateDelay"));
+		} catch(IllegalArgumentException e) {
+			long defaultVal = (long) Config.getDefaultValue("progressUpdateDelay");
+			solver.setProgressUpdateDelay(defaultVal);
+			pnlConfig.inputProgressUpdateDelay.txtField.setText("" + defaultVal);
+			Config.resetValue("progressUpdateDelay");
+		}
+		solver.setAutoSaveEnabled((boolean) Config.getValue("autoSaveEnabled"));
+		try {
+			solver.setAutoSavePercentageStep((int) Config.getValue("autoSavePercentageStep"));
+		} catch(IllegalArgumentException e) {
+			int defaultVal = (int) Config.getDefaultValue("autoSavePercentageStep");
+			solver.setAutoSavePercentageStep(defaultVal);
+			pnlConfig.inputAutoSavePercentageStep.txtField.setText("" + defaultVal);
+			Config.resetValue("autoSavePercentageStep");
+		}
+		solver.setAutoSaveFilename((String) Config.getValue("autoSaveFilename"));
+		solver.setAutoDeleteEnabled((boolean) Config.getValue("autoDeleteEnabled"));
+		try {
+			gpuSolver.setWorkgroupSize((int) Config.getValue("gpuWorkgroupSize"));
+		} catch(IllegalArgumentException e) {
+			int defaultVal = (int) Config.getDefaultValue("gpuWorkgroupSize");
+			gpuSolver.setWorkgroupSize(defaultVal);
+			pnlConfig.inputGpuWorkgroupSize.txtField.setText("" + defaultVal);
+			Config.resetValue("gpuWorkgroupSize");
+		}
 		
 		solver.setN(sliderN.getValue());
 		if(tabbedPane.getSelectedIndex() == 0) {			// CPU-Tab is selected
@@ -619,6 +695,25 @@ public class Gui extends JFrame {
 	}
 	
 	// utility methods
+	private void lockTabs() {
+		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+			if(i != tabbedPane.getSelectedIndex()) {
+				tabbedPane.setEnabledAt(i, false);
+			}
+		}
+	}
+	
+	private void unlockTabs() {
+		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+			if(i != tabbedPane.getSelectedIndex()) {
+				if(i == 1)	// if i is index of gpuTab
+					tabbedPane.setEnabledAt(i, gpuEnabled);
+				else
+					tabbedPane.setEnabledAt(i, true);
+			}
+		}
+	}
+	
 	private Color getProgressColor(double progress) {
 	    double H = progress * 0.3; // Hue (note 0.4 = Green, see huge chart below)
 	    double S = 0.9; // Saturation
@@ -677,13 +772,13 @@ public class Gui extends JFrame {
 		return strbuilder.toString();
 	}
 	
-	private void print(String msg, boolean clear) {
+	public void print(String msg, boolean clear) {
 		synchronized(msgQueue){
 			msgQueue.addLast(new Message(msg, clear));
 		}
 	}
 	
-	private void print(String msg) {
+	public void print(String msg) {
 		synchronized(msgQueue){
 			msgQueue.addLast(new Message(msg, false));
 		}
