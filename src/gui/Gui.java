@@ -540,7 +540,7 @@ public class Gui extends JFrame {
 		// store progress data in path filename
 		if(!filepath.equals("")) {
 			try {
-				solver.store(filepath);
+				solver.store(filepath, true);
 			} catch (IOException e) {
 				print("! unable to restore Solver from file '" + filepath + "': " + e.getMessage() + " !");
 				return;
