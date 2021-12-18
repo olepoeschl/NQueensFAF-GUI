@@ -426,7 +426,7 @@ public class Gui extends JFrame {
 
 		JScrollPane scrollPane = new JScrollPane(taOutput);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setWheelScrollingEnabled(true);
 		scrollPane.setBackground(Color.BLACK);
 		scrollPane.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Console", TitledBorder.LEADING, TitledBorder.TOP, null, Color.LIGHT_GRAY));
@@ -567,7 +567,8 @@ public class Gui extends JFrame {
 				print("! can not restore CPU-Solver using GPU-Solver-file and vice versa !");
 				return;
 			} catch (ClassNotFoundException | IOException e) {
-				print("! unable to restore Solver from file '" + filepath + "': " + e.getMessage() + " !");
+				print("! unable to restore Solver from file !");
+				e.printStackTrace();
 				return;
 			}
 			// disable the tab that is not selected
