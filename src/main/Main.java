@@ -62,6 +62,10 @@ public class Main {
 			
 			// some ugly lines of code processing all command line arguments
 			// but whatever
+			if(clArgs.switchPresent("-h") || clArgs.switchPresent("--help")) {
+				help();
+				return;
+			}
 			if(clArgs.switchPresent("--list-gpus")) {		// list all available GPU's
 				String[] devices = new GpuSolver().getAvailableDevices();
 				if(devices.length == 0) {
