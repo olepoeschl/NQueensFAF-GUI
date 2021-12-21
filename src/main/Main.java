@@ -173,7 +173,7 @@ public class Main {
 				System.out.println("CPU thread count was not specified.. using single threading");
 				threads = 1;
 			} else if(threads == 0 || threads > Runtime.getRuntime().availableProcessors()) {
-				throw new IllegalArgumentException("thread count must be a number >0 and <" + Runtime.getRuntime().availableProcessors() + " (=available processors)");
+				throw new IllegalArgumentException("thread count must be a number >0 and <=" + Runtime.getRuntime().availableProcessors() + " (=available processors)");
 			}
 		}
 		// initialize solver
