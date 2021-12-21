@@ -49,17 +49,28 @@ unless its stated otherwise, following times are referring to *single-threaded* 
 We are very excited!
 
 ## Version X (yet to come):
-      - definitely N = 16 in < 1 sec
-       
+      - definitely N = 16 in < 1 sec     
+## version 13 (latest):
+      - BIG IMPROVEMENT in GPU-Solver (about 30%)
+      
+      - swapped j with k in GpuConstellationsGenerator (-> NQueensFAF library)
+      
+      - group constellations by j, putting them into the same OpenCL workgroup
+      
+      - reduced overhead of starting the GPU-Solver by using a better method of filling the workgroups with "pseudo" constellations
 ## Version 12 (latest):
       - the OpenCL workgroup size used by the GpuSolver is now editable
+      
       - some small changes to the Gpu Solver with little improvement
+      
       - some new Gui features
 ## Version 11:
       - splitted into the Gui program (this) and the NQueensFAF library (link above) 
+      
       - the GPU solver now rounds the global work size up to the next matching number of constellations 
         and solves all constellations using GPU instead of solving remaing constellations using CPU
         (take a look at the NQueensFAF library)
+        
       - code (especially of the Gui class) is much cleaner now
 ## Version 10:
       - included support for GPU's using OpenCL through lwjgl
