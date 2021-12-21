@@ -49,8 +49,8 @@ public class Main {
 			try {
 				clArgs = new CommandLineArguments(args, "-h", "--help", "--threads", "-t", "--use-gpu", "-gpu", "--gpu-device", "-device", "--workgroup-size", "--list-gpus");
 			} catch(IllegalArgumentException e) {
-				System.err.println(e.getMessage());
-				help();
+				System.err.println("error: "  +e.getMessage());
+				System.out.println("try '-h' or '--help' for more information");
 				return;
 			}
 			
@@ -69,7 +69,8 @@ public class Main {
 			if(clArgs.switchPresent("--list-gpus")) {		// list all available GPU's
 				String[] devices = new GpuSolver().getAvailableDevices();
 				if(devices.length == 0) {
-					throw new IllegalArgumentException("No available GPU's were found");
+					System.err.println("No available GPU's were found");
+					return;
 				}
 				System.out.println("available GPU's:");
 				for(int i = 0; i < devices.length; i++) {
@@ -87,7 +88,8 @@ public class Main {
 					threads = clArgs.switchIntValue("-t");
 				}
 			} catch (NumberFormatException e) {
-				System.err.println("thread count must be a number");
+				System.err.println("error: thread count must be a number");
+				System.out.println("try '-h' or '--help' for more information");
 				return;
 			}
 			useGpu = clArgs.switchPresent("--use-gpu") || clArgs.switchPresent("-gpu");
@@ -98,7 +100,8 @@ public class Main {
 					gpuDevice = clArgs.switchIntValue("-device");
 				}
 			} catch (NumberFormatException e) {
-				System.err.println("GPU device index must be a number");
+				System.err.println("error: GPU device index must be a number");
+				System.out.println("try '-h' or '--help' for more information");
 				return;
 			}
 			try {
@@ -107,7 +110,8 @@ public class Main {
 					workgroupSize = clArgs.switchIntValue("--workgroup-size");
 				}
 			} catch (NumberFormatException e) {
-				System.err.println("workgroup size must be a number");
+				System.err.println("error: workgroup size must be a number");
+				System.out.println("try '-h' or '--help' for more information");
 				return;
 			}
 			String[] targets = clArgs.targets();
@@ -119,7 +123,8 @@ public class Main {
 			try {
 				N = Integer.parseInt(targets[0]);
 			} catch(NumberFormatException e) {
-				help();
+				System.err.println("error: board size must be a number");
+				System.out.println("try '-h' or '--help' for more information");
 				return;
 			}
 			
@@ -128,14 +133,15 @@ public class Main {
 			try {
 				startCommandLineSolver(N, threads, useGpu, gpuDevice, workgroupSize);
 			} catch(IllegalArgumentException e) {
-				System.err.println(e.getMessage());
+				System.err.println("error: " + e.getMessage());
+				System.out.println("try '-h' or '--help' for more information");
 				return;
 			}
 		}
 	}
 	
 	private static void help() {
-		System.out.println("Usage: java -jar NQueensFAF.jar <board size> [options]");
+		System.out.println("Usage: java -jar NQueensFAF.jar <board_size> [options]");
 		System.out.println("  available options:");
 		System.out.println("\t-h, --help \t\tprint this message");
 		System.out.println("\t-t <thread_count>, --threads <thread_count> \n\t\t\t\tset the thread count when using CPU");
