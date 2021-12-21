@@ -141,8 +141,12 @@ public class Main {
 	}
 	
 	private static void help() {
-		System.out.println("Usage: java -jar NQueensFAF.jar <board_size> [options]");
-		System.out.println("  available options:");
+		System.out.println("Usage: java -jar NQueensFAF.jar");
+		System.out.println("           (to use the gui)");
+		System.out.println("   or  java -jar NQueensFAF.jar <board_size> [options]");
+		System.out.println("           (to use it as command line tool)");
+		System.out.println();
+		System.out.println("  available options for command line usage:");
 		System.out.println("\t-h, --help \t\tprint this message");
 		System.out.println("\t-t <thread_count>, --threads <thread_count> \n\t\t\t\tset the thread count when using CPU");
 		System.out.println("\t-gpu, --use-gpu \tuse a GPU if possible");
