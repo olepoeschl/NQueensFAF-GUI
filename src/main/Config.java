@@ -113,8 +113,6 @@ public class Config {
 	public static boolean changed() {
 		for(var k : defaultConfigs.keySet()) {
 			if(!configs.get(k).toString().equals(defaultConfigs.get(k).toString())) {
-				System.out.println(k.toString());
-				System.out.println("now: " + configs.get(k) + ", default: " + defaultConfigs.get(k));
 				return true;
 			}
 		}

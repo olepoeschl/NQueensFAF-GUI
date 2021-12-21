@@ -68,7 +68,7 @@ public class Gui extends JFrame {
 	private GpuSolver gpuSolver;
 	private Solver solver;
 	// for printing a msg each 10 %
-	private float lastPercentageStep;
+	private float lastTenPercent;
 	// for printing all messages in the correct order
 	private ArrayDeque<Message>msgQueue;
 	// for determining if last used tab was the config tab
@@ -110,9 +110,9 @@ public class Gui extends JFrame {
 				String progressText = "progress: " + (((int)(progress*100*10000)) / 10000f) + "%    solutions: " + getSolutionsStr(solver.getSolutions());
 				((TitledBorder) progressBar.getBorder()).setTitle(progressText);
 				progressBar.repaint();
-				if(progress < 1.0 && progress >= lastPercentageStep+0.1) {
-					lastPercentageStep = (float) (Math.round(progress / 0.1) * 0.1);
-					print("Completed " + ((int) (lastPercentageStep*100)) + "% in " + getTimeStr(solver.getDuration()));
+				if(progress < 1f && (int) ((progress * 100) / 10) != lastTenPercent) {
+					lastTenPercent = (int) (progress * 100) / 10;
+					print("Completed " + ((int) (progress*100)) + "% in " + getTimeStr(solver.getDuration()));
 				}
 				// update color of the progressBar
 				if(!cpuSolver.wasCanceled()) {
@@ -177,7 +177,7 @@ public class Gui extends JFrame {
 					}
 				}
 				// print finishing message
-				print("============================\n" + solver.getSolutions() + " solutions found for N = " + solver.getN() + "\n============================");
+				print("============================\n" + getSolutionsStr(solver.getSolutions()) + " solutions found for N = " + solver.getN() + "\n============================");
 				// enable the other tabs again
 				unlockTabs();
 				// show final values in gui
@@ -601,7 +601,7 @@ public class Gui extends JFrame {
 			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
 			progressBar.repaint();
 		}
-		lastPercentageStep = (float) (Math.round(solver.getProgress() / 0.1) * 0.1);
+		lastTenPercent = (int) (solver.getProgress() * 100) / 10;
 
 		// apply config values
 		solver.setProgressUpdatesEnabled((boolean) Config.getValue("progressUpdatesEnabled"));
