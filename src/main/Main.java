@@ -67,7 +67,15 @@ public class Main {
 				return;
 			}
 			if(clArgs.switchPresent("--list-gpus")) {		// list all available GPU's
-				String[] devices = new GpuSolver().getAvailableDevices();
+				String[] devices;
+				try {
+					devices = new GpuSolver().getAvailableDevices();
+				} catch(IllegalStateException e) {
+					// no OpenCL-capable device was found
+					// a warning is written by the NQueensFAF library, so we don't need to print anything here
+					return;
+				}
+				// this if statement will never be executed, but whatever, I just leave it here
 				if(devices.length == 0) {
 					System.err.println("No available GPU's were found");
 					return;
@@ -180,7 +188,15 @@ public class Main {
 		Solver solver;
 		if(useGpu) {
 			GpuSolver gs = new GpuSolver();
-			String[] devices = gs.getAvailableDevices();
+			String[] devices;
+			try {
+				devices = new GpuSolver().getAvailableDevices();
+			} catch(IllegalStateException e) {
+				// no OpenCL-capable device was found
+				// a warning is written by the NQueensFAF library, so we don't need to print anything here
+				return;
+			}
+			// this if statement will never be executed, but whatever, I just leave it here
 			if(devices.length == 0) {
 				throw new IllegalArgumentException("No available GPU's were found");
 			}
