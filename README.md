@@ -16,7 +16,7 @@ For lower Java JDK versions than 17, you have to edit the build path and the com
 |      :----------:     |       :-:       |    :-:    |    :-:    |    :-:    |      :-:     |      :-:     |      :-:     |       :-:      |
 |  __single-threaded__  |      1.32s      |   8.95s   |   1:05m   |   8:20m   |     1:10h    | not measured | not measured |  not measured  |
 |   __multi-threaded__  |      0.25s      |   1.75s   |   12.5s   |   1:35m   |    13:05m    |     1:52h    |     16:18h   |  not measured  |
-|        __GPU__        |      0.029s     |   0.102s  |   0.69s   |   5.05s   |    39.83s    |     5:30m    |     48:57m   |      7:29h     |
+|        __GPU__        |      0.029s     |   0.102s  |   0.69s   |   5.05s   |    39.83s    |     5:30m    |     48:57m   |      7:16h     |
 
 CPU: *i5-9300h @4GHz undervolted (8 logical cores)* <br>
 GPU: GTX-1650 Ti (Laptop) <br>
