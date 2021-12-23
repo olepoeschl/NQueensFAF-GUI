@@ -20,6 +20,7 @@ For lower Java JDK versions than 17, you have to edit the build path and the com
 
 CPU: *i5-9300h @4GHz undervolted (8 logical cores)* <br>
 GPU: GTX-1650 Ti (Laptop) <br>
+(Attention: when testing times on GPU, your graphics card may go into another power state. To check this, you can use a tool such as "nvidiainfo".)
 
 # General
 This solution is based on two methods:
