@@ -20,7 +20,6 @@ For lower Java JDK versions than 17, you have to edit the build path and the com
 
 CPU: *i5-9300h @4GHz undervolted (8 logical cores)* <br>
 GPU: GTX-1650 Ti (Laptop) <br>
-(Attention: when testing times on GPU, your graphics card may go into another power state. To avoid this, you can use a tool such as "nvidiainfo". Also, for some nvidia cards there is a big startup time for the kernel, depending also on the boardsize N. )
 
 # General
 This solution is based on two methods:
@@ -58,7 +57,7 @@ We are very excited!
       - group constellations by j, putting them into the same OpenCL workgroup
       
       - reduced overhead of starting the GPU-Solver by using a better method of filling the workgroups with "pseudo" constellations
-## Version 12 (latest):
+## Version 12:
       - the OpenCL workgroup size used by the GpuSolver is now editable
       
       - some small changes to the Gpu Solver with little improvement
