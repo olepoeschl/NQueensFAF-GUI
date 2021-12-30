@@ -20,14 +20,17 @@ For lower Java JDK versions than 17, you have to edit the build path and the com
 
 CPU: *i5-9300h @4GHz undervolted (8 logical cores)* <br>
 GPU: GTX-1650 Ti (Laptop) <br>
-(Attention: when testing times on GPU, your graphics card may go into another power state. To check this, you can use a tool such as "nvidiainfo".)
+(Attention: when testing times on GPU, your graphics card may go into another power state. To check this and avoid this, you can use a tool such as "nvidiainfo".)
 
 # General
-This solution is based on two methods:
+
+This solution is based on two methods and one idea:
 
 - using bits to represent the occupancy of the board; based on the <a href="http://users.rcn.com/liusomers/nqueen_demo/nqueens.html">implementation by Jeff Somers </a>
       
 - calculating start constellations, in which the borders of the board are already occupied by 3 or 4 queens; based on the <a href="https://github.com/preusser/q27">implementation by the TU Dresden</a> (a very good description of this method can be found <a href="http://www.nqueens.de/sub/SearchAlgoUseSymm.en.html">here</a>)
+
+- GPU: remember board-leaving diagonals, when going forward, so thtat the can be reinserted, when we go backeards. This has also been done in Ping Che Chen's implementation (https://forum.beyond3d.com/threads/n-queen-solver-for-opencl.47785/) of the N Queens Problem for GPU's and it reduces the use of memory. 
 
 The program copies the needed lwjgl-binaries to the temp-folder of the system and tries to delete it later when the program is done. This function is done using self-deleting scripts and is successsfully tested for windows and linux. If you recognize that the temporary folder (named "NQueensFaf*") is still existing later than 10 seconds after the program is closed (not crashed!), feel free to open an issue. If the program crashes, it's obviously not able to delete the folder. However, this is not a problem because the program deletes not only one, but all folders in your temp-directory whose names start with "NQueensFaf".
 
