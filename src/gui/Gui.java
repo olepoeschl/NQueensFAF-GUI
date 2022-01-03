@@ -448,8 +448,13 @@ public class Gui extends JFrame {
 		// gpu-tab
 		cboxDeviceChooser = new JComboBox<String>();
 		cboxDeviceChooser.setBorder(new TitledBorder(null, "Device", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		for(String device_info : gpuSolver.getAvailableDevices()) {
-			cboxDeviceChooser.addItem(device_info);
+		try {
+			for(String device_info : gpuSolver.getAvailableDevices()) {
+				cboxDeviceChooser.addItem(device_info);
+			}
+		} catch(IllegalStateException e) {
+			// no OpenCL-capable device was found
+			// a warning is written by the NQueensFAF library, so we don't need to print anything here
 		}
 		cboxDeviceChooser.setBackground(new Color(243, 243, 247));
 		cboxDeviceChooser.setVisible(false);
