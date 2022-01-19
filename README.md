@@ -1,13 +1,14 @@
 # NQueensFAF
 <!--img src="https://www.student.hs-mittweida.de/~opoeschl/data/queenFire_FAF.png" width="200" height="200" align="right" /-->
 
-A really fast and highly optimized program for calculating the number of solutions of the N-Queens problem. With Gui and GPU support.
+A really fast and highly optimized program for calculating the number of solutions of the N-Queens problem. Supports GPU and can be used with a gui or using command line.
 <br>Built using the [NQueensFAF library](https://github.com/olepoeschl/NQueensFAF-Library) (currently private).
 <br>Supports CPU multithreading and GPU.
 
 ### Download
 See the "Release" section for the latest stable build.
 <br>There you can also find a x64 stand alone executable for Windows, generated using [jarbatexe](https://github.com/olepoeschl/jarbatexe).
+<br>Attention: You can't use the executable file for command line usage!
 <br> It's an eclipse project, so you can clone it, import it into eclipse and run it.
 For lower Java JDK versions than 17, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
