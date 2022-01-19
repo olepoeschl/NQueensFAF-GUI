@@ -7,7 +7,7 @@ A really fast and highly optimized program for calculating the number of solutio
 
 ### Download
 See the "Release" section for the latest stable build.
-There you can also find stand alone executables for Windows, MacOS and Linux.
+<br>There you can also find a x64 stand alone executable for Windows, generated using [jarbatexe](https://github.com/olepoeschl/jarbatexe).
 <br> It's an eclipse project, so you can clone it, import it into eclipse and run it.
 For lower Java JDK versions than 17, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
