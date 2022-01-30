@@ -1,7 +1,7 @@
 # NQueensFAF
 <!--img src="https://www.student.hs-mittweida.de/~opoeschl/data/queenFire_FAF.png" width="200" height="200" align="right" /-->
 
-A really fast and highly optimized program for calculating the number of solutions of the N-Queens problem. Supports GPU and can be used with a gui or using command line.
+A really fast and highly optimized program for calculating the number of solutions of the N-Queens problem. Can be used with a gui or using command line.
 <br>Built using the [NQueensFAF library](https://github.com/olepoeschl/NQueensFAF-Library) (currently private).
 <br>Supports CPU multithreading and GPU.
 
