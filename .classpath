@@ -6,7 +6,16 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="dependencies/lwjgl2.9.3/lwjgl.jar"/>
 	<classpathentry kind="lib" path="dependencies/NQueensFAF library.jar"/>
+	<classpathentry kind="lib" path="dependencies/lwjgl/lwjgl.jar"/>
+	<classpathentry kind="lib" path="dependencies/lwjgl/lwjgl-opencl.jar"/>
+	<classpathentry kind="lib" path="dependencies/lwjgl/lwjgl-natives-linux.jar"/>
+	<classpathentry kind="lib" path="dependencies/lwjgl/lwjgl-natives-linux-arm32.jar"/>
+	<classpathentry kind="lib" path="dependencies/lwjgl/lwjgl-natives-linux-arm64.jar"/>
+	<classpathentry kind="lib" path="dependencies/lwjgl/lwjgl-natives-macos.jar"/>
+	<classpathentry kind="lib" path="dependencies/lwjgl/lwjgl-natives-macos-arm64.jar"/>
+	<classpathentry kind="lib" path="dependencies/lwjgl/lwjgl-natives-windows.jar"/>
+	<classpathentry kind="lib" path="dependencies/lwjgl/lwjgl-natives-windows-arm64.jar"/>
+	<classpathentry kind="lib" path="dependencies/lwjgl/lwjgl-natives-windows-x86.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

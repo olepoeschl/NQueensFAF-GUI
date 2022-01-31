@@ -1,5 +1,6 @@
 package main;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -149,10 +150,22 @@ public class Main {
 	}
 	
 	private static void help() {
-		System.out.println("Usage: java -jar NQueensFAF.jar");
-		System.out.println("           (to use the gui)");
-		System.out.println("   or  java -jar NQueensFAF.jar <board_size> [options]");
-		System.out.println("           (to use it as command line tool)");
+		try {
+			if(new File(".").getCanonicalPath().endsWith(".exe")) {
+				System.out.println("Usage: NQueensFAF.exe");
+				System.out.println("           (to use the gui)");
+				System.out.println("   or  NQueensFAF.exe <board_size> [options]");
+				System.out.println("           (to use it as command line tool)");
+			} else {
+				System.out.println("Usage: java -jar NQueensFAF.jar");
+				System.out.println("           (to use the gui)");
+				System.out.println("   or  java -jar NQueensFAF.jar <board_size> [options]");
+				System.out.println("           (to use it as command line tool)");
+			}
+		} catch (IOException e1) {
+			System.err.println("error: ");
+			e1.printStackTrace();
+		}
 		System.out.println();
 		System.out.println("  available options for command line usage:");
 		System.out.println("\t-h, --help \t\tprint this message");
