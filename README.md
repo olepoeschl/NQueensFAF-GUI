@@ -34,8 +34,6 @@ This solution is based on two methods and one idea:
 
 - GPU: remember board-leaving diagonals, when going forward, so that they can be reinserted, when we go backwards. This has also been done in Ping Che Chen's implementation (https://forum.beyond3d.com/threads/n-queen-solver-for-opencl.47785/) of the N Queens Problem for GPU's and it reduces the use of memory. 
 
-The program copies the needed lwjgl-binaries to the temp-folder of the system and tries to delete it later when the program is done. This function is done using self-deleting scripts and is successsfully tested for windows and linux. If you recognize that the temporary folder (named "NQueensFaf*") is still existing later than 10 seconds after the program is closed (not crashed!), feel free to open an issue. If the program crashes, it's obviously not able to delete the folder. However, this is not a problem because the program deletes not only one, but all folders in your temp-directory whose names start with "NQueensFaf".
-
 # Versions
 This section shows the improvements we made from version to version related to the performance.
 Unless its stated otherwise, following times are referring to *single-threaded* and the CPU mentioned above.
