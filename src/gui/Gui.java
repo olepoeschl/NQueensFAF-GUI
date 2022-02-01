@@ -97,7 +97,12 @@ public class Gui extends JFrame {
 			lblStatus.setText("paused");
 		});
 		gpuSolver = new GpuSolver();
-		gpuSolver.setDevice(0);
+		try {
+			gpuSolver.setDevice(0);
+		} catch (IllegalStateException e) {
+			// when this exception is thrown, there is no opencl device available. 
+			// But this warning is already printed by the static code in GpuSolver.java, so we just ignore it here
+		}
 		// initialize solver callbacks
 		var solvers = new Solver[2];
 		solvers[0] = cpuSolver;
