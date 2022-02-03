@@ -18,12 +18,12 @@ We are looking forward to the distributed project and hope to solve the 26 queen
 
 |      Board size N     |        16       |     17    |     18    |     19    |      20      |      21      |      22      |       23       |       24       |
 |      :----------:     |       :-:       |    :-:    |    :-:    |    :-:    |      :-:     |      :-:     |      :-:     |       :-:      |      :-:       |
-|  i5 - 9300h single    |      1.32s      |   8.95s   |   1:05m   |   8:20m   |     1:10h    | not measured | not measured |  not measured  |  not measured  |
-|  i5 - 9300h multi     |      0.25s      |   1.75s   |   12.5s   |   1:35m   |    13:05m    |     1:52h    |     16:18h   |  not measured  |  not measured  |
+|      RTX 3080 FE      |      0.006s     |   0.036s  |   0.23s   |   1.5s    |    10.82s    |     1:25m    |     11:45m   |      1:43h     |     16:08h     |
 |       GTX 1650        |      0.029s     |   0.102s  |   0.69s   |   5.05s   |    39.83s    |     5:30m    |     48:57m   |      7:16h     |  not measured  |
 |i5 - 12600k single     |      1.12s      |   7.04s   |   49.92s  |   6:21m   |    57:47m    | not measured | not measured |  not measured  |  not measured  |
 | i5 - 12600k multi     |      0.203s     |   0.79s   |   4.91s   |   37.1s   |     4:59m    |    42:20m    |     6:09h    |  not measured  |  not measured  |
-|      RTX 3080 FE      |      0.006s     |   0.036s  |   0.23s   |   1.5s    |    10.82s    |     1:25m    |     11:45m   |      1:43h     |     16:08h     |
+|  i5 - 9300h single    |      1.32s      |   8.95s   |   1:05m   |   8:20m   |     1:10h    | not measured | not measured |  not measured  |  not measured  |
+|  i5 - 9300h multi     |      0.25s      |   1.75s   |   12.5s   |   1:35m   |    13:05m    |     1:52h    |     16:18h   |  not measured  |  not measured  |
 
 The CPU's and the GPU's are used as is, without overclocking. Only the i5 - 9300h got slightly undervolted. 
 Single stands for single core and multi for Multi-Core. 
