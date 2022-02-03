@@ -42,7 +42,7 @@ This solution is based on two methods and one idea:
 
 # Versions
 This section shows the improvements we made from version to version related to the performance.
-Unless its stated otherwise, following times are referring to *single-threaded* and the CPU mentioned above.
+Unless its stated otherwise, following times are referring to *single-threaded* and the i5-9300h mentioned above.
 
 ## Distributed (yet to come):
       - test using board size 23 was successfull!
