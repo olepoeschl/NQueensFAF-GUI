@@ -15,7 +15,7 @@ For lower Java JDK versions than 17, you have to edit the build path and the com
 # Current Times
 Some new hardware enabled us to refurbish the computation times table. 
 Especially the RTX 3080 shows, whats actually possible with only 16 hours for the 24 queens problem. 
-We are looking forward to the distributed project and hope to solve the 6 queens problem this year with your help. 
+We are looking forward to the distributed project and hope to solve the 26 queens problem this year with your help. 
 
 |      Board size N     |        16       |     17    |     18    |     19    |      20      |      21      |      22      |       23       |       24       |
 |      :----------:     |       :-:       |    :-:    |    :-:    |    :-:    |      :-:     |      :-:     |      :-:     |       :-:      |      :-:       |
