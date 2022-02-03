@@ -56,10 +56,14 @@ Unless its stated otherwise, following times are referring to *single-threaded* 
       - there will be a website with a ranking of all participants and the current progress of the project when it runs
      
 We are very excited!
-
-## Version X (yet to come):
-      - definitely N = 16 in < 1 sec     
-## version 13 (latest):
+   
+   
+## 1.15 (latest):
+      - migrated from LWJGL 2 to LWJGL 3 -> much less overhead when starting the GpuSolver
+      - for low board sizes, noticeably faster times
+## 1.14:
+      - command line support
+## 1.13:
       - BIG IMPROVEMENT in GPU-Solver (about 30%)
       
       - swapped j with k in GpuConstellationsGenerator (-> NQueensFAF library (currently private))
@@ -67,13 +71,13 @@ We are very excited!
       - group constellations by j, putting them into the same OpenCL workgroup
       
       - reduced overhead of starting the GPU-Solver by using a better method of filling the workgroups with "pseudo" constellations
-## Version 12:
+## 1.12:
       - the OpenCL workgroup size used by the GpuSolver is now editable
       
       - some small changes to the Gpu Solver with little improvement
       
       - some new Gui features
-## Version 11:
+## 1.11:
       - splitted into the Gui program (this) and the NQueensFAF library (link above (currently private)) 
       
       - the GPU solver now rounds the global work size up to the next matching number of constellations 
@@ -81,13 +85,13 @@ We are very excited!
         (take a look at the NQueensFAF library (currently private))
         
       - code (especially of the Gui class) is much cleaner now
-## Version 10:
+## 1.10:
       - included support for GPU's using OpenCL through lwjgl
       
       - insanely fast thanks to optimized parallel programming
       
       - realtime progress updates using OpenCL read operations
-## Version 9:
+## 1.9:
       - REMARKABLE IMPROVEMENT!!! (~35%)
 
       - implemented case distinction for the different start Constellations in order to get rid of arrays
@@ -97,7 +101,7 @@ We are very excited!
       - currently only works for board sizes up to N=23, this will be updated soon
       
       - N = 16 in ~1.35 sec --> broke the 2-second-Barrier!
-## Version 8:
+## 1.8:
       - better handling of the different start constellation cases
       
       - optimization of the recursion functions
@@ -105,7 +109,7 @@ We are very excited!
       - many further little optimizations
 
       - N = 16 in ~2.1 sec
-## Version 7:
+## 1.7:
       - many minor changes to reduce memory and cache misses
       
       - ability to save progress and continue later
@@ -113,7 +117,7 @@ We are very excited!
       - use newest java jdk 15
       
       - N = 16 in ~2.5 sec
-## Version 6:
+## 1.6:
       - bit representation of integers for modelling the board
       
       - rest of the program stays the same
@@ -121,7 +125,7 @@ We are very excited!
       - has a gui now
       
       - N = 16 in ~ 4 sec
-## Version 5:
+## 1.5:
       - better use of symmetry of solutions by using starting constellations
       
       - set Queens on the outer rows and cols
@@ -129,17 +133,17 @@ We are very excited!
       - multithreading by distributing the starting positions to the threads
       
       - N = 16 in ~ 1 min     
-## Version 4:
+## 1.4:
       - multithreading by setting Queen in the first row on different places
-## Version 3:
+## 1.3:
       - represent the board with diagonals and cols 
       
       - N = 16 in ~ some min
-## Version 2:
+## 1.2:
       - reduce to half by only going to the half of the first row
       
       - N = 16 in ~ 5 min
-## Version 1: 
+## 1.1 (actually 1.0): 
       - board as NxN-boolean
       
       - occupy each square individually
