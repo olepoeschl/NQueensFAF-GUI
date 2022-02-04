@@ -78,7 +78,7 @@ We are very excited!
       
       - some new Gui features
 ## 1.11:
-      - splitted into the Gui program (this) and the NQueensFAF library (link above) 
+      - splitted into the Gui program (this repo) and the NQueensFAF library (link above) 
       
       - the GPU solver now rounds the global work size up to the next matching number of constellations 
         and solves all constellations using GPU instead of solving remaing constellations using CPU
