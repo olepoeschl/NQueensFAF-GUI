@@ -158,5 +158,5 @@ We're happy about every comment, question, idea or whatever - if you have such a
 Mail: olepoeschl.developing@gmail.com
       
 # Credits
-<a href="http://ww.lwjgl.org/"> LWJGL 3 </a> (Lightweight Java Game Library, enables the use of OpenCL in Java) <br>
+<a href="http://www.lwjgl.org/"> LWJGL 3 </a> (Lightweight Java Game Library, enables the use of OpenCL in Java) <br>
 Icon by Jojo
