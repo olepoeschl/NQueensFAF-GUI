@@ -48,7 +48,7 @@ public class Main {
 			// headless
 			CommandLineArguments clArgs;
 			try {
-				clArgs = new CommandLineArguments(args, "-h", "--help", "--threads", "-t", "--use-gpu", "-gpu", "--gpu-device", "-device", "--workgroup-size", "--list-gpus");
+				clArgs = new CommandLineArguments(args, "-h", "--help", "--threads", "-t", "-gpu", "--gpu-device", "-device", "--workgroup-size", "--list-gpus");
 			} catch(IllegalArgumentException e) {
 				System.err.println("error: "  +e.getMessage());
 				System.out.println("try '-h' or '--help' for more information");
@@ -101,7 +101,7 @@ public class Main {
 				System.out.println("try '-h' or '--help' for more information");
 				return;
 			}
-			useGpu = clArgs.switchPresent("--use-gpu") || clArgs.switchPresent("-gpu");
+			useGpu = clArgs.switchPresent("-gpu");
 			try {
 				if(clArgs.switchPresent("--gpu-device")) {
 					gpuDevice = clArgs.switchIntValue("--gpu-device");
@@ -170,7 +170,7 @@ public class Main {
 		System.out.println("  available options for command line usage:");
 		System.out.println("\t-h, --help \t\tprint this message");
 		System.out.println("\t-t <thread_count>, --threads <thread_count> \n\t\t\t\tset the thread count when using CPU");
-		System.out.println("\t-gpu, --use-gpu \tuse a GPU if possible");
+		System.out.println("\t-gpu \tuse a GPU if possible");
 		System.out.println("\t-device <index>, --gpu-device <index>	\n\t\t\t\tset the index of the GPU that should be used, see '--list-gpus'");
 		System.out.println("\t--workgroup-size <workgroup_size> \n\t\t\t\tset the OpenCL workgroup size when using GPU");
 		System.out.println("\t--list-gpus \t\tprint a list of all available GPU devices and their indexes");
