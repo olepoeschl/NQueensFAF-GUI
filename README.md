@@ -2,7 +2,7 @@
 <!--img src="https://www.student.hs-mittweida.de/~opoeschl/data/queenFire_FAF.png" width="200" height="200" align="right" /-->
 
 A really fast and highly optimized program for calculating the number of solutions of the N-Queens problem. Can be used with a gui or using command line.
-<br>Built using the [NQueensFAF library](https://github.com/olepoeschl/NQueensFAF-Library) (currently private).
+<br>Built using the [NQueensFAF library](https://github.com/olepoeschl/NQueensFAF-Library).
 <br>Supports CPU multithreading and GPU.
 
 ### Download
@@ -66,7 +66,7 @@ We are very excited!
 ## 1.13:
       - BIG IMPROVEMENT in GPU-Solver (about 30%)
       
-      - swapped j with k in GpuConstellationsGenerator (-> NQueensFAF library (currently private))
+      - swapped j with k in GpuConstellationsGenerator (-> NQueensFAF library)
       
       - group constellations by j, putting them into the same OpenCL workgroup
       
@@ -78,11 +78,11 @@ We are very excited!
       
       - some new Gui features
 ## 1.11:
-      - splitted into the Gui program (this) and the NQueensFAF library (link above (currently private)) 
+      - splitted into the Gui program (this) and the NQueensFAF library (link above) 
       
       - the GPU solver now rounds the global work size up to the next matching number of constellations 
         and solves all constellations using GPU instead of solving remaing constellations using CPU
-        (take a look at the NQueensFAF library (currently private))
+        (take a look at the NQueensFAF library)
         
       - code (especially of the Gui class) is much cleaner now
 ## 1.10:
