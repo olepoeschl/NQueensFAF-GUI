@@ -18,8 +18,8 @@ We are looking forward to the distributed project and hope to solve the 26 queen
 
 |      Board size N     |        16       |     17    |     18    |     19    |      20      |      21      |      22      |       23       |       24       |
 |      :----------:     |       :-:       |    :-:    |    :-:    |    :-:    |      :-:     |      :-:     |      :-:     |       :-:      |      :-:       |
-|      RTX 3080 FE      |      0.000s     |   0.022s  |   0.17s   |   1.46s   |    10.75s    |     1:25m    |     11:45m   |      1:43h     |     16:08h     |
-|     RTX 3060 Ti FE    |      0.000s     |   0.031s  |   0.19s   |   2.08s   |    16.43s    |     2:14m    |     19:20m   |      2:48h     |     26:37h     |
+|      RTX 3080 FE      |      0.000s     |   0.000s  |   0.17s   |   1.46s   |    10.75s    |     1:25m    |     11:45m   |      1:43h     |     16:08h     |
+|     RTX 3060 Ti FE    |      0.000s     |   0.000s  |   0.19s   |   2.08s   |    16.43s    |     2:14m    |     19:20m   |      2:48h     |     26:37h     |
 |       GTX 1650        |      0.029s     |   0.102s  |   0.69s   |   5.05s   |    39.83s    |     5:30m    |     48:57m   |      7:16h     |  not measured  |
 |i5 - 12600k single     |      1.12s      |   7.04s   |   49.92s  |   6:21m   |    57:47m    | not measured | not measured |  not measured  |  not measured  |
 | i5 - 12600k multi     |      0.203s     |   0.79s   |   4.91s   |   37.1s   |     4:59m    |    42:20m    |     6:09h    |  not measured  |  not measured  |
