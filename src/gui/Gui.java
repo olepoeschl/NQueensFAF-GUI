@@ -38,6 +38,7 @@ import javax.swing.text.DefaultCaret;
 import de.nqueensfaf.Solver;
 import de.nqueensfaf.compute.CpuSolver;
 import de.nqueensfaf.compute.GpuSolver;
+import de.nqueensfaf.compute.SymSolver;
 import main.Config;
 
 public class Gui extends JFrame {
@@ -66,6 +67,7 @@ public class Gui extends JFrame {
 	// Solvers
 	private CpuSolver cpuSolver;
 	private GpuSolver gpuSolver;
+	private SymSolver symSolver;
 	private Solver solver;
 	// for printing a msg each 10 %
 	private float lastTenPercent;
@@ -103,10 +105,14 @@ public class Gui extends JFrame {
 			// when this exception is thrown, there is no opencl device available. 
 			// But this warning is already printed by the static code in GpuSolver.java, so we just ignore it here
 		}
+		symSolver = new SymSolver();
+		
 		// initialize solver callbacks
-		var solvers = new Solver[2];
+		var solvers = new Solver[3];
 		solvers[0] = cpuSolver;
 		solvers[1] = gpuSolver;
+		solvers[2] = symSolver;
+		
 		for(Solver solver : solvers) {
 			solver.setOnTimeUpdateCallback((duration) -> {
 				lblTime.setText(getTimeStr(duration));
