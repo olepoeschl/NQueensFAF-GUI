@@ -108,10 +108,9 @@ public class Gui extends JFrame {
 		symSolver = new SymSolver();
 		
 		// initialize solver callbacks
-		var solvers = new Solver[3];
+		var solvers = new Solver[2];
 		solvers[0] = cpuSolver;
 		solvers[1] = gpuSolver;
-		solvers[2] = symSolver;
 		
 		for(Solver solver : solvers) {
 			solver.setOnTimeUpdateCallback((duration) -> {
@@ -132,71 +131,9 @@ public class Gui extends JFrame {
 					progressBar.setForeground(clrProgress);
 				}
 			}).addInitializationCallback(() -> {
-				pnlStatus.setBackground(clrRunning);
-				lblStatus.setText("running .  .  .");
-				progressBar.setForeground(clrRunning);
-				// disable the tabs that are not selected
-				lockTabs();
-				if(solver == cpuSolver)
-					print("Starting CPU-Solver for N=" + solver.getN() + "...", true);
-				else if(solver == gpuSolver)
-					print("Starting GPU-Solver for N=" + solver.getN() + "...", true);
-				sliderN.setEnabled(false);
-				sliderThreadcount.setEnabled(false);
-				tfN.setEditable(false);
-				tfThreadcount.setEditable(false);
-				cboxDeviceChooser.setEnabled(false);
-				btnStart.setEnabled(false);
-				btnStore.setEnabled(true);
-				btnRestore.setEnabled(false);
-				btnPause.setEnabled(true);
-				btnCancel.setEnabled(true);
-				// print global work size if gpuSolver is sued
-				if(solver == gpuSolver) {
-					new Thread(() -> {
-						while(true) {
-							if(gpuSolver.getGlobalWorkSize() != 0) {
-								print("Enqueued " + gpuSolver.getGlobalWorkSize() + " work-items");
-								break;
-							}
-							try {
-								Thread.sleep(50);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-						}
-					}).start();
-				}
+				initializationCB();
 			}).addTerminationCallback(() -> {
-				lblStatus.setText("finished");
-				sliderN.setEnabled(true);
-				sliderThreadcount.setEnabled(true);
-				tfN.setEditable(true);
-				tfThreadcount.setEditable(true);
-				cboxDeviceChooser.setEnabled(true);
-				btnStart.setEnabled(true);
-				btnStore.setEnabled(false);
-				btnRestore.setEnabled(true);
-				btnPause.setEnabled(false);
-				btnPause.setText("Pause");
-				btnCancel.setEnabled(false);
-				if(solver == cpuSolver) {
-					if(cpuSolver.wasCanceled()) {
-						progressBar.setForeground(clrCanceled);
-						pnlStatus.setBackground(clrCanceled);
-						lblStatus.setText("canceled");
-					}
-				}
-				// print finishing message
-				print("============================\n" + getSolutionsStr(solver.getSolutions()) + " solutions found for N = " + solver.getN() + "\n============================");
-				// enable the other tabs again
-				unlockTabs();
-				// show final values in gui
-				progressBar.setValue((int) (solver.getProgress() * 100));
-				String progressText = "progress: " + (((int)(solver.getProgress()*100*10000)) / 10000f) + "%    solutions: " + getSolutionsStr(solver.getSolutions());
-				((TitledBorder) progressBar.getBorder()).setTitle(progressText);
-				progressBar.repaint();
-				lblTime.setText(getTimeStr(solver.getDuration()));
+				terminationCB();
 			});
 		}
 		solver = cpuSolver;
@@ -241,10 +178,89 @@ public class Gui extends JFrame {
 		}).start();
 	}
 	
+	private void initializationCB() {
+		pnlStatus.setBackground(clrRunning);
+		lblStatus.setText("running .  .  .");
+		progressBar.setForeground(clrRunning);
+		// disable the tabs that are not selected
+		lockTabs();
+		if(solver == cpuSolver)
+			print("Starting CPU-Solver for N=" + solver.getN() + "...", true);
+		else if(solver == gpuSolver)
+			print("Starting GPU-Solver for N=" + solver.getN() + "...", true);
+		sliderN.setEnabled(false);
+		sliderThreadcount.setEnabled(false);
+		tfN.setEditable(false);
+		tfThreadcount.setEditable(false);
+		cboxDeviceChooser.setEnabled(false);
+		btnStart.setEnabled(false);
+		btnStore.setEnabled(true);
+		btnRestore.setEnabled(false);
+		btnPause.setEnabled(true);
+		btnCancel.setEnabled(true);
+		// print global work size if gpuSolver is used
+		if(solver == gpuSolver) {
+			new Thread(() -> {
+				while(true) {
+					if(gpuSolver.getGlobalWorkSize() != 0) {
+						print("Enqueued " + gpuSolver.getGlobalWorkSize() + " work-items");
+						break;
+					}
+					try {
+						Thread.sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}).start();
+		}
+	}
+	
+	private void terminationCB() {
+		lblStatus.setText("finished");
+		sliderN.setEnabled(true);
+		sliderThreadcount.setEnabled(true);
+		tfN.setEditable(true);
+		tfThreadcount.setEditable(true);
+		cboxDeviceChooser.setEnabled(true);
+		btnStart.setEnabled(true);
+		btnStore.setEnabled(false);
+		btnRestore.setEnabled(true);
+		btnPause.setEnabled(false);
+		btnPause.setText("Pause");
+		btnCancel.setEnabled(false);
+		if(solver == cpuSolver) {
+			if(cpuSolver.wasCanceled()) {
+				progressBar.setForeground(clrCanceled);
+				pnlStatus.setBackground(clrCanceled);
+				lblStatus.setText("canceled");
+			}
+		}
+		// print finishing message
+		print("============================\n" + getSolutionsStr(solver.getSolutions()) + " solutions found for N = " + solver.getN());
+		// enable the other tabs again
+		unlockTabs();
+		// show final values in gui
+		progressBar.setValue((int) (solver.getProgress() * 100));
+		String progressText = "progress: " + (((int)(solver.getProgress()*100*10000)) / 10000f) + "%    solutions: " + getSolutionsStr(solver.getSolutions());
+		((TitledBorder) progressBar.getBorder()).setTitle(progressText);
+		progressBar.repaint();
+		lblTime.setText(getTimeStr(solver.getDuration()));
+		
+		// print solution counts 
+		long solutionsUnique = (solver.getSolutions() + 4*symSolver.getSolutions180() + 6* symSolver.getSolutions90()) / 8;
+		print("\nUnique Solutions:");
+		print("      With  90° symmetry: " + getSolutionsStr(symSolver.getSolutions90()));
+		print("      With 180° symmetry: " + getSolutionsStr(symSolver.getSolutions180()));
+		print("      Without   symmetry: " + getSolutionsStr(solutionsUnique-symSolver.getSolutions90() - symSolver.getSolutions180()));
+		print("      In total: " + getSolutionsStr(solutionsUnique));
+		print("============================");
+	}
+	
 	private void initGui() {
 		iconImg = Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/queenFire_FAF_beschnitten.png"));
 		setIconImage(iconImg);
-		setResizable(false);
+		setResizable(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		getContentPane().setLayout(new BorderLayout());
 		
@@ -611,6 +627,7 @@ public class Gui extends JFrame {
 			return;
 		if(!solver.isRestored()) {
 			solver.reset();
+			symSolver.reset();
 			// reset progress
 			progressBar.setValue(0);
 			String progressText = "progress: 0.0%    solutions: 0";
@@ -620,6 +637,7 @@ public class Gui extends JFrame {
 		lastTenPercent = (int) (solver.getProgress() * 100) / 10;
 
 		// apply config values
+		// progress update 
 		solver.setProgressUpdatesEnabled((boolean) Config.getValue("progressUpdatesEnabled"));
 		try {
 			solver.setTimeUpdateDelay((long) Config.getValue("timeUpdateDelay"));
@@ -637,6 +655,7 @@ public class Gui extends JFrame {
 			pnlConfig.inputProgressUpdateDelay.txtField.setText("" + defaultVal);
 			Config.resetValue("progressUpdateDelay");
 		}
+		// autosave 
 		solver.setAutoSaveEnabled((boolean) Config.getValue("autoSaveEnabled"));
 		try {
 			solver.setAutoSavePercentageStep((int) Config.getValue("autoSavePercentageStep"));
@@ -657,15 +676,19 @@ public class Gui extends JFrame {
 			Config.resetValue("gpuWorkgroupSize");
 		}
 		
+		// set N and choose solver 
 		solver.setN(sliderN.getValue());
+		symSolver.setN(sliderN.getValue());
 		if(tabbedPane.getSelectedIndex() == 0) {			// CPU-Tab is selected
 			cpuSolver.setThreadcount(sliderThreadcount.getValue());
 		} else if(tabbedPane.getSelectedIndex() == 1) {		// GPU-Tab is selected
 			gpuSolver.setDevice(cboxDeviceChooser.getSelectedIndex());
 		}
 		
+		// start solver 
 		try {
 			solver.solveAsync();
+			symSolver.solveAsync();
 		} catch (Exception e) {
 			print("! " + e.getMessage() + " !");
 		}
