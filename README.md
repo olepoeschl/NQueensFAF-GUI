@@ -63,7 +63,7 @@ Unless its stated otherwise, following times are referring to *single-threaded* 
      
 We are very excited!
    
-## 1.16:
+## 1.16 (latest):
       - implemented (fast!) SymSolver for finding solutions that are symmetric with respect to 90 or 180 degree rotation 
       - enable counting of unique solutions 
       - extend capabilities of the command line version, for example auto saves, unique solution counter and config file 
