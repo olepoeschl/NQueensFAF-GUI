@@ -687,8 +687,8 @@ public class Gui extends JFrame {
 		
 		// start solver 
 		try {
-			solver.solveAsync();
 			symSolver.solveAsync();
+			solver.solveAsync();
 		} catch (Exception e) {
 			print("! " + e.getMessage() + " !");
 		}
