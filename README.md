@@ -35,6 +35,12 @@ The CPU's and the GPU's are used as is, without overclocking. Only the i5 - 9300
 Single stands for single core and multi for Multi-Core. 
 (Attention: when testing times on GPU, your graphics card may go into another power state. To check this and avoid this, you can use a tool such as "nvidiainfo".)
 
+# News 
+
+We are happy to have passed a small milestone today. 
+A little bit of overclocking made it possible to finally reach the previous aim of this programm: to solve the 16-queens-problem single threaded under 1 second. 
+At 5.3GHz, the i5-12600k was able to perform the computation in 0.992s only - even with unique solutions included. 
+
 # General
 
 This solution is based on two methods and one idea:
