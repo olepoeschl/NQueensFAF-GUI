@@ -38,7 +38,7 @@ Single stands for single core and multi for Multi-Core.
 # News 
 
 We are happy to have passed a small milestone today. 
-A little bit of overclocking made it possible to finally reach the previous aim of this programm: to solve the 16-queens-problem single threaded under 1 second. 
+A little bit of overclocking made it possible to finally reach the previous aim of this program: to solve the 16-queens-problem single threaded under 1 second. 
 At 5.3GHz, the i5-12600k was able to perform the computation in 0.992s only - even with unique solutions included. 
 
 # General
