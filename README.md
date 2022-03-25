@@ -17,11 +17,11 @@ Especially the RTX 3080 shows, whats actually possible with only 16 hours for th
 We are looking forward to the distributed project and hope to solve the 26 queens problem this year with your help. 
 
 <b>GPUs</b>
-|      Board size N     |    16    |    17    |    18    |     19    |      20      |      21      |      22      |       23       |       24       |   25 |
-|      :----------:     |    :-:   |    :-:   |    :-:   |    :-:    |      :-:     |      :-:     |      :-:     |       :-:      |      :-:       |  :-: |
-|      RTX 3080 FE      |  0.000s  |  0.000s  |   0.17s  |   1.46s   |    10.75s    |     1:25m    |     11:45m   |      1:43h     |     16:08h     | not measured |
-|     RTX 3060 Ti FE    |  0.000s  |  0.000s  |   0.19s  |   2.08s   |    16.43s    |     2:14m    |     19:20m   |      2:48h     |     26:37h     | 10d 16h |
-|       GTX 1650        |  0.029s  |  0.102s  |   0.69s  |   5.05s   |    39.83s    |     5:30m    |     48:57m   |      7:16h     |  not measured  | not measured |
+|      Board size N     |   18    |     19    |      20      |      21      |      22      |       23       |       24       |   25 |
+|      :----------:     |   :-:   |    :-:    |      :-:     |      :-:     |      :-:     |       :-:      |      :-:       |  :-: |
+|      RTX 3080 FE      |  0.17s  |   1.46s   |    10.75s    |     1:25m    |     11:45m   |      1:43h     |     16:08h     | not measured |
+|     RTX 3060 Ti FE    |  0.19s  |   2.08s   |    16.43s    |     2:14m    |     19:20m   |      2:48h     |     26:37h     | 10d 16h |
+|       GTX 1650        |  0.67s  |   5.05s   |    39.83s    |     5:30m    |     48:57m   |      7:16h     |  not measured  | not measured |
 
 <b>CPUs</b>
 |      Board size N     |        16       |     17    |     18    |     19    |      20      |      21      |      22      |
