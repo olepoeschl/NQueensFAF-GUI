@@ -56,14 +56,11 @@ This section shows the improvements we made from version to version related to t
 Unless its stated otherwise, following times are referring to *single-threaded* and the i5-9300h mentioned above.
 
 ## Distributed (yet to come):
-      - test using board size 23 was successfull!
-      
-      - currently: including GPU computation into the client
+      - we already had a working version for cpu, but due to new ideas and requirements, we started again from zero and reprogram the whole application
+     
+      - this is gonna take some time till a final version is released, but the strategy behind the program already exists
 
-      - thus revise the distribution of workloads (computational power varies a lot between different CPU's and GPU's)
- 
-      - due to new ideas and requirements, we started again from zero and reprogram the whole application; 
-        this is gonna take some time till a final version is released, but the strategy behind the program already exists
+      - we aim to have a working version till august 2022
         
       - there will be a website with a ranking of all participants and the current progress of the project when it runs
      
@@ -73,7 +70,6 @@ We are very excited!
       - implemented (fast!) SymSolver for finding solutions that are symmetric with respect to 90 or 180 degree rotation 
       - enable counting of unique solutions 
       - extend capabilities of the command line version, for example auto saves, unique solution counter and config file 
-   
 ## 1.15:
       - migrated from LWJGL 2 to LWJGL 3 -> much less overhead when starting the GpuSolver
       - for low board sizes, noticeably faster times
