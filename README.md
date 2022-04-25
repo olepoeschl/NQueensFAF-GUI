@@ -51,6 +51,8 @@ This solution is based on two methods and one idea:
 
 - GPU: remember board-leaving diagonals, when going forward, so that they can be reinserted, when we go backwards. This has also been done in Ping Che Chen's implementation (https://forum.beyond3d.com/threads/n-queen-solver-for-opencl.47785/) of the N Queens Problem for GPU's and it reduces the use of memory. 
 
+Source code of the Solver itself is available at the [NQueensFAF library](https://github.com/olepoeschl/NQueensFAF-Library).
+
 # Versions
 This section shows the improvements we made from version to version related to the performance.
 Unless its stated otherwise, following times are referring to *single-threaded* and the i5-9300h mentioned above.
