@@ -58,7 +58,7 @@ This section shows the improvements we made from version to version related to t
 Unless its stated otherwise, following times are referring to *single-threaded* and the i5-9300h mentioned above.
 
 ## Distributed (yet to come):
-      - we already had a working version for cpu, but due to new ideas and requirements, we started again from zero and reprogram the whole application
+      - we already had a working version, but it was only for cpu and due to new ideas and requirements, we started again from zero and reprogram the whole application
      
       - this is gonna take some time till a final version is released, but the strategy behind the program already exists
 
