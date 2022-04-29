@@ -60,10 +60,10 @@ Unless its stated otherwise, following times are referring to *single-threaded* 
 ## Distributed (yet to come):
       - we already had a working version, but it was only for cpu and due to new ideas and requirements, we started again from zero and reprogram the whole application
      
-      - this is gonna take some time till a final version is released, but the strategy behind the program already exists
+      - currently developing a system for distributing the workloads as efficent as possible, so that CPU's and GPU's of all classes can contribute usefully
 
       - we aim to have a working version till august 2022
-        
+   
       - there will be a website with a ranking of all participants and the current progress of the project when it runs
      
 We are very excited!
