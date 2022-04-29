@@ -11,7 +11,7 @@ See the "Release" section for the latest stable build.
 <br> It's an eclipse project, so you can clone it, import it into eclipse and run it.
 For lower Java JDK versions than 17, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
-# Current Times
+# Current Benchmarks
 Some new hardware enabled us to refurbish the computation times table. 
 Especially the RTX 3080 shows, whats actually possible with only 16 hours for the 24 queens problem. 
 We are looking forward to the distributed project and hope to solve the 26 queens problem this year with your help. 
