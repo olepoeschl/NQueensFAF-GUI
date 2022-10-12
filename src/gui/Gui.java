@@ -248,7 +248,7 @@ public class Gui extends JFrame {
 		lblTime.setText(getTimeStr(solver.getDuration()));
 		
 		// print solution counts 
-		long solutionsUnique = (solver.getSolutions() + 4*symSolver.getSolutions180() + 6* symSolver.getSolutions90()) / 8;
+		long solutionsUnique = symSolver.getUniqueSolutionsTotal(solver.getSolutions());
 		print("\nUnique Solutions:");
 		print("      With  90° symmetry: " + getSolutionsStr(symSolver.getSolutions90()));
 		print("      With 180° symmetry: " + getSolutionsStr(symSolver.getSolutions180()));
