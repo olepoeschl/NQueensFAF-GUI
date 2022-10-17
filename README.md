@@ -62,7 +62,7 @@ Unless its stated otherwise, following times are referring to *single-threaded* 
      
       - currently developing a system for distributing the workloads as efficent as possible, so that CPU's and GPU's of all classes can contribute usefully
 
-      - we aim to have a working version till September 2022
+      - we aim to have a working version till October 2022
    
       - there will be a website with a ranking of all participants and the current progress of the project when it runs
      
