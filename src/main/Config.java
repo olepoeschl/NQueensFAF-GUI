@@ -22,6 +22,7 @@ public class Config {
 		datatypes.put("autoSaveFilename", 				"String"	);
 		datatypes.put("autoDeleteEnabled", 				"boolean"	);
 		datatypes.put("gpuWorkgroupSize", 				"int"		);
+		datatypes.put("presetQueens", 					"int"		);
 	}
 	private static final HashMap<String, Object> defaultConfigs = new HashMap<String, Object>();
 	static {
@@ -33,6 +34,7 @@ public class Config {
 		defaultConfigs.put("autoSaveFilename", 				"nqueensfaf#N#"	);
 		defaultConfigs.put("autoDeleteEnabled", 			false			);
 		defaultConfigs.put("gpuWorkgroupSize", 				64				);
+		defaultConfigs.put("presetQueens", 					6				);
 	}
 	private static HashMap<String, Object> configs;
 	

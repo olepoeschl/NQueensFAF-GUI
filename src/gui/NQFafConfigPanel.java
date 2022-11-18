@@ -19,7 +19,7 @@ public class NQFafConfigPanel extends JPanel {
 	
 	// all components
 	JCheckBox cboxProgressUpdatesEnabled, cboxAutoSaveEnabled, cboxAutoDeleteEnabled;
-	LabelWithTxtInput inputTimeUpdateDelay, inputProgressUpdateDelay, inputAutoSavePercentageStep, inputAutoSaveFileName, inputGpuWorkgroupSize;
+	LabelWithTxtInput inputTimeUpdateDelay, inputProgressUpdateDelay, inputAutoSavePercentageStep, inputAutoSaveFileName, inputGpuWorkgroupSize, inputPresetQueens;
 	
 	JCheckBox[] cboxes;
 	LabelWithTxtInput[] inputs;
@@ -64,9 +64,13 @@ public class NQFafConfigPanel extends JPanel {
 		cboxAutoDeleteEnabled.setName("autoDeleteEnabled");
 		add(cboxAutoDeleteEnabled);
 
-		inputGpuWorkgroupSize = new LabelWithTxtInput("workgroup size used by the GPU", "");
+		inputGpuWorkgroupSize = new LabelWithTxtInput("workgroup size used by the GPU: ", "");
 		inputGpuWorkgroupSize.setName("gpuWorkgroupSize");
 		add(inputGpuWorkgroupSize);
+
+		inputPresetQueens = new LabelWithTxtInput("queens precomputed by the CPU for the GPU: ", "");
+		inputPresetQueens.setName("presetQueens");
+		add(inputPresetQueens);
 		
 		// add listeners to all input components
 		cboxes = new JCheckBox[] {
@@ -79,7 +83,8 @@ public class NQFafConfigPanel extends JPanel {
 				inputProgressUpdateDelay, 
 				inputAutoSavePercentageStep, 
 				inputAutoSaveFileName, 
-				inputGpuWorkgroupSize
+				inputGpuWorkgroupSize,
+				inputPresetQueens
 		};
 		for(var cb : cboxes) {
 			cb.addChangeListener((e) -> {
@@ -128,11 +133,11 @@ public class NQFafConfigPanel extends JPanel {
 			lbl = new JLabel(lblText);
 			lbl.setBounds(0, 0, 400, 20);
 			txtField = new JTextField();
-			txtField.setBounds(250, 0, 150, 20);
+			txtField.setBounds(270, 0, 150, 20);
 			txtField.setHorizontalAlignment(JTextField.RIGHT);
 			lbl.setLabelFor(txtField);
 			lblUnit = new JLabel(unit);
-			lblUnit.setBounds(400, 0, 100, 20);
+			lblUnit.setBounds(420, 0, 100, 20);
 			
 			add(lbl);
 			add(txtField);

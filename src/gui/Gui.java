@@ -637,7 +637,6 @@ public class Gui extends JFrame {
 		lastTenPercent = (int) (solver.getProgress() * 100) / 10;
 
 		// apply config values
-		// progress update 
 		solver.setProgressUpdatesEnabled((boolean) Config.getValue("progressUpdatesEnabled"));
 		try {
 			solver.setTimeUpdateDelay((long) Config.getValue("timeUpdateDelay"));
@@ -655,7 +654,6 @@ public class Gui extends JFrame {
 			pnlConfig.inputProgressUpdateDelay.txtField.setText("" + defaultVal);
 			Config.resetValue("progressUpdateDelay");
 		}
-		// autosave 
 		solver.setAutoSaveEnabled((boolean) Config.getValue("autoSaveEnabled"));
 		try {
 			solver.setAutoSavePercentageStep((int) Config.getValue("autoSavePercentageStep"));
@@ -674,6 +672,14 @@ public class Gui extends JFrame {
 			gpuSolver.setWorkgroupSize(defaultVal);
 			pnlConfig.inputGpuWorkgroupSize.txtField.setText("" + defaultVal);
 			Config.resetValue("gpuWorkgroupSize");
+		}
+		try {
+			gpuSolver.setNumberOfPresetQueens((int) Config.getValue("presetQueens"));
+		} catch(IllegalArgumentException e) {
+			int defaultVal = (int) Config.getDefaultValue("presetQueens");
+			gpuSolver.setNumberOfPresetQueens(defaultVal);
+			pnlConfig.inputPresetQueens.txtField.setText("" + defaultVal);
+			Config.resetValue("presetQueens");
 		}
 		
 		// set N and choose solver 
