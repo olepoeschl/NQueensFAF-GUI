@@ -209,9 +209,10 @@ public class CLI {
 		}
 		solver.setN(N);
 		solver.setProgressUpdateDelay(200);
+		final long[] maxOutputLen = new long[] { 0l };
 		solver.addTerminationCallback(() -> {
 			System.out.print("\r");
-			for (int i = 0; i < 63; i++) { // 63 is total length of the progress output
+			for (int i = 0; i < maxOutputLen[0]; i++) { // 63 is total length of the progress output
 				System.out.print("_");
 			}
 			System.out.println();
@@ -244,9 +245,11 @@ public class CLI {
 				while (solutionsStr.length() < 30) {
 					solutionsStr += " ";
 				}
-				// length: 63
 				str = "\r" + loadingChars[loadingCounter[0]++] + "\tduration: " + getTimeStr(loadingDuration[0]) + "\tprogress: " + df.format(loadingProgress[0])
 						+ " solutions: " + solutionsStr;
+				if(str.length() > maxOutputLen[0]) {
+					maxOutputLen[0] = str.length();
+				}
 				System.out.print(str);
 				try {
 					Thread.sleep(128);
