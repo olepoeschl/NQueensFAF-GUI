@@ -14,6 +14,7 @@ import main.Config;
 public class CLI {
 
 	private String[] args;
+	private String errstr = "try '-h' or '-help' for more information";
 
 	public CLI(String[] args) {
 		this.args = args;
@@ -22,11 +23,10 @@ public class CLI {
 	public void start() {
 		CommandLineArguments clArgs;
 		try {
-			clArgs = new CommandLineArguments(args, "-h", "--help", "--threads", "-t", "-gpu", "--gpu-device",
-					"-device", "--workgroup-size", "--list-gpus");
+			clArgs = new CommandLineArguments(args, "-h", "-help", "-threads", "-gpu", "-device", "-workgroup-size", "-list-gpus");
 		} catch (IllegalArgumentException e) {
 			System.err.println("error: " + e.getMessage());
-			System.out.println("try '-h' or '--help' for more information");
+			System.out.println(errstr);
 			return;
 		}
 
@@ -38,11 +38,11 @@ public class CLI {
 
 		// some ugly lines of code processing all command line arguments
 		// but whatever
-		if (clArgs.switchPresent("-h") || clArgs.switchPresent("--help")) {
+		if (clArgs.switchPresent("-h") || clArgs.switchPresent("-help")) {
 			help();
 			return;
 		}
-		if (clArgs.switchPresent("--list-gpus")) { // list all available GPU's
+		if (clArgs.switchPresent("-list-gpus")) { // list all available GPU's
 			String[] devices;
 			try {
 				devices = new GpuSolver().getAvailableDevices();
@@ -67,36 +67,32 @@ public class CLI {
 			return;
 		}
 		try {
-			if (clArgs.switchPresent("--threads")) {
-				threads = clArgs.switchIntValue("--threads");
-			} else if (clArgs.switchPresent("-t")) {
-				threads = clArgs.switchIntValue("-t");
+			if (clArgs.switchPresent("-threads")) {
+				threads = clArgs.switchIntValue("-threads");
 			}
 		} catch (NumberFormatException e) {
 			System.err.println("error: thread count must be a number");
-			System.out.println("try '-h' or '--help' for more information");
+			System.out.println(errstr);
 			return;
 		}
 		useGpu = clArgs.switchPresent("-gpu");
 		try {
-			if (clArgs.switchPresent("--gpu-device")) {
-				gpuDevice = clArgs.switchIntValue("--gpu-device");
-			} else if (clArgs.switchPresent("-device")) {
+			if (clArgs.switchPresent("-device")) {
 				gpuDevice = clArgs.switchIntValue("-device");
 			}
 		} catch (NumberFormatException e) {
 			System.err.println("error: GPU device index must be a number");
-			System.out.println("try '-h' or '--help' for more information");
+			System.out.println(errstr);
 			return;
 		}
 		try {
 			workgroupSize = (int) Config.getDefaultValue("gpuWorkgroupSize");
-			if (clArgs.switchPresent("--workgroup-size")) {
-				workgroupSize = clArgs.switchIntValue("--workgroup-size");
+			if (clArgs.switchPresent("-workgroup-size")) {
+				workgroupSize = clArgs.switchIntValue("-workgroup-size");
 			}
 		} catch (NumberFormatException e) {
 			System.err.println("error: workgroup size must be a number");
-			System.out.println("try '-h' or '--help' for more information");
+			System.out.println(errstr);
 			return;
 		}
 		String[] targets = clArgs.targets();
@@ -109,7 +105,7 @@ public class CLI {
 			N = Integer.parseInt(targets[0]);
 		} catch (NumberFormatException e) {
 			System.err.println("error: board size must be a number");
-			System.out.println("try '-h' or '--help' for more information");
+			System.out.println(errstr);
 			return;
 		}
 
@@ -119,7 +115,7 @@ public class CLI {
 			startCommandLineSolver(N, threads, useGpu, gpuDevice, workgroupSize);
 		} catch (IllegalArgumentException e) {
 			System.err.println("error: " + e.getMessage());
-			System.out.println("try '-h' or '--help' for more information");
+			System.out.println(errstr);
 			return;
 		}
 	}
@@ -143,15 +139,13 @@ public class CLI {
 		}
 		System.out.println();
 		System.out.println("  available options for command line usage:");
-		System.out.println("\t-h, --help \t\tprint this message");
-		System.out
-				.println("\t-t <thread_count>, --threads <thread_count> \n\t\t\t\tset the thread count when using CPU");
+		System.out.println("\t-h, -help \t\tprint this message");
+		System.out.println("\t-threads <thread_count> \n\t\t\t\tset the thread count when using CPU");
 		System.out.println("\t-gpu \tuse a GPU if possible");
-		System.out.println(
-				"\t-device <index>, --gpu-device <index>	\n\t\t\t\tset the index of the GPU that should be used, see '--list-gpus'");
 		System.out
-				.println("\t--workgroup-size <workgroup_size> \n\t\t\t\tset the OpenCL workgroup size when using GPU");
-		System.out.println("\t--list-gpus \t\tprint a list of all available GPU devices and their indexes");
+				.println("\t-device <index>	\n\t\t\t\tset the index of the GPU that should be used, see '-list-gpus'");
+		System.out.println("\t-workgroup-size <workgroup_size> \n\t\t\t\tset the OpenCL workgroup size when using GPU");
+		System.out.println("\t-list-gpus \t\tprint a list of all available GPU devices and their indexes");
 	}
 
 	private void startCommandLineSolver(int N, int threads, boolean useGpu, int gpuDevice, int workgroupSize) {
@@ -207,7 +201,6 @@ public class CLI {
 						"invalid GPU device index: " + gpuDevice + " (only " + devices.length + " devices available)");
 			}
 			gs.setDevice(gpuDevice);
-			gs.setWorkgroupSize(workgroupSize);
 			solver = gs;
 		} else {
 			CpuSolver cs = new CpuSolver();
@@ -218,7 +211,7 @@ public class CLI {
 		solver.setProgressUpdateDelay(200);
 		solver.addTerminationCallback(() -> {
 			System.out.print("\r");
-			for(int i = 0; i < 63; i++) {	// 63 is total length of the progress output
+			for (int i = 0; i < 63; i++) { // 63 is total length of the progress output
 				System.out.print("_");
 			}
 			System.out.println();
@@ -236,6 +229,7 @@ public class CLI {
 		});
 		String[] loadingChars = new String[] { "|", "/", "-", "\\" };
 		final int[] loadingCounter = new int[] { 0 };
+		final long[] loadingDuration = new long[] { 0l };
 		final float[] loadingProgress = new float[] { 0f };
 		final long[] loadingSolutions = new long[] { 0l };
 		Thread progressUpdateThread = new Thread(() -> {
@@ -251,8 +245,8 @@ public class CLI {
 					solutionsStr += " ";
 				}
 				// length: 63
-				str = "\r" + loadingChars[loadingCounter[0]++] + "\tprogress: " + df.format(loadingProgress[0])
-						+ ", solutions: " + solutionsStr;
+				str = "\r" + loadingChars[loadingCounter[0]++] + "\tduration: " + getTimeStr(loadingDuration[0]) + "\tprogress: " + df.format(loadingProgress[0])
+						+ " solutions: " + solutionsStr;
 				System.out.print(str);
 				try {
 					Thread.sleep(128);
@@ -265,6 +259,9 @@ public class CLI {
 			loadingProgress[0] = progress;
 			loadingSolutions[0] = solutions;
 		});
+		solver.setOnTimeUpdateCallback((duration) -> {
+			loadingDuration[0] = duration;
+		});
 
 		// read config file
 		try {
@@ -274,7 +271,6 @@ public class CLI {
 			throw new IllegalStateException("Invalid content of nqueensfaf.properties file");
 		}
 		// apply config values
-		// progress update
 		solver.setProgressUpdatesEnabled((boolean) Config.getValue("progressUpdatesEnabled"));
 		try {
 			solver.setTimeUpdateDelay((long) Config.getValue("timeUpdateDelay"));
@@ -290,7 +286,6 @@ public class CLI {
 			solver.setProgressUpdateDelay(defaultVal);
 			Config.resetValue("progressUpdateDelay");
 		}
-		// autosave
 		solver.setAutoSaveEnabled((boolean) Config.getValue("autoSaveEnabled"));
 		try {
 			solver.setAutoSavePercentageStep((int) Config.getValue("autoSavePercentageStep"));
@@ -308,6 +303,15 @@ public class CLI {
 				int defaultVal = (int) Config.getDefaultValue("gpuWorkgroupSize");
 				((GpuSolver) solver).setWorkgroupSize(defaultVal);
 				Config.resetValue("gpuWorkgroupSize");
+			}
+		}
+		if(useGpu) {
+			try {
+				((GpuSolver) solver).setNumberOfPresetQueens((int) Config.getValue("presetQueens"));
+			} catch (IllegalArgumentException e) {
+				int defaultVal = (int) Config.getDefaultValue("presetQueens");
+				((GpuSolver) solver).setNumberOfPresetQueens(defaultVal);
+				Config.resetValue("presetQueens");
 			}
 		}
 
