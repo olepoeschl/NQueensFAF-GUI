@@ -50,8 +50,6 @@ This solution is based on two methods and one idea:
 
 - GPU: remember board-leaving diagonals, when going forward, so that they can be reinserted, when we go backwards. This has also been done in Ping Che Chen's implementation (https://forum.beyond3d.com/threads/n-queen-solver-for-opencl.47785/) of the N Queens Problem for GPU's and it reduces the use of memory. 
 
-Source code of the Solver itself is available at the [NQueensFAF library](https://github.com/olepoeschl/NQueensFAF-Library).
-
 # Versions
 This section shows the improvements we made from version to version related to the performance.
 Unless its stated otherwise, following times are referring to *single-threaded* and the i5-9300h mentioned above.
@@ -79,7 +77,7 @@ We are very excited!
 ## 1.13:
       - BIG IMPROVEMENT in GPU-Solver (about 30%)
       
-      - swapped j with k in GpuConstellationsGenerator (-> NQueensFAF library)
+      - swapped j with k in GpuConstellationsGenerator
       
       - group constellations by j, putting them into the same OpenCL workgroup
       
@@ -91,11 +89,10 @@ We are very excited!
       
       - some new Gui features
 ## 1.11:
-      - splitted into the Gui program (this repo) and the NQueensFAF library (link above) 
+      - splitted into the Gui program (this repo) and the NQueensFAF library for the computation part 
       
       - the GPU solver now rounds the global work size up to the next matching number of constellations 
         and solves all constellations using GPU instead of solving remaing constellations using CPU
-        (take a look at the NQueensFAF library)
         
       - code (especially of the Gui class) is much cleaner now
 ## 1.10:
