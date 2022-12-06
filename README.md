@@ -3,6 +3,7 @@
 
 A really fast and highly optimized program for calculating the number of solutions of the N-Queens problem. Can be used with a gui or via command line.
 <br>Supports CPU multithreading and GPU.
+
 NOTE: The newets version is always tested for integrated Intel GPUs and for NVIDIA GPUs. 
 The latest working version for AMD is release 1.14.1. The compatibility for AMD GPUS will be part of the next release. 
 
