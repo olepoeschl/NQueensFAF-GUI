@@ -3,6 +3,8 @@
 
 A really fast and highly optimized program for calculating the number of solutions of the N-Queens problem. Can be used with a gui or via command line.
 <br>Supports CPU multithreading and GPU.
+NOTE: The newets version is always tested for integrated Intel GPUs and for NVIDIA GPUs. 
+The latest working version for AMD is release 1.14.1. The compatibility for AMD GPUS will be part of the next release. 
 
 ### Download
 See the "Release" section for the latest stable build.
@@ -11,9 +13,9 @@ See the "Release" section for the latest stable build.
 For lower Java JDK versions than 17, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
 
 # Current Benchmarks
-Some new hardware enabled us to refurbish the computation times table. 
-Especially the RTX 3080 shows, whats actually possible with only 16 hours for the 24 queens problem. 
-We are looking forward to the distributed project and hope to solve the 26 queens problem this year with your help. 
+During the time we have spent developing this program, we have been able to continuously expand our available hardware. 
+Especially the newer graphics cards show the potential of our program. 
+We are looking forward to the distributed project and hope to solve the 26-queens problem until January 2023 with your help! 
 
 <b>GPUs</b>
 |      Board size N     |   18    |     19    |      20      |      21      |      22      |       23       |       24       |   25 |
@@ -30,15 +32,14 @@ We are looking forward to the distributed project and hope to solve the 26 queen
 |   i5 - 9300h single   |      1.32s      |   8.95s   |   1:05m   |   8:20m   |     1:10h    | not measured | not measured |
 |   i5 - 9300h multi    |      0.25s      |   1.75s   |   12.5s   |   1:35m   |    13:05m    |     1:52h    |     16:18h   |
 
-The CPU's and the GPU's are used as is, without overclocking. Only the i5 - 9300h got slightly undervolted. 
 Single stands for single core and multi for Multi-Core. 
-(Attention: when testing times on GPU, your graphics card may go into another power state. To check this and avoid this, you can use a tool such as "nvidiainfo".)
+The CPU's and the GPU's are used with stock settings. 
+Attention: when testing times on GPU, your graphics card may go into another power state. To check this and avoid this, you can use a tool such as "nvidiainfo".
 
 # News 
 
-We are happy to have passed a small milestone today. 
-A little bit of overclocking made it possible to finally reach the previous aim of this program: to solve the 16-queens-problem single threaded under 1 second. 
-At 5.3GHz, the i5-12600k was able to perform the computation in 0.992s only - even with unique solutions included. 
+We have adapted the architecture of the solvers for the distributed version. 
+It only remains to add some code for distributing the workloads properly to users with different hardware. 
 
 # General
 
@@ -66,7 +67,7 @@ Unless its stated otherwise, following times are referring to *single-threaded* 
 We are very excited!
    
 ## 1.16 (latest):
-      - implemented (fast!) SymSolver for finding solutions that are symmetric with respect to 90 or 180 degree rotation 
+      - implemented SymSolver for finding solutions that are symmetric with respect to 90 or 180 degree rotation 
       - enable counting of unique solutions 
       - extend capabilities of the command line version, for example auto saves, unique solution counter and config file 
 ## 1.15:
