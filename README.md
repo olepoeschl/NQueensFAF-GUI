@@ -35,6 +35,7 @@ We are looking forward to the distributed project and hope to solve the 26-queen
 
 Single stands for single core and multi for Multi-Core. 
 The CPU's and the GPU's are used with stock settings. 
+
 Attention: when testing times on GPU, your graphics card may go into another power state. To check this and avoid this, you can use a tool such as "nvidiainfo".
 
 # News 
