@@ -10,6 +10,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -261,7 +263,20 @@ public class Gui extends JFrame {
 		iconImg = Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/queenFire_FAF_beschnitten.png"));
 		setIconImage(iconImg);
 		setResizable(true);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				long maxWaitingDuration = 120_000;	// max waiting time for store() to finish: 2 minutes
+				long start = System.currentTimeMillis();
+				while(solver.isStoring() && (System.currentTimeMillis() - start <= maxWaitingDuration)) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e1) {
+						// ignore
+					}
+				}
+			}
+		});
 		getContentPane().setLayout(new BorderLayout());
 		
 		// overall
@@ -625,9 +640,9 @@ public class Gui extends JFrame {
 	private void start() {
 		if(!solver.isIdle())
 			return;
+		symSolver.reset();
 		if(!solver.isRestored()) {
 			solver.reset();
-			symSolver.reset();
 			// reset progress
 			progressBar.setValue(0);
 			String progressText = "progress: 0.0%    solutions: 0";
