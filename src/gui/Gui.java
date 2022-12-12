@@ -47,6 +47,8 @@ public class Gui extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	
+	private final JFrame self = this;
+	
 	// gui-components
 	private Image iconImg;
 	private JTabbedPane tabbedPane;
@@ -263,9 +265,10 @@ public class Gui extends JFrame {
 		iconImg = Toolkit.getDefaultToolkit().getImage(Gui.class.getResource("/res/queenFire_FAF_beschnitten.png"));
 		setIconImage(iconImg);
 		setResizable(true);
-		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+//		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
+				self.setVisible(false);
 				long maxWaitingDuration = 120_000;	// max waiting time for store() to finish: 2 minutes
 				long start = System.currentTimeMillis();
 				while(solver.isStoring() && (System.currentTimeMillis() - start <= maxWaitingDuration)) {
@@ -275,6 +278,7 @@ public class Gui extends JFrame {
 						// ignore
 					}
 				}
+				System.exit(0);
 			}
 		});
 		getContentPane().setLayout(new BorderLayout());
