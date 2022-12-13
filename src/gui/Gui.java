@@ -743,7 +743,7 @@ public class Gui extends JFrame {
 	
 	private void cancel() {
 		// if the user restored() a faf file but now wants to "unload" it so that the gui is in its default state again
-		if(solver.isRestored()) {
+		if(solver.isRestored() && !solver.isRunning()) {
 			solver.reset();
 			// reset progress
 			progressBar.setValue(0);
