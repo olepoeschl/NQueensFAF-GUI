@@ -23,7 +23,7 @@ We are looking forward to the distributed project and hope to solve the 26-queen
 |      :----------:     |   :-:   |    :-:    |      :-:     |      :-:     |      :-:     |       :-:      |      :-:       |  :-: |
 |      RTX 3080 FE      |  0.17s  |   1.46s   |    10.75s    |     1:25m    |     11:45m   |      1:43h     |     16:08h     | not measured |
 |     RTX 3060 Ti FE    |  0.10s  |   1.26s   |    10.18s    |     1:23m    |     12:10m   |      1:49h     |     17:50h     | 7d 2h |
-|       GTX 1650        |  0.67s  |   5.05s   |    39.83s    |     5:30m    |     48:57m   |      7:16h     |  not measured  | not measured |
+|       GTX 1650        |  0.40s  |   3.62s   |    29.08s    |     4:02m    |     35:21m   |      not measured     |  not measured  | not measured |
 
 <b>CPUs</b>
 |      Board size N     |        16       |     17    |     18    |     19    |      20      |      21      |      22      |
