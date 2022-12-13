@@ -630,6 +630,8 @@ public class Gui extends JFrame {
 			lblTime.setText(getTimeStr(solver.getDuration()));
 			sliderN.setEnabled(false);
 			tfN.setEditable(false);
+			if(solver == gpuSolver)
+				btnCancel.setVisible(true);
 			btnCancel.setEnabled(true);
 			print("> Progress successfully restored from file '" + filechooser.getSelectedFile().getName().toString() + "'. ", true);
 		}
@@ -647,6 +649,9 @@ public class Gui extends JFrame {
 			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
 			progressBar.repaint();
 			lblTime.setText("00:00:00.000");
+		} else {
+			if(solver == gpuSolver)
+				btnCancel.setVisible(false);
 		}
 		lastTenPercent = (int) (solver.getProgress() * 100) / 10;
 
@@ -766,6 +771,8 @@ public class Gui extends JFrame {
 			btnPause.setEnabled(false);
 			btnPause.setText("Pause");
 			btnCancel.setEnabled(false);
+			if(solver == gpuSolver)
+				btnCancel.setVisible(false);
 			unlockTabs();	// enable the other tabs again
 			return;
 		}
