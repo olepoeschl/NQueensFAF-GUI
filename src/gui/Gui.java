@@ -29,6 +29,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
@@ -494,7 +495,7 @@ public class Gui extends JFrame {
 			// no OpenCL-capable device was found
 			// a warning is written by the NQueensFAF library, so we don't need to print anything here
 		}
-		cboxDeviceChooser.setBackground(new Color(243, 243, 247));
+		cboxDeviceChooser.setBackground(new Color(245, 245, 230));
 		cboxDeviceChooser.setVisible(false);
 		cboxDeviceChooser.addItemListener((e) -> {
 			if(e.getSource() == cboxDeviceChooser.getItemAt(0)) {
@@ -629,6 +630,7 @@ public class Gui extends JFrame {
 			lblTime.setText(getTimeStr(solver.getDuration()));
 			sliderN.setEnabled(false);
 			tfN.setEditable(false);
+			btnCancel.setEnabled(true);
 			print("> Progress successfully restored from file '" + filechooser.getSelectedFile().getName().toString() + "'. ", true);
 		}
 	}
@@ -644,6 +646,7 @@ public class Gui extends JFrame {
 			String progressText = "progress: 0.0%    solutions: 0";
 			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
 			progressBar.repaint();
+			lblTime.setText("00:00:00.000");
 		}
 		lastTenPercent = (int) (solver.getProgress() * 100) / 10;
 
@@ -739,6 +742,33 @@ public class Gui extends JFrame {
 	}
 	
 	private void cancel() {
+		// if the user restored() a faf file but now wants to "unload" it so that the gui is in its default state again
+		if(solver.isRestored()) {
+			solver.reset();
+			// reset progress
+			progressBar.setValue(0);
+			String progressText = "progress: 0.0%    solutions: 0";
+			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
+			progressBar.repaint();
+			
+			print("", true);
+			lblTime.setText("00:00:00.000");
+			lblStatus.setText(".  .  .");
+			pnlStatus.setBackground(UIManager.getColor( "Panel.background" ));
+			sliderN.setEnabled(true);
+			sliderThreadcount.setEnabled(true);
+			tfN.setEditable(true);
+			tfThreadcount.setEditable(true);
+			cboxDeviceChooser.setEnabled(true);
+			btnStart.setEnabled(true);
+			btnStore.setEnabled(false);
+			btnRestore.setEnabled(true);
+			btnPause.setEnabled(false);
+			btnPause.setText("Pause");
+			btnCancel.setEnabled(false);
+			unlockTabs();	// enable the other tabs again
+			return;
+		}
 		if(solver != cpuSolver)
 			return;
 		if(!solver.isRunning()) {
