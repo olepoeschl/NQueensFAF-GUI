@@ -269,15 +269,7 @@ public class Gui extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				self.setVisible(false);
-				long maxWaitingDuration = 120_000;	// max waiting time for store() to finish: 2 minutes
-				long start = System.currentTimeMillis();
-				while(solver.isStoring() && (System.currentTimeMillis() - start <= maxWaitingDuration)) {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e1) {
-						// ignore
-					}
-				}
+				solver.finishStoring();
 				System.exit(0);
 			}
 		});
