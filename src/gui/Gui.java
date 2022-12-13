@@ -130,11 +130,11 @@ public class Gui extends JFrame {
 					print("Completed " + ((int) (progress*100)) + "% in " + getTimeStr(solver.getDuration()));
 				}
 				// update color of the progressBar
-				if(!cpuSolver.wasCanceled()) {
-					clrProgress = getProgressColor(progress);
-					pnlStatus.setBackground(clrProgress);
-					progressBar.setForeground(clrProgress);
-				}
+				if(solver == cpuSolver && cpuSolver.wasCanceled())
+					return;
+				clrProgress = getProgressColor(progress);
+				pnlStatus.setBackground(clrProgress);
+				progressBar.setForeground(clrProgress);
 			}).addInitializationCallback(() -> {
 				initializationCB();
 			}).addTerminationCallback(() -> {
