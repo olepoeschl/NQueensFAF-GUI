@@ -5,7 +5,7 @@ A really fast and highly optimized program for calculating the number of solutio
 <br>Supports CPU multithreading and GPU.
 
 NOTE: The newest version is always tested for integrated Intel GPUs and for NVIDIA GPUs. 
-The latest working version for AMD is release 1.14.1. The compatibility for AMD GPUS will be part of the next release. 
+The latest working version for AMD is release 1.14.1. We are currently working on the compatibility with AMD GPUs in the newest version. 
 
 ### Download
 See the "Release" section for the latest stable build.
@@ -21,9 +21,10 @@ We are looking forward to the distributed project and hope to solve the 26-queen
 <b>GPUs</b>
 |      Board size N     |   18    |     19    |      20      |      21      |      22      |       23       |       24       |   25 |
 |      :----------:     |   :-:   |    :-:    |      :-:     |      :-:     |      :-:     |       :-:      |      :-:       |  :-: |
-|      RTX 3080 FE [still times of version 1.16]     |  0.17s  |   1.46s   |    10.75s    |     1:25m    |     11:45m   |      1:43h     |     16:08h     | not measured |
+|      RTX 3080 FE      |  0.03s  |   0.77s   |     5.85s    |     0:48m    |      6:56m   |      1:02h     |      9:45h     | not measured |
 |     RTX 3060 Ti FE    |  0.10s  |   1.26s   |    10.18s    |     1:23m    |     12:10m   |      1:49h     |     17:50h     | 7d 2h |
-|      GTX 1650 Ti      |  0.40s  |   3.62s   |    29.08s    |     4:02m    |     35:21m   |      not measured     |  not measured  | not measured |
+|      GTX 1650 Ti      |  0.40s  |   3.62s   |    29.08s    |     4:02m    |     35:21m   |  not measured  |  not measured  | not measured |
+|     Intel UHD 770     |  4.71s  |  32.98s   |     4:18m    |    36:13m    | not measured |  not measured  |  not measured  | not measured | 
 
 <b>CPUs</b>
 |      Board size N     |        16       |     17    |     18    |     19    |      20      |      21      |      22      |
@@ -62,14 +63,18 @@ Unless its stated otherwise, following times are referring to *single-threaded* 
      
       - currently developing a system for distributing the workloads as efficent as possible, so that CPU's and GPU's of all classes can contribute usefully
 
-      - we aim to have a working prototype until November 2022, official release will probably be in early 2023
+      - we aim to have a working prototype until December 2022, official release will probably be in early 2023
    
       - there will be a website with a ranking of all participants and the current progress of the project when it runs
      
 We are very excited!
 
 ## 1.17 (latest):
-      - see release 1.17
+      - GPU speed up of approximately 35% 
+      - prepared the CPU Solver for the distributed version 
+      - saving and restoring is now 10 times faster 
+      - number of preset queens is now configurable 
+      - now also showing the time in the command line version 
 ## 1.16:
       - implemented SymSolver for finding solutions that are symmetric with respect to 90 or 180 degree rotation 
       - enable counting of unique solutions 
