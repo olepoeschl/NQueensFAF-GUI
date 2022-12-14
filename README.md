@@ -5,7 +5,7 @@ A really fast and highly optimized program for calculating the number of solutio
 <br>Supports CPU multithreading and GPU.
 
 NOTE: The newest version is always tested for integrated Intel GPUs and for NVIDIA GPUs. 
-The latest working version for AMD is release 1.14.1. We are currently working on the compatibility with AMD GPUs in the newest version. 
+The latest working version for AMD is release 1.14.1. We are currently working on the compatibility with AMD GPUs. 
 
 ### Download
 See the "Release" section for the latest stable build.
@@ -74,7 +74,7 @@ We are very excited!
       - prepared the CPU Solver for the distributed version 
       - saving and restoring is now 10 times faster 
       - number of preset queens is now configurable 
-      - now also showing the time in the command line version 
+      - now also showing the passed time in the command line version 
 ## 1.16:
       - implemented SymSolver for finding solutions that are symmetric with respect to 90 or 180 degree rotation 
       - enable counting of unique solutions 
