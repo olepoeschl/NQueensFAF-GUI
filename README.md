@@ -67,8 +67,10 @@ Unless its stated otherwise, following times are referring to *single-threaded* 
       - there will be a website with a ranking of all participants and the current progress of the project when it runs
      
 We are very excited!
-   
-## 1.16 (latest):
+
+## 1.17 (latest):
+      - see release 1.17
+## 1.16:
       - implemented SymSolver for finding solutions that are symmetric with respect to 90 or 180 degree rotation 
       - enable counting of unique solutions 
       - extend capabilities of the command line version, for example auto saves, unique solution counter and config file 
