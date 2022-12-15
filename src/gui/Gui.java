@@ -255,8 +255,8 @@ public class Gui extends JFrame {
 		// print solution counts 
 		long solutionsUnique = symSolver.getUniqueSolutionsTotal(solver.getSolutions());
 		print("\nUnique Solutions:");
-		print("      With  90° symmetry: " + getSolutionsStr(symSolver.getSolutions90()));
-		print("      With 180° symmetry: " + getSolutionsStr(symSolver.getSolutions180()));
+		print("      With  90Â° symmetry: " + getSolutionsStr(symSolver.getSolutions90()));
+		print("      With 180Â° symmetry: " + getSolutionsStr(symSolver.getSolutions180()));
 		print("      Without   symmetry: " + getSolutionsStr(solutionsUnique-symSolver.getSolutions90() - symSolver.getSolutions180()));
 		print("      In total: " + getSolutionsStr(solutionsUnique));
 		print("============================");
@@ -605,6 +605,14 @@ public class Gui extends JFrame {
 		if(filechooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 			filepath = filechooser.getSelectedFile().getAbsolutePath();
 			// restore progress
+                        try {
+			        gpuSolver.setWorkgroupSize((int) Config.getValue("gpuWorkgroupSize"));
+		        } catch(IllegalArgumentException e) {
+			        int defaultVal = (int) Config.getDefaultValue("gpuWorkgroupSize");
+			        gpuSolver.setWorkgroupSize(defaultVal);
+			        pnlConfig.inputGpuWorkgroupSize.txtField.setText("" + defaultVal);
+			        Config.resetValue("gpuWorkgroupSize");
+		        }
 			try {
 				solver.restore(filepath);
 			} catch(ClassCastException e) {
