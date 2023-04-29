@@ -8,10 +8,7 @@ NOTE: The newest version is always tested for integrated Intel GPUs and for NVID
 The latest working version for AMD is release 1.14.1. We are currently working on the compatibility with AMD GPUs. 
 
 ### Download
-See the "Release" section for the latest stable build.
-<br>There you can also find a x64 stand alone executable for Windows, generated using [jarbatexe](https://github.com/olepoeschl/jarbatexe).
-<br> It's an eclipse project, so you can clone it, import it into eclipse and run it.
-For lower Java JDK versions than 17, you have to edit the build path and the compiler appliance of the eclipse project first, after that it should run properly too.
+See the "Release" section for the latest build.
 
 # Current Benchmarks
 During the time we have spent developing this program, we have been able to continuously expand our available hardware. 
