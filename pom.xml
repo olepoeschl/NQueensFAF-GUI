@@ -2,12 +2,21 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.nqueensfaf</groupId>
 	<artifactId>nqueensfaf-gui</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>NQueensFAF-GUI</name>
 	<description>A GUI for executing NQueensFAF-Solvers.</description>
+	<packaging>jar</packaging>
+	<properties>
+		<maven.compiler.target>17</maven.compiler.target>
+		<maven.compiler.source>17</maven.compiler.source>
+	</properties>
 
 	<dependencies>
-		
+		<dependency>
+			<groupId>de.nqueensfaf</groupId>
+			<artifactId>nqueensfaf</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -22,10 +31,28 @@
 		</resources>
 		<plugins>
 			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
-					<release>17</release>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>main.Main</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<finalName>nqueensfaf-gui-${project.version}</finalName>
+					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 			</plugin>
 		</plugins>
