@@ -1,5 +1,4 @@
-/bin/
-/.github/
 nqueensfaf.properties
-/dist/
 *.faf
+/dist/
+/target/
