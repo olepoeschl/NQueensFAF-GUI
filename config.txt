@@ -1,0 +1,1 @@
+{"type":"GPU","progressUpdateDelay":128,"autoSaveEnabled":false,"autoDeleteEnabled":false,"autoSavePercentageStep":10,"autosaveFilePath":"n{N}.faf","gpuworkgroupSize":64,"gpupresetQueens":6,"gpudevice":0,"cputhreadcount":1}
