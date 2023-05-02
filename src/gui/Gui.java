@@ -29,7 +29,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
@@ -39,8 +38,8 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.text.DefaultCaret;
 
 import de.nqueensfaf.Solver;
-import de.nqueensfaf.compute.CpuSolver;
-import de.nqueensfaf.compute.GpuSolver;
+import de.nqueensfaf.compute.CPUSolver;
+import de.nqueensfaf.compute.GPUSolver;
 import de.nqueensfaf.compute.SymSolver;
 import main.Config;
 
@@ -58,20 +57,20 @@ public class Gui extends JFrame {
 	private JTextField tfN, tfThreadcount;
 	private JSlider sliderN, sliderThreadcount;
 	private JPanel pnlControls, pnlStatus;
-	private JButton btnStore, btnRestore, btnStart, btnPause, btnCancel;
+	private JButton btnStore, btnRestore, btnStart;
 	private JLabel lblTime, lblStatus;
 	private JTextArea taOutput; 
 	private JProgressBar progressBar;
 	// gpu-tab
 	private JComboBox<String> cboxDeviceChooser;
 	// colors
-	private Color clrRunning, clrPausing, clrPaused, clrCanceling, clrCanceled, clrRestored, clrProgress;
+	private Color clrRunning, clrRestored, clrProgress;
 	// other
 	private FileFilter filefilter;
 
 	// Solvers
-	private CpuSolver cpuSolver;
-	private GpuSolver gpuSolver;
+	private CPUSolver cpuSolver;
+	private GPUSolver gpuSolver;
 	private SymSolver symSolver;
 	private Solver solver;
 	// for printing a msg each 10 %
@@ -90,20 +89,11 @@ public class Gui extends JFrame {
 	public void init() {
 		// initialize colors
 		clrRunning = Color.YELLOW;
-		clrPausing = new Color(230, 220, 100);
-		clrPaused = Color.ORANGE;
-		clrCanceling = new Color(220, 130, 130);
-		clrCanceled = new Color(255, 40, 40);
-		clrRestored = Color.CYAN;
 		
 		// initialize solvers
-		cpuSolver = new CpuSolver();
+		cpuSolver = new CPUSolver();
 		cpuSolver.setThreadcount(1);
-		cpuSolver.addOnPauseCallback(() -> {
-			pnlStatus.setBackground(clrPaused);
-			lblStatus.setText("paused");
-		});
-		gpuSolver = new GpuSolver();
+		gpuSolver = new GPUSolver();
 		try {
 			gpuSolver.setDevice(0);
 		} catch (IllegalStateException e) {
@@ -120,7 +110,8 @@ public class Gui extends JFrame {
 		for(Solver solver : solvers) {
 			solver.setOnTimeUpdateCallback((duration) -> {
 				lblTime.setText(getTimeStr(duration));
-			}).setOnProgressUpdateCallback((progress, solutions) -> {
+			});
+			solver.setOnProgressUpdateCallback((progress, solutions, duration) -> {
 				progressBar.setValue((int) (progress * 100));
 				String progressText = "progress: " + (((int)(progress*100*10000)) / 10000f) + "%    solutions: " + getSolutionsStr(solver.getSolutions());
 				((TitledBorder) progressBar.getBorder()).setTitle(progressText);
@@ -129,15 +120,14 @@ public class Gui extends JFrame {
 					lastTenPercent = (int) (progress * 100) / 10;
 					print("Completed " + ((int) (progress*100)) + "% in " + getTimeStr(solver.getDuration()));
 				}
-				// update color of the progressBar
-				if(solver == cpuSolver && cpuSolver.wasCanceled())
-					return;
 				clrProgress = getProgressColor(progress);
 				pnlStatus.setBackground(clrProgress);
 				progressBar.setForeground(clrProgress);
-			}).addInitializationCallback(() -> {
+			});
+			solver.setInitializationCallback((self) -> {
 				initializationCB();
-			}).addTerminationCallback(() -> {
+			});
+			solver.setTerminationCallback((self) -> {
 				terminationCB();
 			});
 		}
@@ -201,8 +191,6 @@ public class Gui extends JFrame {
 		btnStart.setEnabled(false);
 		btnStore.setEnabled(true);
 		btnRestore.setEnabled(false);
-		btnPause.setEnabled(true);
-		btnCancel.setEnabled(true);
 		// print global work size if gpuSolver is used
 		if(solver == gpuSolver) {
 			new Thread(() -> {
@@ -231,16 +219,6 @@ public class Gui extends JFrame {
 		btnStart.setEnabled(true);
 		btnStore.setEnabled(false);
 		btnRestore.setEnabled(true);
-		btnPause.setEnabled(false);
-		btnPause.setText("Pause");
-		btnCancel.setEnabled(false);
-		if(solver == cpuSolver) {
-			if(cpuSolver.wasCanceled()) {
-				progressBar.setForeground(clrCanceled);
-				pnlStatus.setBackground(clrCanceled);
-				lblStatus.setText("canceled");
-			}
-		}
 		// print finishing message
 		print("============================\n" + getSolutionsStr(solver.getSolutions()) + " solutions found for N = " + solver.getN());
 		// enable the other tabs again
@@ -412,24 +390,6 @@ public class Gui extends JFrame {
 			start();
 		});
 		pnlControls.add(btnStart, BorderLayout.CENTER);
-
-		btnPause = new NQFafButton("Pause");
-		btnPause.addActionListener((e) -> {
-			if(btnPause.getText().equals("Pause")) {
-				pause();
-			} else if (btnPause.getText().equals("Resume")) {
-				resume();
-			}
-		});
-		btnPause.setEnabled(false);
-		pnlControls.add(btnPause, BorderLayout.WEST);
-
-		btnCancel = new NQFafButton("Cancel");
-		btnCancel.addActionListener((e) -> {
-			cancel();
-		});
-		btnCancel.setEnabled(false);
-		pnlControls.add(btnCancel, BorderLayout.EAST);
 		
 		JPanel pnlBottom = new JPanel();
 		pnlBottom.setLayout(new BorderLayout());
@@ -537,8 +497,6 @@ public class Gui extends JFrame {
 					// show cpu gui-components
 					cboxDeviceChooser.setVisible(false);
 					pnlThreadcount.setVisible(true);
-					btnPause.setVisible(true);
-					btnCancel.setVisible(true);
 					solver = cpuSolver;
 				} else if(tabbedPane.getSelectedIndex() == 1) {
 					if(configTabActive) {
@@ -549,8 +507,6 @@ public class Gui extends JFrame {
 					// show gpu gui-components
 					cboxDeviceChooser.setVisible(true);
 					pnlThreadcount.setVisible(false);
-					btnPause.setVisible(false);
-					btnCancel.setVisible(false);
 					solver = gpuSolver;
 				} else {
 					// show config panel
@@ -584,7 +540,7 @@ public class Gui extends JFrame {
 		// store progress data in path filename
 		if(!filepath.equals("")) {
 			try {
-				solver.store(filepath, true);
+				solver.store(filepath);
 			} catch (IOException e) {
 				print("! unable to restore Solver from file '" + filepath + "': " + e.getMessage() + " !");
 				return;
@@ -638,9 +594,6 @@ public class Gui extends JFrame {
 			lblTime.setText(getTimeStr(solver.getDuration()));
 			sliderN.setEnabled(false);
 			tfN.setEditable(false);
-			if(solver == gpuSolver)
-				btnCancel.setVisible(true);
-			btnCancel.setEnabled(true);
 			print("> Progress successfully restored from file '" + filechooser.getSelectedFile().getName().toString() + "'. ", true);
 		}
 	}
@@ -657,22 +610,10 @@ public class Gui extends JFrame {
 			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
 			progressBar.repaint();
 			lblTime.setText("00:00:00.000");
-		} else {
-			if(solver == gpuSolver)
-				btnCancel.setVisible(false);
 		}
 		lastTenPercent = (int) (solver.getProgress() * 100) / 10;
 
 		// apply config values
-		solver.setProgressUpdatesEnabled((boolean) Config.getValue("progressUpdatesEnabled"));
-		try {
-			solver.setTimeUpdateDelay((long) Config.getValue("timeUpdateDelay"));
-		} catch(IllegalArgumentException e) {
-			long defaultVal = (long) Config.getDefaultValue("timeUpdateDelay");
-			solver.setTimeUpdateDelay(defaultVal);
-			pnlConfig.inputTimeUpdateDelay.txtField.setText("" + defaultVal);
-			Config.resetValue("timeUpdateDelay");
-		}
 		try {
 			solver.setProgressUpdateDelay((long) Config.getValue("progressUpdateDelay"));
 		} catch(IllegalArgumentException e) {
@@ -718,82 +659,15 @@ public class Gui extends JFrame {
 			gpuSolver.setDevice(cboxDeviceChooser.getSelectedIndex());
 		}
 		
+		System.out.println("hi");
+		
 		// start solver 
 		try {
-			symSolver.solveAsync();
-			solver.solveAsync();
+			new Thread(() -> symSolver.solve());
+			new Thread(() -> solver.solve());
 		} catch (Exception e) {
 			print("! " + e.getMessage() + " !");
 		}
-	}
-	
-	private void pause() {
-		if(solver != cpuSolver)
-			return;
-		if(!solver.isRunning()) {
-			return;
-		}
-		progressBar.setForeground(clrPausing);
-		btnPause.setText("Resume");
-		pnlStatus.setBackground(clrPausing);
-		lblStatus.setText("pausing .  .  .");
-		cpuSolver.pause();
-	}
-	
-	private void resume() {
-		if(solver != cpuSolver)
-			return;
-		if(!solver.isRunning()) {
-			return;
-		}
-		progressBar.setForeground(clrRunning);
-		btnPause.setText("Pause");
-		btnCancel.setEnabled(true);
-		pnlStatus.setBackground(clrRunning);
-		lblStatus.setText("running .  .  .");
-		cpuSolver.resume();
-	}
-	
-	private void cancel() {
-		// if the user restored() a faf file but now wants to "unload" it so that the gui is in its default state again
-		if(solver.isRestored() && !solver.isRunning()) {
-			solver.reset();
-			// reset progress
-			progressBar.setValue(0);
-			String progressText = "progress: 0.0%    solutions: 0";
-			((TitledBorder) progressBar.getBorder()).setTitle(progressText);
-			progressBar.repaint();
-			
-			print("", true);
-			lblTime.setText("00:00:00.000");
-			lblStatus.setText(".  .  .");
-			pnlStatus.setBackground(UIManager.getColor( "Panel.background" ));
-			sliderN.setEnabled(true);
-			sliderThreadcount.setEnabled(true);
-			tfN.setEditable(true);
-			tfThreadcount.setEditable(true);
-			cboxDeviceChooser.setEnabled(true);
-			btnStart.setEnabled(true);
-			btnStore.setEnabled(false);
-			btnRestore.setEnabled(true);
-			btnPause.setEnabled(false);
-			btnPause.setText("Pause");
-			btnCancel.setEnabled(false);
-			if(solver == gpuSolver)
-				btnCancel.setVisible(false);
-			unlockTabs();	// enable the other tabs again
-			return;
-		}
-		if(solver != cpuSolver)
-			return;
-		if(!solver.isRunning()) {
-			return;
-		}
-		btnPause.setText("Resume");
-		btnCancel.setEnabled(false);
-		pnlStatus.setBackground(clrCanceling);
-		lblStatus.setText("canceling .  .  .");
-		cpuSolver.cancel();
 	}
 	
 	// utility methods

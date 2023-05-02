@@ -18,8 +18,8 @@ public class NQFafConfigPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
 	// all components
-	JCheckBox cboxProgressUpdatesEnabled, cboxAutoSaveEnabled, cboxAutoDeleteEnabled;
-	LabelWithTxtInput inputTimeUpdateDelay, inputProgressUpdateDelay, inputAutoSavePercentageStep, inputAutoSaveFileName, inputGpuWorkgroupSize, inputPresetQueens;
+	JCheckBox cboxAutoSaveEnabled, cboxAutoDeleteEnabled;
+	LabelWithTxtInput inputProgressUpdateDelay, inputAutoSavePercentageStep, inputAutoSaveFileName, inputGpuWorkgroupSize, inputPresetQueens;
 	
 	JCheckBox[] cboxes;
 	LabelWithTxtInput[] inputs;
@@ -41,12 +41,6 @@ public class NQFafConfigPanel extends JPanel {
 		add(btnReset);
 		
 		// add inputs for all existent configs
-		cboxProgressUpdatesEnabled = new JCheckBox("enable progress updates");
-		cboxProgressUpdatesEnabled.setName("progressUpdatesEnabled");
-		add(cboxProgressUpdatesEnabled);
-		inputTimeUpdateDelay = new LabelWithTxtInput("delay between time updates: ", "ms");
-		inputTimeUpdateDelay.setName("timeUpdateDelay");
-		add(inputTimeUpdateDelay);
 		inputProgressUpdateDelay = new LabelWithTxtInput("delay between progress updates: ", "ms");
 		inputProgressUpdateDelay.setName("progressUpdateDelay");
 		add(inputProgressUpdateDelay);
@@ -74,12 +68,10 @@ public class NQFafConfigPanel extends JPanel {
 		
 		// add listeners to all input components
 		cboxes = new JCheckBox[] {
-				cboxProgressUpdatesEnabled, 
 				cboxAutoSaveEnabled, 
 				cboxAutoDeleteEnabled
 		};
 		inputs = new LabelWithTxtInput[] {
-				inputTimeUpdateDelay, 
 				inputProgressUpdateDelay, 
 				inputAutoSavePercentageStep, 
 				inputAutoSaveFileName, 

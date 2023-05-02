@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 
 import de.nqueensfaf.Solver;
-import de.nqueensfaf.compute.CpuSolver;
-import de.nqueensfaf.compute.GpuSolver;
+import de.nqueensfaf.compute.CPUSolver;
+import de.nqueensfaf.compute.GPUSolver;
 import de.nqueensfaf.compute.SymSolver;
 import main.Config;
 
@@ -45,7 +45,7 @@ public class CLI {
 		if (clArgs.switchPresent("-list-gpus")) { // list all available GPU's
 			String[] devices;
 			try {
-				devices = new GpuSolver().getAvailableDevices();
+				devices = new GPUSolver().getAvailableDevices();
 			} catch (IllegalStateException e) {
 				// no OpenCL-capable device was found
 				// a warning is written by the NQueensFAF library, so we don't need to print
@@ -175,10 +175,10 @@ public class CLI {
 		Solver solver;
 		SymSolver symSolver = new SymSolver();
 		if (useGpu) {
-			GpuSolver gs = new GpuSolver();
+			GPUSolver gs = new GPUSolver();
 			String[] devices;
 			try {
-				devices = new GpuSolver().getAvailableDevices();
+				devices = new GPUSolver().getAvailableDevices();
 			} catch (IllegalStateException e) {
 				// no OpenCL-capable device was found
 				// a warning is written by the NQueensFAF library, so we don't need to print
@@ -203,14 +203,14 @@ public class CLI {
 			gs.setDevice(gpuDevice);
 			solver = gs;
 		} else {
-			CpuSolver cs = new CpuSolver();
+			CPUSolver cs = new CPUSolver();
 			cs.setThreadcount(threads);
 			solver = cs;
 		}
 		solver.setN(N);
 		solver.setProgressUpdateDelay(200);
 		final long[] maxOutputLen = new long[] { 0l };
-		solver.addTerminationCallback(() -> {
+		solver.setTerminationCallback((self) -> {
 			System.out.print("\r");
 			for (int i = 0; i < maxOutputLen[0]; i++) { // 63 is total length of the progress output
 				System.out.print("_");
@@ -258,7 +258,7 @@ public class CLI {
 				}
 			}
 		});
-		solver.setOnProgressUpdateCallback((progress, solutions) -> {
+		solver.setOnProgressUpdateCallback((progress, solutions, duration) -> {
 			loadingProgress[0] = progress;
 			loadingSolutions[0] = solutions;
 		});
@@ -274,14 +274,6 @@ public class CLI {
 			throw new IllegalStateException("Invalid content of nqueensfaf.properties file");
 		}
 		// apply config values
-		solver.setProgressUpdatesEnabled((boolean) Config.getValue("progressUpdatesEnabled"));
-		try {
-			solver.setTimeUpdateDelay((long) Config.getValue("timeUpdateDelay"));
-		} catch (IllegalArgumentException e) {
-			long defaultVal = (long) Config.getDefaultValue("timeUpdateDelay");
-			solver.setTimeUpdateDelay(defaultVal);
-			Config.resetValue("timeUpdateDelay");
-		}
 		try {
 			solver.setProgressUpdateDelay((long) Config.getValue("progressUpdateDelay"));
 		} catch (IllegalArgumentException e) {
@@ -301,26 +293,24 @@ public class CLI {
 		solver.setAutoDeleteEnabled((boolean) Config.getValue("autoDeleteEnabled"));
 		if (useGpu && workgroupSize == (int) Config.getDefaultValue("gpuWorkgroupSize")) {
 			try {
-				((GpuSolver) solver).setWorkgroupSize((int) Config.getValue("gpuWorkgroupSize"));
+				((GPUSolver) solver).setWorkgroupSize((int) Config.getValue("gpuWorkgroupSize"));
 			} catch (IllegalArgumentException e) {
 				int defaultVal = (int) Config.getDefaultValue("gpuWorkgroupSize");
-				((GpuSolver) solver).setWorkgroupSize(defaultVal);
+				((GPUSolver) solver).setWorkgroupSize(defaultVal);
 				Config.resetValue("gpuWorkgroupSize");
 			}
 		}
 		if(useGpu) {
 			try {
-				((GpuSolver) solver).setNumberOfPresetQueens((int) Config.getValue("presetQueens"));
+				((GPUSolver) solver).setNumberOfPresetQueens((int) Config.getValue("presetQueens"));
 			} catch (IllegalArgumentException e) {
 				int defaultVal = (int) Config.getDefaultValue("presetQueens");
-				((GpuSolver) solver).setNumberOfPresetQueens(defaultVal);
+				((GPUSolver) solver).setNumberOfPresetQueens(defaultVal);
 				Config.resetValue("presetQueens");
 			}
 		}
 
-		if (solver.areProgressUpdatesEnabled()) {
-			progressUpdateThread.start();
-		}
+		progressUpdateThread.start();
 
 		if (useGpu)
 			System.out.println("starting GPU solver for board size " + N + "..");
@@ -329,7 +319,7 @@ public class CLI {
 
 		// start symmetric solver for finding also all unique solutions
 		symSolver.setN(N);
-		symSolver.solveAsync();
+		new Thread(() -> symSolver.solve()).start();
 		// start the solver
 		solver.solve();
 	}
